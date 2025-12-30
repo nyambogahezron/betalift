@@ -4,22 +4,31 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { useFeedbackStore } from '@/stores/useFeedbackStore'
 import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import React, { useState } from 'react'
 import {
-    Alert,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    View,
+	Alert,
+	Dimensions,
+	Pressable,
+	StyleSheet,
+	Switch,
+	Text,
+	View,
 } from 'react-native'
 import Animated, {
-    FadeInDown,
-    FadeInUp,
+	Extrapolation,
+	FadeInUp,
+	interpolate,
+	useAnimatedScrollHandler,
+	useAnimatedStyle,
+	useSharedValue,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const HEADER_MAX_HEIGHT = 220
+const HEADER_MIN_HEIGHT = 100
 
 type SettingsSection = {
 	title: string
@@ -40,33 +49,98 @@ export default function Profile() {
 	const { user, settings, updateSettings, logout } = useAuthStore()
 	const { myProjects, joinedProjects } = useProjectStore()
 	const { feedbacks } = useFeedbackStore()
+	const insets = useSafeAreaInsets()
+	const scrollY = useSharedValue(0)
 
 	const [notificationsEnabled, setNotificationsEnabled] = useState(
 		settings.notifications.pushEnabled
 	)
 
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (event) => {
+			scrollY.value = event.contentOffset.y
+		},
+	})
+
+	// Animated styles for parallax header
+	const headerAnimatedStyle = useAnimatedStyle(() => {
+		const height = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
+			Extrapolation.CLAMP
+		)
+		return { height }
+	})
+
+	const avatarAnimatedStyle = useAnimatedStyle(() => {
+		const scale = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[1, 0.45],
+			Extrapolation.CLAMP
+		)
+		const translateX = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[0, -(SCREEN_WIDTH / 2) + 56],
+			Extrapolation.CLAMP
+		)
+		const translateY = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[0, -50],
+			Extrapolation.CLAMP
+		)
+		return {
+			transform: [{ translateX }, { translateY }, { scale }],
+		}
+	})
+
+	const nameAnimatedStyle = useAnimatedStyle(() => {
+		const opacity = interpolate(
+			scrollY.value,
+			[0, 60, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[1, 0.5, 0],
+			Extrapolation.CLAMP
+		)
+		const translateY = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[0, -20],
+			Extrapolation.CLAMP
+		)
+		return { opacity, transform: [{ translateY }] }
+	})
+
+	const headerTitleStyle = useAnimatedStyle(() => {
+		const opacity = interpolate(
+			scrollY.value,
+			[60, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[0, 1],
+			Extrapolation.CLAMP
+		)
+		return { opacity }
+	})
+
 	const userStats = {
 		projects: myProjects.length,
 		testing: joinedProjects.length,
-		feedback: feedbacks.filter(f => f.userId === user?.id).length,
+		feedback: feedbacks.filter((f) => f.userId === user?.id).length,
 	}
 
 	const handleLogout = () => {
-		Alert.alert(
-			'Logout',
-			'Are you sure you want to logout?',
-			[
-				{ text: 'Cancel', style: 'cancel' },
-				{
-					text: 'Logout',
-					style: 'destructive',
-					onPress: () => {
-						logout()
-						router.replace('/(auth)/login')
-					},
+		Alert.alert('Logout', 'Are you sure you want to logout?', [
+			{ text: 'Cancel', style: 'cancel' },
+			{
+				text: 'Logout',
+				style: 'destructive',
+				onPress: () => {
+					logout()
+					router.replace('/(auth)/login')
 				},
-			]
-		)
+			},
+		])
 	}
 
 	const toggleNotifications = (value: boolean) => {
@@ -87,19 +161,13 @@ export default function Profile() {
 					icon: 'person-circle-outline',
 					label: 'Edit Profile',
 					type: 'navigation',
-					onPress: () => Alert.alert('Coming Soon', 'Edit profile feature coming soon!'),
+					onPress: () => router.push('/profile/edit'),
 				},
 				{
-					icon: 'mail-outline',
-					label: 'Email Preferences',
+					icon: 'settings-outline',
+					label: 'Settings',
 					type: 'navigation',
-					onPress: () => Alert.alert('Coming Soon', 'Email preferences feature coming soon!'),
-				},
-				{
-					icon: 'shield-checkmark-outline',
-					label: 'Privacy & Security',
-					type: 'navigation',
-					onPress: () => Alert.alert('Coming Soon', 'Privacy settings feature coming soon!'),
+					onPress: () => router.push('/profile/settings'),
 				},
 			],
 		},
@@ -113,58 +181,11 @@ export default function Profile() {
 					value: notificationsEnabled,
 					onToggle: toggleNotifications,
 				},
-				{
-					icon: 'moon-outline',
-					label: 'Appearance',
-					type: 'navigation',
-					onPress: () => Alert.alert('Coming Soon', 'Appearance settings feature coming soon!'),
-				},
-				{
-					icon: 'language-outline',
-					label: 'Language',
-					type: 'navigation',
-					onPress: () => {},
-				},
-			],
-		},
-		{
-			title: 'Support',
-			items: [
-				{
-					icon: 'help-circle-outline',
-					label: 'Help Center',
-					type: 'navigation',
-					onPress: () => {},
-				},
-				{
-					icon: 'chatbubble-ellipses-outline',
-					label: 'Contact Support',
-					type: 'navigation',
-					onPress: () => {},
-				},
-				{
-					icon: 'star-outline',
-					label: 'Rate the App',
-					type: 'navigation',
-					onPress: () => {},
-				},
 			],
 		},
 		{
 			title: 'Other',
 			items: [
-				{
-					icon: 'document-text-outline',
-					label: 'Terms of Service',
-					type: 'navigation',
-					onPress: () => {},
-				},
-				{
-					icon: 'lock-closed-outline',
-					label: 'Privacy Policy',
-					type: 'navigation',
-					onPress: () => {},
-				},
 				{
 					icon: 'log-out-outline',
 					iconColor: Colors.error,
@@ -192,53 +213,59 @@ export default function Profile() {
 	const roleBadge = getRoleBadge(user?.role || 'tester')
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
-			<ScrollView
-				style={styles.scrollView}
-				contentContainerStyle={styles.scrollContent}
-				showsVerticalScrollIndicator={false}
-			>
-				{/* Header */}
-				<Animated.View
-					entering={FadeInDown.duration(600).springify()}
-					style={styles.header}
-				>
-					<Text style={styles.headerTitle}>Profile</Text>
+		<View style={styles.container}>
+			{/* Parallax Header */}
+			<Animated.View style={[styles.header, headerAnimatedStyle]}>
+				<LinearGradient
+					colors={[Colors.primary, `${Colors.primary}CC`, Colors.background]}
+					style={styles.headerGradient}
+				/>
+
+				{/* Nav Bar */}
+				<View style={[styles.navBar, { paddingTop: insets.top }]}>
+					<View style={styles.navButton} />
+					<Animated.Text style={[styles.headerTitle, headerTitleStyle]}>
+						{user?.displayName || user?.username}
+					</Animated.Text>
 					<Pressable
-						style={styles.settingsButton}
-						onPress={() => Alert.alert('Coming Soon', 'Settings feature coming soon!')}
+						style={styles.navButton}
+						onPress={() => router.push('/profile/settings')}
 					>
 						<Ionicons name='settings-outline' size={24} color={Colors.text} />
 					</Pressable>
-				</Animated.View>
+				</View>
 
-				{/* Profile Card */}
+				{/* Profile Info in Header */}
+				<View style={styles.headerContent}>
+					<Animated.View style={avatarAnimatedStyle}>
+						<Avatar
+							source={user?.avatar}
+							name={user?.displayName || user?.username}
+							size='xl'
+						/>
+					</Animated.View>
+					<Animated.View style={nameAnimatedStyle}>
+						<Text style={styles.headerName}>
+							{user?.displayName || user?.username}
+						</Text>
+						<Text style={styles.headerUsername}>@{user?.username}</Text>
+					</Animated.View>
+				</View>
+			</Animated.View>
+
+			<Animated.ScrollView
+				style={styles.scrollView}
+				contentContainerStyle={[
+					styles.scrollContent,
+					{ paddingTop: HEADER_MAX_HEIGHT + Spacing.md },
+				]}
+				showsVerticalScrollIndicator={false}
+				onScroll={scrollHandler}
+				scrollEventThrottle={16}
+			>
+				{/* Stats Card */}
 				<Animated.View entering={FadeInUp.duration(600).delay(100).springify()}>
-					<Card style={styles.profileCard}>
-						<View style={styles.profileMain}>
-							<Avatar
-								source={user?.avatar}
-								name={user?.displayName || user?.username}
-								size='xl'
-							/>
-							<View style={styles.profileInfo}>
-								<Text style={styles.displayName}>
-									{user?.displayName || user?.username}
-								</Text>
-								<Text style={styles.username}>@{user?.username}</Text>
-								<View
-									style={[styles.roleBadge, { backgroundColor: `${roleBadge.color}20` }]}
-								>
-									<Text style={[styles.roleText, { color: roleBadge.color }]}>
-										{roleBadge.label}
-									</Text>
-								</View>
-							</View>
-						</View>
-
-						{user?.bio && <Text style={styles.bio}>{user.bio}</Text>}
-
-						{/* Stats */}
+					<Card style={styles.statsCard}>
 						<View style={styles.statsContainer}>
 							<View style={styles.statItem}>
 								<Text style={styles.statNumber}>{userStats.projects}</Text>
@@ -254,6 +281,17 @@ export default function Profile() {
 								<Text style={styles.statNumber}>{userStats.feedback}</Text>
 								<Text style={styles.statLabel}>Feedback</Text>
 							</View>
+						</View>
+						{user?.bio && <Text style={styles.bio}>{user.bio}</Text>}
+						<View
+							style={[
+								styles.roleBadge,
+								{ backgroundColor: `${roleBadge.color}20` },
+							]}
+						>
+							<Text style={[styles.roleText, { color: roleBadge.color }]}>
+								{roleBadge.label}
+							</Text>
 						</View>
 					</Card>
 				</Animated.View>
@@ -273,14 +311,19 @@ export default function Profile() {
 									key={item.label}
 									style={[
 										styles.settingsItem,
-										itemIndex < section.items.length - 1 && styles.settingsItemBorder,
+										itemIndex < section.items.length - 1 &&
+											styles.settingsItemBorder,
 									]}
 									onPress={item.type === 'toggle' ? undefined : item.onPress}
 								>
 									<View
 										style={[
 											styles.settingsIconContainer,
-											{ backgroundColor: `${item.iconColor || Colors.primary}15` },
+											{
+												backgroundColor: `${
+													item.iconColor || Colors.primary
+												}15`,
+											},
 										]}
 									>
 										<Ionicons
@@ -292,7 +335,8 @@ export default function Profile() {
 									<Text
 										style={[
 											styles.settingsLabel,
-											item.iconColor === Colors.error && styles.settingsLabelDanger,
+											item.iconColor === Colors.error &&
+												styles.settingsLabelDanger,
 										]}
 									>
 										{item.label}
@@ -305,7 +349,9 @@ export default function Profile() {
 												false: Colors.backgroundSecondary,
 												true: `${Colors.primary}50`,
 											}}
-											thumbColor={item.value ? Colors.primary : Colors.textTertiary}
+											thumbColor={
+												item.value ? Colors.primary : Colors.textTertiary
+											}
 										/>
 									) : (
 										<Ionicons
@@ -326,10 +372,12 @@ export default function Profile() {
 					style={styles.appInfo}
 				>
 					<Text style={styles.appVersion}>BetaLift v1.0.0</Text>
-					<Text style={styles.appCopyright}>© 2025 BetaLift. All rights reserved.</Text>
+					<Text style={styles.appCopyright}>
+						© 2025 BetaLift. All rights reserved.
+					</Text>
 				</Animated.View>
-			</ScrollView>
-		</SafeAreaView>
+			</Animated.ScrollView>
+		</View>
 	)
 }
 
@@ -345,70 +393,63 @@ const styles = StyleSheet.create({
 		paddingHorizontal: Spacing.lg,
 		paddingBottom: Spacing.xxl,
 	},
+
+	// Parallax Header
 	header: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+		overflow: 'hidden',
+	},
+	headerGradient: {
+		...StyleSheet.absoluteFillObject,
+	},
+	navBar: {
 		flexDirection: 'row',
-		justifyContent: 'space-between',
 		alignItems: 'center',
-		paddingVertical: Spacing.md,
+		justifyContent: 'space-between',
+		paddingHorizontal: Spacing.md,
+		paddingBottom: Spacing.sm,
+	},
+	navButton: {
+		width: 40,
+		height: 40,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	headerTitle: {
-		fontSize: 28,
-		fontFamily: Fonts.bold,
+		fontSize: 18,
+		fontFamily: Fonts.semibold,
 		color: Colors.text,
 	},
-	settingsButton: {
-		padding: Spacing.sm,
-	},
-
-	// Profile Card
-	profileCard: {
-		marginBottom: Spacing.lg,
-	},
-	profileMain: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	profileInfo: {
+	headerContent: {
 		flex: 1,
-		marginLeft: Spacing.md,
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingBottom: Spacing.md,
 	},
-	displayName: {
+	headerName: {
 		fontSize: 20,
 		fontFamily: Fonts.bold,
 		color: Colors.text,
+		textAlign: 'center',
+		marginTop: Spacing.sm,
 	},
-	username: {
+	headerUsername: {
 		fontSize: 14,
 		fontFamily: Fonts.regular,
-		color: Colors.textSecondary,
-		marginTop: 2,
-	},
-	roleBadge: {
-		alignSelf: 'flex-start',
-		paddingHorizontal: Spacing.sm,
-		paddingVertical: 4,
-		borderRadius: BorderRadius.sm,
-		marginTop: Spacing.xs,
-	},
-	roleText: {
-		fontSize: 12,
-		fontFamily: Fonts.medium,
-	},
-	bio: {
-		fontSize: 14,
-		fontFamily: Fonts.regular,
-		color: Colors.textSecondary,
-		marginTop: Spacing.md,
-		lineHeight: 20,
+		color: 'rgba(255,255,255,0.8)',
+		textAlign: 'center',
 	},
 
-	// Stats
+	// Stats Card
+	statsCard: {
+		marginBottom: Spacing.lg,
+	},
 	statsContainer: {
 		flexDirection: 'row',
-		marginTop: Spacing.lg,
-		paddingTop: Spacing.md,
-		borderTopWidth: 1,
-		borderTopColor: Colors.border,
 	},
 	statItem: {
 		flex: 1,
@@ -428,6 +469,28 @@ const styles = StyleSheet.create({
 	statDivider: {
 		width: 1,
 		backgroundColor: Colors.border,
+	},
+	bio: {
+		fontSize: 14,
+		fontFamily: Fonts.regular,
+		color: Colors.textSecondary,
+		marginTop: Spacing.md,
+		paddingTop: Spacing.md,
+		borderTopWidth: 1,
+		borderTopColor: Colors.border,
+		lineHeight: 20,
+		textAlign: 'center',
+	},
+	roleBadge: {
+		alignSelf: 'center',
+		paddingHorizontal: Spacing.sm,
+		paddingVertical: 4,
+		borderRadius: BorderRadius.sm,
+		marginTop: Spacing.md,
+	},
+	roleText: {
+		fontSize: 12,
+		fontFamily: Fonts.medium,
 	},
 
 	// Section

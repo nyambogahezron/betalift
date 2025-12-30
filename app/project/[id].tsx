@@ -8,46 +8,118 @@ import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Linking,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+	ActivityIndicator,
+	Alert,
+	Dimensions,
+	Linking,
+	Pressable,
+	StyleSheet,
+	Text,
+	View,
 } from 'react-native'
 import Animated, {
-    FadeInDown,
-    FadeInUp
+	Extrapolation,
+	FadeInUp,
+	interpolate,
+	useAnimatedScrollHandler,
+	useAnimatedStyle,
+	useSharedValue,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const IMAGE_HEIGHT = 220
+const HEADER_MAX_HEIGHT = 280
+const HEADER_MIN_HEIGHT = 100
 
 export default function ProjectDetail() {
 	const { id } = useLocalSearchParams<{ id: string }>()
 	const [activeImageIndex, setActiveImageIndex] = useState(0)
 	const [isJoining, setIsJoining] = useState(false)
+	const insets = useSafeAreaInsets()
+	const scrollY = useSharedValue(0)
 
 	const { user } = useAuthStore()
-	const { projects, joinedProjects, joinProject, leaveProject } = useProjectStore()
+	const { projects, joinedProjects, joinProject, leaveProject } =
+		useProjectStore()
 	const { feedbacks, fetchFeedbacks } = useFeedbackStore()
 
-	const project = useMemo(() => projects.find((p) => p.id === id), [projects, id])
+	const project = useMemo(
+		() => projects.find((p) => p.id === id),
+		[projects, id]
+	)
 
 	const isOwner = project?.ownerId === user?.id
 	const isTester = joinedProjects.some((p) => p.id === id)
 	const projectFeedbacks = feedbacks.filter((f) => f.projectId === id)
 
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (event) => {
+			scrollY.value = event.contentOffset.y
+		},
+	})
+
 	useEffect(() => {
 		if (id) {
 			fetchFeedbacks(id)
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [id])
+
+	// Animated styles for header
+	const headerAnimatedStyle = useAnimatedStyle(() => {
+		const height = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
+			Extrapolation.CLAMP
+		)
+		return { height }
+	})
+
+	const imageAnimatedStyle = useAnimatedStyle(() => {
+		const translateY = interpolate(
+			scrollY.value,
+			[-100, 0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+			[-50, 0, 50],
+			Extrapolation.CLAMP
+		)
+		const scale = interpolate(
+			scrollY.value,
+			[-100, 0],
+			[1.5, 1],
+			Extrapolation.CLAMP
+		)
+		const opacity = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT - 50],
+			[1, 0],
+			Extrapolation.CLAMP
+		)
+		return { transform: [{ translateY }, { scale }], opacity }
+	})
+
+	const titleAnimatedStyle = useAnimatedStyle(() => {
+		const opacity = interpolate(
+			scrollY.value,
+			[
+				HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT - 60,
+				HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT,
+			],
+			[0, 1],
+			Extrapolation.CLAMP
+		)
+		return { opacity }
+	})
+
+	const navBgStyle = useAnimatedStyle(() => {
+		const opacity = interpolate(
+			scrollY.value,
+			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT - 50],
+			[0, 1],
+			Extrapolation.CLAMP
+		)
+		return { backgroundColor: `rgba(23, 23, 23, ${opacity})` }
+	})
 
 	const handleJoinProject = async () => {
 		if (!user?.id || !project) return
@@ -93,77 +165,51 @@ export default function ProjectDetail() {
 
 	if (!project) {
 		return (
-			<SafeAreaView style={styles.container}>
+			<View style={[styles.container, { paddingTop: insets.top }]}>
 				<View style={styles.loadingContainer}>
 					<ActivityIndicator size='large' color={Colors.primary} />
 				</View>
-			</SafeAreaView>
+			</View>
 		)
 	}
 
-	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
-			<ScrollView
-				style={styles.scrollView}
-				showsVerticalScrollIndicator={false}
-			>
-				{/* Header with back button */}
-				<Animated.View
-					entering={FadeInDown.duration(600).springify()}
-					style={styles.header}
-				>
-					<Pressable style={styles.backButton} onPress={() => router.back()}>
-						<Ionicons name='arrow-back' size={24} color={Colors.text} />
-					</Pressable>
-					<View style={styles.headerActions}>
-						<Pressable style={styles.headerAction}>
-							<Ionicons name='share-outline' size={22} color={Colors.text} />
-						</Pressable>
-						{isOwner && (
-							<Pressable
-								style={styles.headerAction}
-								onPress={() => router.push(`/project/${id}/edit`)}
-							>
-								<Ionicons name='settings-outline' size={22} color={Colors.text} />
-							</Pressable>
-						)}
-					</View>
-				</Animated.View>
+	const images = project.screenshots?.length
+		? project.screenshots
+		: [project.icon]
 
+	return (
+		<View style={styles.container}>
+			{/* Animated Header */}
+			<Animated.View style={[styles.header, headerAnimatedStyle]}>
 				{/* Image Gallery */}
-				<Animated.View
-					entering={FadeInUp.duration(600).delay(100).springify()}
-					style={styles.imageGallery}
-				>
-					<ScrollView
+				<Animated.View style={[styles.imageGallery, imageAnimatedStyle]}>
+					<Animated.ScrollView
 						horizontal
 						pagingEnabled
 						showsHorizontalScrollIndicator={false}
 						onScroll={(e) => {
 							const index = Math.round(
-								e.nativeEvent.contentOffset.x / (SCREEN_WIDTH - Spacing.lg * 2)
+								e.nativeEvent.contentOffset.x / SCREEN_WIDTH
 							)
 							setActiveImageIndex(index)
 						}}
 						scrollEventThrottle={16}
 					>
-						{(project.screenshots?.length ? project.screenshots : [project.icon]).map(
-							(uri, index) => (
-								<Image
-									key={index}
-									source={{ uri }}
-									style={styles.galleryImage}
-									contentFit='cover'
-									transition={300}
-								/>
-							)
-						)}
-					</ScrollView>
+						{images.map((uri, index) => (
+							<Image
+								key={index}
+								source={{ uri }}
+								style={styles.galleryImage}
+								contentFit='cover'
+								transition={300}
+							/>
+						))}
+					</Animated.ScrollView>
 
 					{/* Pagination Dots */}
-					{(project.screenshots?.length || 0) > 1 && (
+					{images.length > 1 && (
 						<View style={styles.pagination}>
-							{project.screenshots?.map((_, index) => (
+							{images.map((_, index) => (
 								<View
 									key={index}
 									style={[
@@ -176,9 +222,62 @@ export default function ProjectDetail() {
 					)}
 				</Animated.View>
 
+				{/* Gradient Overlay */}
+				<View style={styles.gradientOverlay} />
+
+				{/* Navigation Bar */}
+				<Animated.View
+					style={[
+						styles.navBar,
+						{ paddingTop: insets.top + Spacing.sm },
+						navBgStyle,
+					]}
+				>
+					<Pressable style={styles.navButton} onPress={() => router.back()}>
+						<Ionicons name='arrow-back' size={24} color={Colors.text} />
+					</Pressable>
+
+					<Animated.Text
+						style={[styles.headerTitle, titleAnimatedStyle]}
+						numberOfLines={1}
+					>
+						{project.name}
+					</Animated.Text>
+
+					<View style={styles.headerActions}>
+						<Pressable style={styles.navButton}>
+							<Ionicons name='share-outline' size={22} color={Colors.text} />
+						</Pressable>
+						{isOwner && (
+							<Pressable
+								style={styles.navButton}
+								onPress={() => router.push(`/project/${id}/edit`)}
+							>
+								<Ionicons
+									name='settings-outline'
+									size={22}
+									color={Colors.text}
+								/>
+							</Pressable>
+						)}
+					</View>
+				</Animated.View>
+			</Animated.View>
+
+			{/* Scrollable Content */}
+			<Animated.ScrollView
+				style={styles.scrollView}
+				contentContainerStyle={[
+					styles.scrollContent,
+					{ paddingTop: HEADER_MAX_HEIGHT + Spacing.md },
+				]}
+				showsVerticalScrollIndicator={false}
+				onScroll={scrollHandler}
+				scrollEventThrottle={16}
+			>
 				{/* Project Info */}
 				<Animated.View
-					entering={FadeInUp.duration(600).delay(200).springify()}
+					entering={FadeInUp.duration(600).delay(100).springify()}
 					style={styles.projectInfo}
 				>
 					<View style={styles.projectHeader}>
@@ -219,7 +318,11 @@ export default function ProjectDetail() {
 						</View>
 						{!isOwner && (
 							<Pressable style={styles.messageButton}>
-								<Ionicons name='chatbubble-outline' size={20} color={Colors.primary} />
+								<Ionicons
+									name='chatbubble-outline'
+									size={20}
+									color={Colors.primary}
+								/>
 							</Pressable>
 						)}
 					</Card>
@@ -244,14 +347,18 @@ export default function ProjectDetail() {
 					<View style={styles.statDivider} />
 					<View style={styles.statItem}>
 						<Ionicons name='star' size={22} color={Colors.warning} />
-						<Text style={styles.statValue}>{project.rating?.toFixed(1) || 'N/A'}</Text>
+						<Text style={styles.statValue}>
+							{project.rating?.toFixed(1) || 'N/A'}
+						</Text>
 						<Text style={styles.statLabel}>Rating</Text>
 					</View>
 				</Animated.View>
 
 				{/* Links */}
 				{project.links && (
-					<Animated.View entering={FadeInUp.duration(600).delay(500).springify()}>
+					<Animated.View
+						entering={FadeInUp.duration(600).delay(500).springify()}
+					>
 						<Text style={styles.sectionTitle}>Links</Text>
 						<Card style={styles.linksCard}>
 							{project.links.website && (
@@ -259,9 +366,17 @@ export default function ProjectDetail() {
 									style={styles.linkItem}
 									onPress={() => openLink(project.links!.website!)}
 								>
-									<Ionicons name='globe-outline' size={20} color={Colors.primary} />
+									<Ionicons
+										name='globe-outline'
+										size={20}
+										color={Colors.primary}
+									/>
 									<Text style={styles.linkText}>Website</Text>
-									<Ionicons name='open-outline' size={18} color={Colors.textTertiary} />
+									<Ionicons
+										name='open-outline'
+										size={18}
+										color={Colors.textTertiary}
+									/>
 								</Pressable>
 							)}
 							{project.links.github && (
@@ -271,7 +386,11 @@ export default function ProjectDetail() {
 								>
 									<Ionicons name='logo-github' size={20} color={Colors.text} />
 									<Text style={styles.linkText}>GitHub</Text>
-									<Ionicons name='open-outline' size={18} color={Colors.textTertiary} />
+									<Ionicons
+										name='open-outline'
+										size={18}
+										color={Colors.textTertiary}
+									/>
 								</Pressable>
 							)}
 							{project.links.appStore && (
@@ -279,9 +398,17 @@ export default function ProjectDetail() {
 									style={styles.linkItem}
 									onPress={() => openLink(project.links!.appStore!)}
 								>
-									<Ionicons name='logo-apple-appstore' size={20} color={Colors.primary} />
+									<Ionicons
+										name='logo-apple-appstore'
+										size={20}
+										color={Colors.primary}
+									/>
 									<Text style={styles.linkText}>App Store</Text>
-									<Ionicons name='open-outline' size={18} color={Colors.textTertiary} />
+									<Ionicons
+										name='open-outline'
+										size={18}
+										color={Colors.textTertiary}
+									/>
 								</Pressable>
 							)}
 							{project.links.playStore && (
@@ -289,9 +416,17 @@ export default function ProjectDetail() {
 									style={styles.linkItem}
 									onPress={() => openLink(project.links!.playStore!)}
 								>
-									<Ionicons name='logo-google-playstore' size={20} color={Colors.success} />
+									<Ionicons
+										name='logo-google-playstore'
+										size={20}
+										color={Colors.success}
+									/>
 									<Text style={styles.linkText}>Play Store</Text>
-									<Ionicons name='open-outline' size={18} color={Colors.textTertiary} />
+									<Ionicons
+										name='open-outline'
+										size={18}
+										color={Colors.textTertiary}
+									/>
 								</Pressable>
 							)}
 							{project.links.testFlight && (
@@ -299,9 +434,17 @@ export default function ProjectDetail() {
 									style={styles.linkItem}
 									onPress={() => openLink(project.links!.testFlight!)}
 								>
-									<Ionicons name='paper-plane-outline' size={20} color={Colors.primary} />
+									<Ionicons
+										name='paper-plane-outline'
+										size={20}
+										color={Colors.primary}
+									/>
 									<Text style={styles.linkText}>TestFlight</Text>
-									<Ionicons name='open-outline' size={18} color={Colors.textTertiary} />
+									<Ionicons
+										name='open-outline'
+										size={18}
+										color={Colors.textTertiary}
+									/>
 								</Pressable>
 							)}
 						</Card>
@@ -310,7 +453,9 @@ export default function ProjectDetail() {
 
 				{/* Recent Feedback */}
 				{(isOwner || isTester) && projectFeedbacks.length > 0 && (
-					<Animated.View entering={FadeInUp.duration(600).delay(600).springify()}>
+					<Animated.View
+						entering={FadeInUp.duration(600).delay(600).springify()}
+					>
 						<View style={styles.sectionHeader}>
 							<Text style={styles.sectionTitle}>Recent Feedback</Text>
 							<Pressable onPress={() => router.push(`/feedback/${id}`)}>
@@ -330,8 +475,8 @@ export default function ProjectDetail() {
 											feedback.type === 'bug'
 												? 'error'
 												: feedback.type === 'feature'
-													? 'purple'
-													: 'default'
+												? 'purple'
+												: 'default'
 										}
 										size='sm'
 									/>
@@ -341,8 +486,8 @@ export default function ProjectDetail() {
 											feedback.status === 'resolved'
 												? 'success'
 												: feedback.status === 'in-progress'
-													? 'warning'
-													: 'default'
+												? 'warning'
+												: 'default'
 										}
 										size='sm'
 									/>
@@ -359,13 +504,16 @@ export default function ProjectDetail() {
 				)}
 
 				{/* Spacer for bottom action */}
-				<View style={{ height: 100 }} />
-			</ScrollView>
+				<View style={{ height: 120 }} />
+			</Animated.ScrollView>
 
 			{/* Bottom Action */}
 			<Animated.View
 				entering={FadeInUp.duration(600).delay(300).springify()}
-				style={styles.bottomAction}
+				style={[
+					styles.bottomAction,
+					{ paddingBottom: insets.bottom + Spacing.md },
+				]}
 			>
 				{isOwner ? (
 					<View style={styles.ownerActions}>
@@ -374,7 +522,9 @@ export default function ProjectDetail() {
 							variant='outline'
 							onPress={() => router.push(`/feedback/${id}`)}
 							style={styles.ownerButton}
-							icon={<Ionicons name='chatbubbles' size={18} color={Colors.primary} />}
+							icon={
+								<Ionicons name='chatbubbles' size={18} color={Colors.primary} />
+							}
 						/>
 						<Button
 							title='Manage Testers'
@@ -411,7 +561,7 @@ export default function ProjectDetail() {
 					/>
 				)}
 			</Animated.View>
-		</SafeAreaView>
+		</View>
 	)
 }
 
@@ -428,51 +578,32 @@ const styles = StyleSheet.create({
 	scrollView: {
 		flex: 1,
 	},
-	header: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+	scrollContent: {
 		paddingHorizontal: Spacing.lg,
-		paddingVertical: Spacing.sm,
-	},
-	backButton: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
-		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	headerActions: {
-		flexDirection: 'row',
-		gap: Spacing.sm,
-	},
-	headerAction: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
-		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
 	},
 
-	// Image Gallery
-	imageGallery: {
-		marginHorizontal: Spacing.lg,
-		marginBottom: Spacing.lg,
-		borderRadius: BorderRadius.lg,
+	// Header
+	header: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
 		overflow: 'hidden',
 	},
+	imageGallery: {
+		...StyleSheet.absoluteFillObject,
+	},
 	galleryImage: {
-		width: SCREEN_WIDTH - Spacing.lg * 2,
-		height: IMAGE_HEIGHT,
+		width: SCREEN_WIDTH,
+		height: HEADER_MAX_HEIGHT,
 	},
 	pagination: {
 		flexDirection: 'row',
 		justifyContent: 'center',
 		gap: 6,
 		position: 'absolute',
-		bottom: 12,
+		bottom: 60,
 		left: 0,
 		right: 0,
 	},
@@ -486,10 +617,44 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.text,
 		width: 20,
 	},
+	gradientOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: 'rgba(0,0,0,0.2)',
+	},
+	navBar: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: Spacing.md,
+		paddingBottom: Spacing.sm,
+	},
+	navButton: {
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		backgroundColor: 'rgba(0,0,0,0.3)',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	headerTitle: {
+		flex: 1,
+		fontSize: 18,
+		fontFamily: Fonts.semibold,
+		color: Colors.text,
+		textAlign: 'center',
+		marginHorizontal: Spacing.sm,
+	},
+	headerActions: {
+		flexDirection: 'row',
+		gap: Spacing.xs,
+	},
 
 	// Project Info
 	projectInfo: {
-		paddingHorizontal: Spacing.lg,
 		marginBottom: Spacing.lg,
 	},
 	projectHeader: {
@@ -527,7 +692,6 @@ const styles = StyleSheet.create({
 
 	// Owner Card
 	ownerCard: {
-		marginHorizontal: Spacing.lg,
 		marginBottom: Spacing.lg,
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -563,7 +727,6 @@ const styles = StyleSheet.create({
 	statsContainer: {
 		flexDirection: 'row',
 		backgroundColor: Colors.card,
-		marginHorizontal: Spacing.lg,
 		marginBottom: Spacing.lg,
 		borderRadius: BorderRadius.md,
 		padding: Spacing.md,
@@ -593,14 +756,12 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		paddingHorizontal: Spacing.lg,
 		marginBottom: Spacing.sm,
 	},
 	sectionTitle: {
 		fontSize: 18,
 		fontFamily: Fonts.semibold,
 		color: Colors.text,
-		paddingHorizontal: Spacing.lg,
 		marginBottom: Spacing.sm,
 	},
 	seeAllText: {
@@ -611,7 +772,6 @@ const styles = StyleSheet.create({
 
 	// Links
 	linksCard: {
-		marginHorizontal: Spacing.lg,
 		marginBottom: Spacing.lg,
 		padding: 0,
 	},
@@ -632,7 +792,6 @@ const styles = StyleSheet.create({
 
 	// Feedback
 	feedbackCard: {
-		marginHorizontal: Spacing.lg,
 		marginBottom: Spacing.sm,
 	},
 	feedbackHeader: {

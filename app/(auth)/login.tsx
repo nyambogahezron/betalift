@@ -24,7 +24,7 @@ export default function Login() {
 		{}
 	)
 
-	const { login, isLoading } = useAuthStore()
+	const { login, loginAsDemo, isLoading } = useAuthStore()
 
 	const validate = () => {
 		const newErrors: { email?: string; password?: string } = {}
@@ -58,6 +58,13 @@ export default function Login() {
 
 	const handleSocialLogin = (provider: string) => {
 		Alert.alert('Coming Soon', `${provider} login will be available soon!`)
+	}
+
+	const handleDemoLogin = async () => {
+		const success = await loginAsDemo()
+		if (success) {
+			router.replace('/(tabs)')
+		}
 	}
 
 	return (
@@ -166,6 +173,24 @@ export default function Login() {
 						</Pressable>
 					</Animated.View>
 
+					{/* Demo Account */}
+					<Animated.View
+						entering={FadeInUp.duration(600).delay(450).springify()}
+					>
+						<Pressable
+							style={styles.demoButton}
+							onPress={handleDemoLogin}
+							disabled={isLoading}
+						>
+							<Ionicons
+								name='person-circle-outline'
+								size={20}
+								color={Colors.primary}
+							/>
+							<Text style={styles.demoButtonText}>Try Demo Account</Text>
+						</Pressable>
+					</Animated.View>
+
 					{/* Footer */}
 					<Animated.View
 						entering={FadeInUp.duration(600).delay(500).springify()}
@@ -270,6 +295,24 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderWidth: 1,
 		borderColor: Colors.border,
+	},
+	demoButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: Spacing.sm,
+		paddingVertical: Spacing.md,
+		paddingHorizontal: Spacing.lg,
+		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: Colors.primary,
+		borderStyle: 'dashed',
+		marginBottom: Spacing.lg,
+	},
+	demoButtonText: {
+		fontSize: 14,
+		fontFamily: Fonts.medium,
+		color: Colors.primary,
 	},
 	footer: {
 		flexDirection: 'row',

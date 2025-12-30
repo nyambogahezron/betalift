@@ -8,7 +8,9 @@ import { Ionicons } from '@expo/vector-icons'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	ActivityIndicator,
+	Dimensions,
 	FlatList,
+	LayoutChangeEvent,
 	Pressable,
 	RefreshControl,
 	StyleSheet,
@@ -20,8 +22,13 @@ import Animated, {
 	FadeInDown,
 	FadeInUp,
 	FadeOut,
+	useAnimatedScrollHandler,
+	useAnimatedStyle,
+	useSharedValue,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 type FilterCategory = 'all' | 'web' | 'mobile' | 'desktop' | 'api'
 type SortOption = 'newest' | 'popular' | 'trending'
@@ -44,9 +51,31 @@ export default function Explore() {
 		useState<FilterCategory>('all')
 	const [sortBy, setSortBy] = useState<SortOption>('newest')
 	const [refreshing, setRefreshing] = useState(false)
+	const [headerHeight, setHeaderHeight] = useState(0)
 
 	const { user } = useAuthStore()
 	const { projects, fetchProjects, isLoading } = useProjectStore()
+	const insets = useSafeAreaInsets()
+	const scrollY = useSharedValue(0)
+
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (event) => {
+			scrollY.value = event.contentOffset.y
+		},
+	})
+
+	// Animated style for sticky categories - only show when scrolled past header
+	const stickyStyle = useAnimatedStyle(() => {
+		const shouldShow = scrollY.value > headerHeight + 60
+		return {
+			opacity: shouldShow ? 1 : 0,
+			transform: [{ translateY: shouldShow ? 0 : -60 }],
+		}
+	})
+
+	const onHeaderLayout = (event: LayoutChangeEvent) => {
+		setHeaderHeight(event.nativeEvent.layout.height)
+	}
 
 	useEffect(() => {
 		fetchProjects()
@@ -168,8 +197,11 @@ export default function Explore() {
 				)}
 			</Animated.View>
 
-			{/* Categories */}
-			<Animated.View entering={FadeInUp.duration(600).delay(100).springify()}>
+			{/* Categories - shown in list, will be replaced by sticky when scrolled */}
+			<Animated.View
+				entering={FadeInUp.duration(600).delay(100).springify()}
+				style={styles.categoriesWrapper}
+			>
 				<FlatList
 					horizontal
 					data={CATEGORIES}
@@ -271,16 +303,49 @@ export default function Explore() {
 	)
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
-			{/* Header */}
+		<View style={[styles.container, { paddingTop: insets.top }]}>
+			{/* Sticky Categories Header */}
 			<Animated.View
-				entering={FadeInDown.duration(600).springify()}
-				style={styles.header}
+				style={[
+					styles.stickyHeader,
+					{ paddingTop: insets.top + Spacing.sm },
+					stickyStyle,
+				]}
 			>
-				<Text style={styles.headerTitle}>Explore</Text>
-				<Text style={styles.headerSubtitle}>
-					Discover beta projects to test
-				</Text>
+				<FlatList
+					horizontal
+					data={CATEGORIES}
+					keyExtractor={(item) => item.id}
+					showsHorizontalScrollIndicator={false}
+					contentContainerStyle={styles.stickyCategoriesContainer}
+					renderItem={({ item }) => (
+						<Pressable
+							style={[
+								styles.categoryChip,
+								selectedCategory === item.id && styles.categoryChipActive,
+							]}
+							onPress={() => setSelectedCategory(item.id)}
+						>
+							<Ionicons
+								name={item.icon}
+								size={16}
+								color={
+									selectedCategory === item.id
+										? Colors.text
+										: Colors.textSecondary
+								}
+							/>
+							<Text
+								style={[
+									styles.categoryText,
+									selectedCategory === item.id && styles.categoryTextActive,
+								]}
+							>
+								{item.label}
+							</Text>
+						</Pressable>
+					)}
+				/>
 			</Animated.View>
 
 			{isLoading && !refreshing ? (
@@ -288,14 +353,31 @@ export default function Explore() {
 					<ActivityIndicator size='large' color={Colors.primary} />
 				</View>
 			) : (
-				<FlatList
+				<Animated.FlatList
 					data={availableProjects}
 					keyExtractor={(item) => item.id}
 					renderItem={renderProject}
 					contentContainerStyle={styles.listContainer}
 					showsVerticalScrollIndicator={false}
-					ListHeaderComponent={ListHeader}
+					ListHeaderComponent={
+						<>
+							{/* Header */}
+							<Animated.View
+								entering={FadeInDown.duration(600).springify()}
+								style={styles.header}
+								onLayout={onHeaderLayout}
+							>
+								<Text style={styles.headerTitle}>Explore</Text>
+								<Text style={styles.headerSubtitle}>
+									Discover beta projects to test
+								</Text>
+							</Animated.View>
+							{ListHeader}
+						</>
+					}
 					ListEmptyComponent={ListEmpty}
+					onScroll={scrollHandler}
+					scrollEventThrottle={16}
 					refreshControl={
 						<RefreshControl
 							refreshing={refreshing}
@@ -305,7 +387,7 @@ export default function Explore() {
 					}
 				/>
 			)}
-		</SafeAreaView>
+		</View>
 	)
 }
 
@@ -313,6 +395,23 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: Colors.background,
+	},
+	stickyHeader: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+		backgroundColor: Colors.background,
+		paddingBottom: Spacing.sm,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 2 },
+		shadowRadius: 4,
+		elevation: 4,
+	},
+	stickyCategoriesContainer: {
+		paddingHorizontal: Spacing.lg,
+		gap: Spacing.sm,
 	},
 	header: {
 		paddingHorizontal: Spacing.lg,
@@ -360,8 +459,10 @@ const styles = StyleSheet.create({
 	},
 
 	// Categories
+	categoriesWrapper: {
+		marginBottom: Spacing.md,
+	},
 	categoriesContainer: {
-		paddingBottom: Spacing.md,
 		gap: Spacing.sm,
 	},
 	categoryChip: {

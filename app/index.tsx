@@ -1,18 +1,26 @@
 import { Colors, Fonts } from '@/constants/theme'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import React, { useEffect } from 'react'
-import { Dimensions, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native'
+import {
+	Dimensions,
+	Pressable,
+	StatusBar,
+	StyleSheet,
+	Text,
+	View,
+} from 'react-native'
 import Animated, {
-    FadeInDown,
-    FadeInUp,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withSpring,
-    withTiming,
+	FadeInDown,
+	FadeInUp,
+	useAnimatedStyle,
+	useSharedValue,
+	withRepeat,
+	withSequence,
+	withSpring,
+	withTiming,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -20,6 +28,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 const { width, height } = Dimensions.get('window')
 
 export default function Index() {
+	const { setHasSeenOnboarding } = useAuthStore()
 	const imageScale = useSharedValue(0.8)
 	const circleRotation = useSharedValue(0)
 
@@ -121,7 +130,10 @@ export default function Index() {
 
 						<Pressable
 							style={styles.createButton}
-							onPress={() => router.push('/(auth)/register')}
+							onPress={() => {
+								setHasSeenOnboarding(true)
+								router.push('/(auth)/register')
+							}}
 						>
 							<Text style={styles.createText}>Create Account</Text>
 						</Pressable>
@@ -139,7 +151,12 @@ export default function Index() {
 						<Text style={{ color: '#2C2C2C', fontFamily: Fonts.medium }}>
 							Already have an account?
 						</Text>
-						<Pressable onPress={() => router.push('/(auth)/login')}>
+						<Pressable
+							onPress={() => {
+								setHasSeenOnboarding(true)
+								router.push('/(auth)/login')
+							}}
+						>
 							<Text
 								style={{
 									color: '#0096a8',

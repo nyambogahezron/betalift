@@ -7,10 +7,12 @@ interface AuthState {
 	user: User | null
 	isAuthenticated: boolean
 	isLoading: boolean
+	hasSeenOnboarding: boolean
 	settings: UserSettings
 
 	// Actions
 	login: (email: string, password: string) => Promise<boolean>
+	loginAsDemo: () => Promise<boolean>
 	register: (
 		email: string,
 		password: string,
@@ -21,6 +23,7 @@ interface AuthState {
 	updateProfile: (updates: Partial<User>) => void
 	updateSettings: (updates: Partial<UserSettings>) => void
 	setLoading: (loading: boolean) => void
+	setHasSeenOnboarding: (seen: boolean) => void
 }
 
 // Mock users for demo
@@ -84,6 +87,7 @@ export const useAuthStore = create<AuthState>()(
 			user: null,
 			isAuthenticated: false,
 			isLoading: false,
+			hasSeenOnboarding: false,
 			settings: defaultSettings,
 
 			login: async (email: string, password: string) => {
@@ -121,6 +125,18 @@ export const useAuthStore = create<AuthState>()(
 				return true
 			},
 
+			loginAsDemo: async () => {
+				set({ isLoading: true })
+
+				// Simulate API call
+				await new Promise((resolve) => setTimeout(resolve, 800))
+
+				// Use the creator demo account
+				const demoUser = mockUsers[0]
+				set({ user: demoUser, isAuthenticated: true, isLoading: false })
+				return true
+			},
+
 			register: async (
 				email: string,
 				password: string,
@@ -155,6 +171,10 @@ export const useAuthStore = create<AuthState>()(
 				set({ user: null, isAuthenticated: false, settings: defaultSettings })
 			},
 
+			setHasSeenOnboarding: (seen: boolean) => {
+				set({ hasSeenOnboarding: seen })
+			},
+
 			updateProfile: (updates: Partial<User>) => {
 				const { user } = get()
 				if (user) {
@@ -182,6 +202,7 @@ export const useAuthStore = create<AuthState>()(
 			partialize: (state) => ({
 				user: state.user,
 				isAuthenticated: state.isAuthenticated,
+				hasSeenOnboarding: state.hasSeenOnboarding,
 				settings: state.settings,
 			}),
 		}

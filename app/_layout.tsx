@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/theme'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { GreatVibes_400Regular } from '@expo-google-fonts/great-vibes'
 import {
 	Inter_400Regular,
@@ -9,7 +10,7 @@ import {
 	useFonts,
 } from '@expo-google-fonts/inter'
 import { DarkTheme, ThemeProvider } from '@react-navigation/native'
-import { Stack } from 'expo-router'
+import { Stack, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import * as SystemUI from 'expo-system-ui'
@@ -25,6 +26,10 @@ export const unstable_settings = {
 }
 
 export default function RootLayout() {
+	const { isAuthenticated, hasSeenOnboarding } = useAuthStore()
+	const segments = useSegments()
+	const router = useRouter()
+
 	const [loaded, error] = useFonts({
 		'Inter-Regular': Inter_400Regular,
 		'Inter-Medium': Inter_500Medium,
@@ -43,6 +48,28 @@ export default function RootLayout() {
 			SplashScreen.hideAsync()
 		}
 	}, [loaded, error])
+
+	// Auth guard effect
+	useEffect(() => {
+		if (!loaded) return
+
+		const inAuthGroup = segments[0] === '(auth)'
+		const currentRoute = segments[0]
+		const inOnboarding = !currentRoute || currentRoute === undefined
+
+		if (isAuthenticated) {
+			// If user is authenticated and tries to access auth pages or onboarding, redirect to tabs
+			if (inAuthGroup || inOnboarding) {
+				router.replace('/(tabs)')
+			}
+		} else {
+			// If user is not authenticated
+			if (!hasSeenOnboarding && !inOnboarding && !inAuthGroup) {
+				// Show onboarding if they haven't seen it and not in auth/onboarding
+				router.replace('/')
+			}
+		}
+	}, [isAuthenticated, hasSeenOnboarding, segments, loaded])
 
 	if (!loaded && !error) {
 		return null
@@ -77,6 +104,17 @@ export default function RootLayout() {
 								headerShown: false,
 								presentation: 'modal',
 							}}
+						/>
+						<Stack.Screen
+							name='profile/edit'
+							options={{
+								headerShown: false,
+								presentation: 'modal',
+							}}
+						/>
+						<Stack.Screen
+							name='profile/settings'
+							options={{ headerShown: false }}
 						/>
 					</Stack>
 					<StatusBar style='light' />
