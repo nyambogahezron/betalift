@@ -1,8 +1,9 @@
 import { Text, View } from 'react-native'
-export default function Explore() {
+
+export default function Register() {
   return (
     <View>
-      <Text>Explore</Text>
+      <Text>register</Text>
     </View>
   )
 }
