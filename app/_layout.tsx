@@ -54,13 +54,32 @@ export default function RootLayout() {
 				<ThemeProvider value={DarkTheme}>
 					<Stack>
 						<Stack.Screen name='index' options={{ headerShown: false }} />
+						<Stack.Screen name='(auth)' options={{ headerShown: false }} />
 						<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
 						<Stack.Screen
-							name='modal'
-							options={{ presentation: 'modal', title: 'Modal' }}
+							name='project/[id]'
+							options={{ headerShown: false }}
+						/>
+						<Stack.Screen
+							name='project/create'
+							options={{
+								headerShown: false,
+								presentation: 'modal',
+							}}
+						/>
+						<Stack.Screen
+							name='feedback/[id]'
+							options={{ headerShown: false }}
+						/>
+						<Stack.Screen
+							name='feedback/create'
+							options={{
+								headerShown: false,
+								presentation: 'modal',
+							}}
 						/>
 					</Stack>
-					<StatusBar style='auto' />
+					<StatusBar style='light' />
 				</ThemeProvider>
 			</GestureHandlerRootView>
 		</View>

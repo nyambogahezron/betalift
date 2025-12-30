@@ -1,0 +1,189 @@
+import type { User, UserSettings } from '@/interfaces'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { create } from 'zustand'
+import { createJSONStorage, persist } from 'zustand/middleware'
+
+interface AuthState {
+	user: User | null
+	isAuthenticated: boolean
+	isLoading: boolean
+	settings: UserSettings
+
+	// Actions
+	login: (email: string, password: string) => Promise<boolean>
+	register: (
+		email: string,
+		password: string,
+		username: string,
+		role: User['role']
+	) => Promise<boolean>
+	logout: () => void
+	updateProfile: (updates: Partial<User>) => void
+	updateSettings: (updates: Partial<UserSettings>) => void
+	setLoading: (loading: boolean) => void
+}
+
+// Mock users for demo
+const mockUsers: User[] = [
+	{
+		id: '1',
+		email: 'creator@betalift.com',
+		username: 'johncreator',
+		displayName: 'John Creator',
+		avatar: 'https://i.pravatar.cc/150?u=1',
+		bio: 'Building awesome apps and looking for feedback!',
+		role: 'creator',
+		stats: {
+			projectsCreated: 5,
+			projectsTested: 2,
+			feedbackGiven: 15,
+			feedbackReceived: 47,
+		},
+		createdAt: new Date('2024-01-15'),
+	},
+	{
+		id: '2',
+		email: 'tester@betalift.com',
+		username: 'janetester',
+		displayName: 'Jane Tester',
+		avatar: 'https://i.pravatar.cc/150?u=2',
+		bio: 'Love testing new apps and providing constructive feedback',
+		role: 'tester',
+		stats: {
+			projectsCreated: 0,
+			projectsTested: 12,
+			feedbackGiven: 89,
+			feedbackReceived: 5,
+		},
+		createdAt: new Date('2024-02-20'),
+	},
+]
+
+const defaultSettings: UserSettings = {
+	notifications: {
+		pushEnabled: true,
+		emailEnabled: true,
+		feedbackUpdates: true,
+		projectInvites: true,
+		weeklyDigest: false,
+	},
+	privacy: {
+		profilePublic: true,
+		showEmail: false,
+		showStats: true,
+	},
+	appearance: {
+		theme: 'dark',
+		language: 'en',
+	},
+}
+
+export const useAuthStore = create<AuthState>()(
+	persist(
+		(set, get) => ({
+			user: null,
+			isAuthenticated: false,
+			isLoading: false,
+			settings: defaultSettings,
+
+			login: async (email: string, password: string) => {
+				set({ isLoading: true })
+
+				// Simulate API call
+				await new Promise((resolve) => setTimeout(resolve, 1000))
+
+				const user = mockUsers.find(
+					(u) => u.email.toLowerCase() === email.toLowerCase()
+				)
+
+				if (user) {
+					set({ user, isAuthenticated: true, isLoading: false })
+					return true
+				}
+
+				// For demo, create a new user on login
+				const newUser: User = {
+					id: Date.now().toString(),
+					email,
+					username: email.split('@')[0],
+					displayName: email.split('@')[0],
+					role: 'both',
+					stats: {
+						projectsCreated: 0,
+						projectsTested: 0,
+						feedbackGiven: 0,
+						feedbackReceived: 0,
+					},
+					createdAt: new Date(),
+				}
+
+				set({ user: newUser, isAuthenticated: true, isLoading: false })
+				return true
+			},
+
+			register: async (
+				email: string,
+				password: string,
+				username: string,
+				role: User['role']
+			) => {
+				set({ isLoading: true })
+
+				// Simulate API call
+				await new Promise((resolve) => setTimeout(resolve, 1000))
+
+				const newUser: User = {
+					id: Date.now().toString(),
+					email,
+					username,
+					displayName: username,
+					role,
+					stats: {
+						projectsCreated: 0,
+						projectsTested: 0,
+						feedbackGiven: 0,
+						feedbackReceived: 0,
+					},
+					createdAt: new Date(),
+				}
+
+				set({ user: newUser, isAuthenticated: true, isLoading: false })
+				return true
+			},
+
+			logout: () => {
+				set({ user: null, isAuthenticated: false, settings: defaultSettings })
+			},
+
+			updateProfile: (updates: Partial<User>) => {
+				const { user } = get()
+				if (user) {
+					set({ user: { ...user, ...updates, updatedAt: new Date() } })
+				}
+			},
+
+			updateSettings: (updates: Partial<UserSettings>) => {
+				const { settings } = get()
+				set({
+					settings: {
+						...settings,
+						...updates,
+					},
+				})
+			},
+
+			setLoading: (loading: boolean) => {
+				set({ isLoading: loading })
+			},
+		}),
+		{
+			name: 'betalift-auth',
+			storage: createJSONStorage(() => AsyncStorage),
+			partialize: (state) => ({
+				user: state.user,
+				isAuthenticated: state.isAuthenticated,
+				settings: state.settings,
+			}),
+		}
+	)
+)
