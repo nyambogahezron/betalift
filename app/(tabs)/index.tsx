@@ -73,16 +73,28 @@ export default function Home() {
 							: 'Projects you are testing'}
 					</Text>
 				</View>
-				<Pressable
-					style={styles.profileButton}
-					onPress={() => router.push('/(tabs)/profile')}
-				>
-					<Avatar
-						source={user?.avatar}
-						name={user?.displayName || user?.username}
-						size='md'
-					/>
-				</Pressable>
+				<View style={styles.headerActions}>
+					<Pressable
+						style={styles.headerIconButton}
+						onPress={() => router.push('/messages')}
+					>
+						<Ionicons
+							name='chatbubbles-outline'
+							size={24}
+							color={Colors.text}
+						/>
+					</Pressable>
+					<Pressable
+						style={styles.profileButton}
+						onPress={() => router.push('/(tabs)/profile')}
+					>
+						<Avatar
+							source={user?.avatar}
+							name={user?.displayName || user?.username}
+							size='md'
+						/>
+					</Pressable>
+				</View>
 			</Animated.View>
 
 			{/* Tab Selector */}
@@ -379,6 +391,19 @@ const styles = StyleSheet.create({
 	},
 	profileButton: {
 		padding: 2,
+	},
+	headerActions: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: Spacing.sm,
+	},
+	headerIconButton: {
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+		backgroundColor: Colors.surface,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	tabContainer: {
 		flexDirection: 'row',

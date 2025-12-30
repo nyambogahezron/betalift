@@ -164,6 +164,12 @@ export default function Profile() {
 					onPress: () => router.push('/profile/edit'),
 				},
 				{
+					icon: 'chatbubbles-outline',
+					label: 'Messages',
+					type: 'navigation',
+					onPress: () => router.push('/messages'),
+				},
+				{
 					icon: 'settings-outline',
 					label: 'Settings',
 					type: 'navigation',

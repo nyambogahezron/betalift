@@ -218,3 +218,98 @@ export interface AppearanceSettings {
 	theme: 'dark' | 'light' | 'system'
 	language: string
 }
+
+// Message types
+export interface Conversation {
+	id: string
+	participants: User[]
+	lastMessage?: Message
+	unreadCount: number
+	createdAt: Date
+	updatedAt: Date
+}
+
+export interface Message {
+	id: string
+	conversationId: string
+	senderId: string
+	sender?: User
+	content: string
+	type: 'text' | 'image' | 'file'
+	attachments?: MessageAttachment[]
+	isRead?: boolean
+	readBy?: string[]
+	createdAt: Date
+}
+
+export interface MessageAttachment {
+	id: string
+	type: 'image' | 'file'
+	url: string
+	name?: string
+	size?: number
+}
+
+// Release types
+export interface Release {
+	id: string
+	projectId: string
+	version: string
+	title: string
+	description?: string
+	changelog?: string | string[] // Markdown content or list of changes
+	releaseNotes?: string // Markdown content
+	type?: 'major' | 'minor' | 'patch' | 'beta' | 'alpha'
+	status?: 'draft' | 'beta' | 'published' | 'archived'
+	fileSize?: number
+	buildNumber?: string
+	minOsVersion?: string
+	downloadUrl?: string
+	testFlightUrl?: string
+	playStoreUrl?: string
+	appStoreUrl?: string
+	publishedAt?: Date
+	createdAt: Date
+}
+
+// Join Request types
+export interface JoinRequest {
+	id: string
+	projectId: string
+	project?: Project
+	userId: string
+	user?: User
+	message?: string
+	status: 'pending' | 'approved' | 'rejected' | 'accepted'
+	reviewedBy?: string
+	reviewedAt?: Date
+	respondedAt?: Date
+	rejectionReason?: string
+	createdAt: Date
+}
+
+// User Engagement types
+export interface UserEngagement {
+	userId: string
+	projectsViewed: ProjectView[]
+	availability: UserAvailability
+	interests: string[]
+	skills: string[]
+	preferredPlatforms: ('ios' | 'android' | 'web' | 'desktop')[]
+	testingExperience: 'beginner' | 'intermediate' | 'expert'
+	lastActiveAt: Date
+}
+
+export interface ProjectView {
+	projectId: string
+	project?: Project
+	viewedAt: Date
+	duration?: number // seconds spent viewing
+}
+
+export interface UserAvailability {
+	status: 'available' | 'busy' | 'away' | 'offline'
+	hoursPerWeek?: number
+	timezone?: string
+	preferredContactMethod?: 'in-app' | 'email' | 'discord'
+}

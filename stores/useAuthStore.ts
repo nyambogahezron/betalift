@@ -1,3 +1,4 @@
+import { demoUser, mockUsers } from '@/data/mockData'
 import type { User, UserSettings } from '@/interfaces'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { create } from 'zustand'
@@ -25,42 +26,6 @@ interface AuthState {
 	setLoading: (loading: boolean) => void
 	setHasSeenOnboarding: (seen: boolean) => void
 }
-
-// Mock users for demo
-const mockUsers: User[] = [
-	{
-		id: '1',
-		email: 'creator@betalift.com',
-		username: 'johncreator',
-		displayName: 'John Creator',
-		avatar: 'https://i.pravatar.cc/150?u=1',
-		bio: 'Building awesome apps and looking for feedback!',
-		role: 'creator',
-		stats: {
-			projectsCreated: 5,
-			projectsTested: 2,
-			feedbackGiven: 15,
-			feedbackReceived: 47,
-		},
-		createdAt: new Date('2024-01-15'),
-	},
-	{
-		id: '2',
-		email: 'tester@betalift.com',
-		username: 'janetester',
-		displayName: 'Jane Tester',
-		avatar: 'https://i.pravatar.cc/150?u=2',
-		bio: 'Love testing new apps and providing constructive feedback',
-		role: 'tester',
-		stats: {
-			projectsCreated: 0,
-			projectsTested: 12,
-			feedbackGiven: 89,
-			feedbackReceived: 5,
-		},
-		createdAt: new Date('2024-02-20'),
-	},
-]
 
 const defaultSettings: UserSettings = {
 	notifications: {
@@ -131,8 +96,7 @@ export const useAuthStore = create<AuthState>()(
 				// Simulate API call
 				await new Promise((resolve) => setTimeout(resolve, 800))
 
-				// Use the creator demo account
-				const demoUser = mockUsers[0]
+				// Use the comprehensive demo account
 				set({ user: demoUser, isAuthenticated: true, isLoading: false })
 				return true
 			},

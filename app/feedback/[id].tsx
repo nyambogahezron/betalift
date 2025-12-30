@@ -101,7 +101,7 @@ export default function FeedbackList() {
 		item: Feedback
 		index: number
 	}) => {
-		const userVote = item.votes?.find((v) => v.id === user?.id)?.vote
+		const userVote = item.votes?.find((v) => v.userId === user?.id)?.type
 
 		return (
 			<Animated.View
@@ -111,7 +111,7 @@ export default function FeedbackList() {
 			>
 				<Card
 					style={styles.feedbackCard}
-					onPress={() => setSelectedFeedback(item)}
+					onPress={() => router.push(`/feedback/detail/${item.id}`)}
 				>
 					<View style={styles.feedbackHeader}>
 						<View style={styles.badgeRow}>
@@ -121,8 +121,8 @@ export default function FeedbackList() {
 									item.type === 'bug'
 										? 'error'
 										: item.type === 'feature'
-										? 'primary'
-										: 'secondary'
+										? 'purple'
+										: 'info'
 								}
 								size='sm'
 							/>
@@ -133,7 +133,7 @@ export default function FeedbackList() {
 										? 'success'
 										: item.status === 'in-progress'
 										? 'warning'
-										: 'secondary'
+										: 'default'
 								}
 								size='sm'
 							/>
@@ -172,10 +172,10 @@ export default function FeedbackList() {
 					{/* Footer */}
 					<View style={styles.feedbackFooter}>
 						<View style={styles.userInfo}>
-							<Avatar source={item.userAvatar} name={item.userName} size='xs' />
+							<Avatar source={item.userAvatar} name={item.userName} size='sm' />
 							<Text style={styles.userName}>{item.userName}</Text>
 							<Text style={styles.timeAgo}>
-								• {formatTimeAgo(item.createdAt)}
+								• {formatTimeAgo(item.createdAt.toISOString())}
 							</Text>
 						</View>
 

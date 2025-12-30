@@ -83,6 +83,8 @@ export default function RootLayout() {
 						<Stack.Screen name='index' options={{ headerShown: false }} />
 						<Stack.Screen name='(auth)' options={{ headerShown: false }} />
 						<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+
+						{/* Project screens */}
 						<Stack.Screen
 							name='project/[id]'
 							options={{ headerShown: false }}
@@ -94,6 +96,8 @@ export default function RootLayout() {
 								presentation: 'modal',
 							}}
 						/>
+
+						{/* Feedback screens */}
 						<Stack.Screen
 							name='feedback/[id]'
 							options={{ headerShown: false }}
@@ -105,6 +109,26 @@ export default function RootLayout() {
 								presentation: 'modal',
 							}}
 						/>
+						<Stack.Screen
+							name='feedback/detail/[id]'
+							options={{ headerShown: false }}
+						/>
+
+						{/* Messages screens */}
+						<Stack.Screen
+							name='messages/index'
+							options={{ headerShown: false }}
+						/>
+						<Stack.Screen
+							name='messages/[id]'
+							options={{ headerShown: false }}
+						/>
+
+						{/* User screens */}
+						<Stack.Screen name='user/[id]' options={{ headerShown: false }} />
+						<Stack.Screen name='users/index' options={{ headerShown: false }} />
+
+						{/* Profile screens */}
 						<Stack.Screen
 							name='profile/edit'
 							options={{

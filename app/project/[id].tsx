@@ -447,6 +447,36 @@ export default function ProjectDetail() {
 									/>
 								</Pressable>
 							)}
+							{/* In-app Links */}
+							<View style={styles.linkDivider} />
+							<Pressable
+								style={styles.linkItem}
+								onPress={() => router.push(`/project/${id}/releases`)}
+							>
+								<Ionicons
+									name='rocket-outline'
+									size={20}
+									color={Colors.warning}
+								/>
+								<Text style={styles.linkText}>Releases</Text>
+								<Ionicons
+									name='chevron-forward'
+									size={18}
+									color={Colors.textTertiary}
+								/>
+							</Pressable>
+							<Pressable
+								style={styles.linkItem}
+								onPress={() => router.push(`/project/${id}/members`)}
+							>
+								<Ionicons name='people-outline' size={20} color={Colors.info} />
+								<Text style={styles.linkText}>Members</Text>
+								<Ionicons
+									name='chevron-forward'
+									size={18}
+									color={Colors.textTertiary}
+								/>
+							</Pressable>
 						</Card>
 					</Animated.View>
 				)}
@@ -466,7 +496,7 @@ export default function ProjectDetail() {
 							<Card
 								key={feedback.id}
 								style={styles.feedbackCard}
-								onPress={() => router.push(`/feedback/${feedback.id}`)}
+								onPress={() => router.push(`/feedback/detail/${feedback.id}`)}
 							>
 								<View style={styles.feedbackHeader}>
 									<Badge
@@ -526,9 +556,15 @@ export default function ProjectDetail() {
 								<Ionicons name='chatbubbles' size={18} color={Colors.primary} />
 							}
 						/>
-						<Button
+						{/* <Button
 							title='Manage Testers'
 							onPress={() => router.push(`/project/${id}/testers`)}
+							style={styles.ownerButton}
+							icon={<Ionicons name='people' size={18} color={Colors.text} />}
+						/> */}
+						<Button
+							title='Manage Testers'
+							onPress={() => router.push('/users')}
 							style={styles.ownerButton}
 							icon={<Ionicons name='people' size={18} color={Colors.text} />}
 						/>
@@ -788,6 +824,11 @@ const styles = StyleSheet.create({
 		fontFamily: Fonts.medium,
 		color: Colors.text,
 		marginLeft: Spacing.md,
+	},
+	linkDivider: {
+		height: 1,
+		backgroundColor: Colors.border,
+		marginVertical: Spacing.xs,
 	},
 
 	// Feedback

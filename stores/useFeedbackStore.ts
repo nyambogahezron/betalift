@@ -1,10 +1,10 @@
+import { demoUser, mockFeedbacks, mockUsers } from '@/data/mockData'
 import type {
 	Feedback,
 	FeedbackComment,
 	FeedbackFilters,
 	FeedbackVote,
 	SortOptions,
-	User,
 } from '@/interfaces'
 import { create } from 'zustand'
 
@@ -46,282 +46,81 @@ interface FeedbackState {
 	setLoading: (loading: boolean) => void
 }
 
-// Mock users for feedback
-const mockUsers: Record<string, User> = {
-	'2': {
-		id: '2',
-		email: 'tester@betalift.com',
-		username: 'janetester',
-		displayName: 'Jane Tester',
-		avatar: 'https://i.pravatar.cc/150?u=2',
-		role: 'tester',
-		stats: {
-			projectsCreated: 0,
-			projectsTested: 12,
-			feedbackGiven: 89,
-			feedbackReceived: 5,
-		},
-		createdAt: new Date('2024-02-20'),
-	},
-	'4': {
-		id: '4',
-		email: 'mike@betalift.com',
-		username: 'miketest',
-		displayName: 'Mike Tester',
-		avatar: 'https://i.pravatar.cc/150?u=4',
-		role: 'tester',
-		stats: {
-			projectsCreated: 1,
-			projectsTested: 8,
-			feedbackGiven: 45,
-			feedbackReceived: 12,
-		},
-		createdAt: new Date('2024-04-05'),
-	},
-	'5': {
-		id: '5',
-		email: 'sarah@betalift.com',
-		username: 'sarahdev',
-		displayName: 'Sarah Developer',
-		avatar: 'https://i.pravatar.cc/150?u=5',
-		role: 'both',
-		stats: {
-			projectsCreated: 2,
-			projectsTested: 6,
-			feedbackGiven: 34,
-			feedbackReceived: 28,
-		},
-		createdAt: new Date('2024-03-15'),
-	},
-}
+// Use mutable copy
+let feedbacksData = [...mockFeedbacks]
 
-// Mock feedback data
-const mockFeedbacks: Feedback[] = [
-	{
-		id: 'f1',
-		projectId: '1',
-		userId: '2',
-		user: mockUsers['2'],
-		type: 'bug',
-		priority: 'high',
-		title: 'App crashes when adding task with long title',
-		description:
-			'When I try to create a task with a title longer than 100 characters, the app crashes immediately. This happens consistently on both iOS and Android. Steps to reproduce:\n1. Open the app\n2. Click "Add Task"\n3. Enter a very long title (100+ characters)\n4. Click Save\n\nExpected: Task should be created or show error\nActual: App crashes',
-		screenshots: [
-			'https://picsum.photos/seed/bug1/400/800',
-			'https://picsum.photos/seed/bug2/400/800',
-		],
-		deviceInfo: {
-			platform: 'ios',
-			osVersion: '17.2',
-			deviceModel: 'iPhone 15 Pro',
-			appVersion: '1.2.3',
-		},
-		status: 'open',
-		upvotes: 12,
-		downvotes: 0,
-		commentCount: 3,
-		createdAt: new Date('2024-08-01'),
-	},
-	{
-		id: 'f2',
-		projectId: '1',
-		userId: '4',
-		user: mockUsers['4'],
-		type: 'feature',
-		priority: 'medium',
-		title: 'Add dark mode support',
-		description:
-			'It would be great to have a dark mode option. The current light theme is a bit harsh on the eyes when using the app at night. Many modern apps support this feature and it would greatly improve the user experience.',
-		screenshots: [],
-		deviceInfo: {
-			platform: 'android',
-			osVersion: '14',
-			deviceModel: 'Pixel 8',
-			appVersion: '1.2.3',
-		},
-		status: 'in-progress',
-		upvotes: 45,
-		downvotes: 2,
-		commentCount: 8,
-		createdAt: new Date('2024-07-28'),
-	},
-	{
-		id: 'f3',
-		projectId: '1',
-		userId: '5',
-		user: mockUsers['5'],
-		type: 'praise',
-		title: 'Love the new AI prioritization feature!',
-		description:
-			'The AI prioritization feature is amazing! It correctly identified my most urgent tasks and helped me focus on what matters. The suggestions are spot on and have improved my productivity significantly. Great work!',
-		screenshots: ['https://picsum.photos/seed/praise1/400/800'],
-		status: 'resolved',
-		upvotes: 28,
-		downvotes: 0,
-		commentCount: 2,
-		createdAt: new Date('2024-07-25'),
-	},
-	{
-		id: 'f4',
-		projectId: '1',
-		userId: '2',
-		user: mockUsers['2'],
-		type: 'bug',
-		priority: 'critical',
-		title: 'Data loss after app update',
-		description:
-			'After updating to version 1.2.3, all my tasks disappeared. I had over 50 tasks organized in different categories. This is a critical issue as I lost weeks of work.',
-		screenshots: [],
-		deviceInfo: {
-			platform: 'ios',
-			osVersion: '17.1',
-			deviceModel: 'iPhone 14',
-			appVersion: '1.2.3',
-		},
-		status: 'resolved',
-		upvotes: 67,
-		downvotes: 0,
-		commentCount: 15,
-		createdAt: new Date('2024-07-20'),
-		resolvedAt: new Date('2024-07-22'),
-	},
-	{
-		id: 'f5',
-		projectId: '1',
-		userId: '4',
-		user: mockUsers['4'],
-		type: 'feature',
-		priority: 'low',
-		title: 'Widget for home screen',
-		description:
-			'A home screen widget showing upcoming tasks would be very useful. It would allow quick glance at tasks without opening the app.',
-		screenshots: [],
-		deviceInfo: {
-			platform: 'android',
-			osVersion: '14',
-			deviceModel: 'Samsung S24',
-			appVersion: '1.2.2',
-		},
-		status: 'open',
-		upvotes: 34,
-		downvotes: 5,
-		commentCount: 4,
-		createdAt: new Date('2024-07-15'),
-	},
-	{
-		id: 'f6',
-		projectId: '2',
-		userId: '2',
-		user: mockUsers['2'],
-		type: 'bug',
-		priority: 'medium',
-		title: 'Calorie calculation seems incorrect',
-		description:
-			'The calorie burn calculation for running seems to be off. When I run 5km, it shows I burned 800 calories which seems way too high based on other fitness apps.',
-		screenshots: ['https://picsum.photos/seed/fitbug1/400/800'],
-		deviceInfo: {
-			platform: 'ios',
-			osVersion: '17.2',
-			deviceModel: 'iPhone 15',
-			appVersion: '2.1.0',
-		},
-		status: 'open',
-		upvotes: 23,
-		downvotes: 3,
-		commentCount: 6,
-		createdAt: new Date('2024-08-05'),
-	},
-	{
-		id: 'f7',
-		projectId: '3',
-		userId: '5',
-		user: mockUsers['5'],
-		type: 'feature',
-		title: 'Support for more languages',
-		description:
-			'Please add syntax highlighting support for Rust, Go, and Kotlin. Currently only JavaScript, Python, and Java are supported.',
-		screenshots: [],
-		status: 'in-progress',
-		upvotes: 19,
-		downvotes: 0,
-		commentCount: 3,
-		createdAt: new Date('2024-07-30'),
-	},
-	{
-		id: 'f8',
-		projectId: '4',
-		userId: '2',
-		user: mockUsers['2'],
-		type: 'praise',
-		title: 'Best budget app I have used!',
-		description:
-			'The interface is so clean and intuitive. I finally understand where my money goes each month. The insights feature is particularly helpful!',
-		screenshots: [],
-		status: 'resolved',
-		upvotes: 41,
-		downvotes: 1,
-		commentCount: 5,
-		createdAt: new Date('2024-08-02'),
-	},
-]
-
-// Mock comments
+// Mock comments - enhanced with more entries
 const mockComments: FeedbackComment[] = [
 	{
 		id: 'c1',
 		feedbackId: 'f1',
-		userId: '1',
-		user: {
-			id: '1',
-			email: 'creator@betalift.com',
-			username: 'johncreator',
-			displayName: 'John Creator',
-			avatar: 'https://i.pravatar.cc/150?u=1',
-			role: 'creator',
-			stats: {
-				projectsCreated: 5,
-				projectsTested: 2,
-				feedbackGiven: 15,
-				feedbackReceived: 47,
-			},
-			createdAt: new Date('2024-01-15'),
-		},
+		userId: 'demo',
+		user: demoUser,
 		content:
 			'Thank you for reporting this! We have identified the issue and are working on a fix. Will be resolved in the next update.',
-		createdAt: new Date('2024-08-01T10:30:00'),
+		createdAt: new Date('2024-12-01T10:30:00'),
 	},
 	{
 		id: 'c2',
 		feedbackId: 'f1',
-		userId: '2',
-		user: mockUsers['2'],
+		userId: 'u2',
+		user: mockUsers.find((u) => u.id === 'u2')!,
 		content:
 			'Great, looking forward to the fix! Let me know if you need any more information.',
-		createdAt: new Date('2024-08-01T11:00:00'),
+		createdAt: new Date('2024-12-01T11:00:00'),
 	},
 	{
 		id: 'c3',
 		feedbackId: 'f2',
-		userId: '1',
-		user: {
-			id: '1',
-			email: 'creator@betalift.com',
-			username: 'johncreator',
-			displayName: 'John Creator',
-			avatar: 'https://i.pravatar.cc/150?u=1',
-			role: 'creator',
-			stats: {
-				projectsCreated: 5,
-				projectsTested: 2,
-				feedbackGiven: 15,
-				feedbackReceived: 47,
-			},
-			createdAt: new Date('2024-01-15'),
-		},
+		userId: 'demo',
+		user: demoUser,
 		content:
-			'Dark mode is now in development! Expected release in version 1.3.0.',
-		createdAt: new Date('2024-07-30T09:00:00'),
+			'Dark mode is now in development! Expected release in version 2.1.0.',
+		createdAt: new Date('2024-11-30T09:00:00'),
+	},
+	{
+		id: 'c4',
+		feedbackId: 'f2',
+		userId: 'u5',
+		user: mockUsers.find((u) => u.id === 'u5')!,
+		content:
+			'Awesome! Will it support automatic switching based on system settings?',
+		createdAt: new Date('2024-11-30T10:15:00'),
+	},
+	{
+		id: 'c5',
+		feedbackId: 'f3',
+		userId: 'demo',
+		user: demoUser,
+		content:
+			'Thank you so much for the kind words! Glad you love the AI feature! 🎉',
+		createdAt: new Date('2024-11-26T08:00:00'),
+	},
+	{
+		id: 'c6',
+		feedbackId: 'f4',
+		userId: 'demo',
+		user: demoUser,
+		content:
+			'This is a critical bug. We are investigating immediately. In the meantime, please check if you had cloud backup enabled.',
+		createdAt: new Date('2024-11-20T09:00:00'),
+	},
+	{
+		id: 'c7',
+		feedbackId: 'f4',
+		userId: 'u7',
+		user: mockUsers.find((u) => u.id === 'u7')!,
+		content: 'I did have backup enabled but it seems the data was overwritten.',
+		createdAt: new Date('2024-11-20T10:30:00'),
+	},
+	{
+		id: 'c8',
+		feedbackId: 'f4',
+		userId: 'demo',
+		user: demoUser,
+		content:
+			'We found the issue and released a hotfix (v1.2.4). Your data should now be restored from our server backup. Please update and let us know!',
+		createdAt: new Date('2024-11-22T14:00:00'),
 	},
 ]
 
@@ -329,7 +128,7 @@ const mockComments: FeedbackComment[] = [
 const mockVotes: FeedbackVote[] = []
 
 export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
-	feedbacks: mockFeedbacks,
+	feedbacks: feedbacksData,
 	projectFeedbacks: [],
 	selectedFeedback: null,
 	comments: [],
@@ -342,7 +141,7 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 		await new Promise((resolve) => setTimeout(resolve, 500))
 
 		const { filters, sortOptions } = get()
-		let filtered = mockFeedbacks.filter((f) => f.projectId === projectId)
+		let filtered = feedbacksData.filter((f) => f.projectId === projectId)
 
 		// Apply filters
 		if (filters.type && filters.type.length > 0) {
@@ -383,7 +182,7 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 	},
 
 	getFeedbackById: (id: string) => {
-		return mockFeedbacks.find((f) => f.id === id)
+		return feedbacksData.find((f) => f.id === id)
 	},
 
 	selectFeedback: (feedback: Feedback | null) => {
@@ -403,7 +202,7 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 			createdAt: new Date(),
 		}
 
-		mockFeedbacks.unshift(newFeedback)
+		feedbacksData.unshift(newFeedback)
 
 		set((state) => ({
 			feedbacks: [newFeedback, ...state.feedbacks],
@@ -415,10 +214,10 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 	},
 
 	updateFeedback: (id: string, updates: Partial<Feedback>) => {
-		const index = mockFeedbacks.findIndex((f) => f.id === id)
+		const index = feedbacksData.findIndex((f) => f.id === id)
 		if (index !== -1) {
-			mockFeedbacks[index] = {
-				...mockFeedbacks[index],
+			feedbacksData[index] = {
+				...feedbacksData[index],
 				...updates,
 				updatedAt: new Date(),
 			}
@@ -439,9 +238,9 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 	},
 
 	deleteFeedback: (id: string) => {
-		const index = mockFeedbacks.findIndex((f) => f.id === id)
+		const index = feedbacksData.findIndex((f) => f.id === id)
 		if (index !== -1) {
-			mockFeedbacks.splice(index, 1)
+			feedbacksData.splice(index, 1)
 		}
 
 		set((state) => ({
@@ -464,14 +263,14 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 				mockVotes.splice(index, 1)
 
 				const updateKey = type === 'up' ? 'upvotes' : 'downvotes'
-				const feedback = mockFeedbacks.find((f) => f.id === feedbackId)
+				const feedback = feedbacksData.find((f) => f.id === feedbackId)
 				if (feedback) {
 					feedback[updateKey] = Math.max(0, feedback[updateKey] - 1)
 				}
 			} else {
 				// Change vote
 				existingVote.type = type
-				const feedback = mockFeedbacks.find((f) => f.id === feedbackId)
+				const feedback = feedbacksData.find((f) => f.id === feedbackId)
 				if (feedback) {
 					if (type === 'up') {
 						feedback.upvotes += 1
@@ -492,7 +291,7 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 				createdAt: new Date(),
 			})
 
-			const feedback = mockFeedbacks.find((f) => f.id === feedbackId)
+			const feedback = feedbacksData.find((f) => f.id === feedbackId)
 			if (feedback) {
 				if (type === 'up') {
 					feedback.upvotes += 1
@@ -504,13 +303,13 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 
 		// Update state
 		set((state) => ({
-			feedbacks: [...mockFeedbacks],
+			feedbacks: [...feedbacksData],
 			projectFeedbacks: state.projectFeedbacks.map((f) => {
-				const updated = mockFeedbacks.find((mf) => mf.id === f.id)
+				const updated = feedbacksData.find((mf) => mf.id === f.id)
 				return updated || f
 			}),
 			selectedFeedback: state.selectedFeedback
-				? mockFeedbacks.find((f) => f.id === state.selectedFeedback?.id) ||
+				? feedbacksData.find((f) => f.id === state.selectedFeedback?.id) ||
 				  state.selectedFeedback
 				: null,
 		}))
@@ -538,7 +337,7 @@ export const useFeedbackStore = create<FeedbackState>()((set, get) => ({
 		mockComments.push(newComment)
 
 		// Update feedback comment count
-		const feedback = mockFeedbacks.find((f) => f.id === feedbackId)
+		const feedback = feedbacksData.find((f) => f.id === feedbackId)
 		if (feedback) {
 			feedback.commentCount += 1
 		}
