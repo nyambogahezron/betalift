@@ -1,0 +1,119 @@
+BETALIFT PROJECT
+
+sections 
+  - landing page (one page screen well animated to show the info about the app )
+  - auth pages (login, register )
+  - home ( showcase the projects the user have joined and the projects that have been request to )
+  	- project ( info about the project including the links,screen shoots (in general all the info about the project))
+  		- feedback (this is the core functionality of the app this one shows all the feedback of the project)
+  - profile ( current user management including app settings , profile update)
+ 
+MVP
+  - App that users can post project mostly beta projects , get the first users and feedback , to help them identify bugs before the main realses 
+  
+  
+Architecture & Stack
+Core Technologies
+	Framework: React Native (Expo)
+	Language: TypeScript
+	Animations: React Native Reanimated
+	State Management: Zustand
+	Backend: You'll need to specify (Firebase, Supabase, or custom API?)
+
+Application Structure
+	
+1. Landing Page
+	Features:
+	- Hero section with animated value proposition
+	- How it works (3-step process)
+	- Benefits for creators and testers
+	- CTA buttons (Get Started, Learn More)
+	- Smooth scroll animations
+	- Interactive elements
+2. Authentication Pages
+	Login:
+	- Email/password input
+	- Social auth options (optional)
+	- Forgot password link
+	- Navigate to register
+
+	Register:
+	- User type selection (Creator/Tester)
+	- Email, password, username
+	- Terms acceptance
+	- Profile setup
+3. Home Screen
+	Two main sections:
+	a) My Projects (Creator view)
+	   - Projects you've created
+	   - Status indicators (active/closed)
+	   - Quick stats (testers, feedback count)
+
+	b) Joined Projects (Tester view)
+	   - Projects you're testing
+	   - Pending invites/requests
+	   - Recent activity
+
+	Features:
+	- Pull to refresh
+	- Search/filter
+	- Tab navigation
+4. Project Detail Screen
+	Project Information:
+	- Project name, description
+	- Status badge
+	- Creator info
+	- Links (website, app store, test flight)
+	- Screenshots gallery (swipeable)
+	- Tech stack tags
+	- Timeline/milestones
+
+	Actions:
+	- Join as tester (if not joined)
+	- View feedback
+	- Submit feedback
+	- Share project
+5. Feedback Screen (Core Feature)
+	Feedback List:
+	- All feedback for the project
+	- Filter by: bugs, features, praise
+	- Sort by: recent, upvotes
+	- User avatars and timestamps
+
+	Feedback Detail:
+	- Full description
+	- Screenshots/attachments
+	- Comments thread
+	- Upvote/downvote
+	- Status (open, in progress, resolved)
+
+	Create Feedback:
+	- Category selection
+	- Title and description
+	- Screenshot upload
+	- Device info (auto-captured)
+	- Submit button
+6. Profile Screen
+	User Profile:
+	- Avatar, name, bio
+	- Stats (projects created/tested, feedback given)
+	- Edit profile button
+
+	Settings:
+	- Account settings
+	- Notification preferences
+	- Privacy settings
+	- Theme toggle (light/dark)
+	- About/Help
+	- Logout
+	
+	
+File upload implementation (multer configured but not used)
+- [ ] Rate limiting (configured but not implemented)
+- [ ] WebSocket for real-time features
+- [ ] Unit/Integration tests
+- [ ] API documentation (Swagger)
+- [ ] Redis caching
+- [ ] Search indexing
+- [ ] APM monitoring
+- [ ] CI/CD pipeline
