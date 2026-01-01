@@ -131,7 +131,10 @@ export default function MessagesScreen() {
 		)
 	}
 
-	const totalUnread = conversations.reduce((acc, conv) => acc + conv.unreadCount, 0)
+	 const totalUnread = conversations.reduce(
+			(acc, conv) => acc + conv.unreadCount,
+			0
+		)
 
 	return (
 		<View style={styles.container}>

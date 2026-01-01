@@ -6,12 +6,12 @@
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"scheme": "betalift",
-		"backgroundColor": "#ffffff",
-		"userInterfaceStyle": "light",
+		"backgroundColor": "#1A1A1A",
+		"userInterfaceStyle": "dark",
 		"newArchEnabled": true,
 		"ios": {
 			"supportsTablet": true,
-			"backgroundColor": "#ffffff"
+			"backgroundColor": "#1A1A1A"
 		},
 		"android": {
 			"adaptiveIcon": {
@@ -20,9 +20,10 @@
 				"backgroundImage": "./assets/images/android-icon-background.png",
 				"monochromeImage": "./assets/images/android-icon-monochrome.png"
 			},
-			"userInterfaceStyle": "light",
+			"userInterfaceStyle": "dark",
 			"edgeToEdgeEnabled": true,
-			"predictiveBackGestureEnabled": false
+			"predictiveBackGestureEnabled": false,
+			"package": "com.hezron.betalift"
 		},
 		"web": {
 			"output": "static",
@@ -36,10 +37,7 @@
 					"image": "./assets/images/splash-icon.png",
 					"imageWidth": 200,
 					"resizeMode": "contain",
-					"backgroundColor": "#ffffff",
-					"dark": {
-						"backgroundColor": "#000000"
-					}
+					"backgroundColor": "#1A1A1A"
 				}
 			],
 			"expo-font",
@@ -48,6 +46,12 @@
 		"experiments": {
 			"typedRoutes": true,
 			"reactCompiler": true
+		},
+		"extra": {
+			"router": {},
+			"eas": {
+				"projectId": "178c8646-0826-4296-a10e-ab8763080082"
+			}
 		}
 	}
 }

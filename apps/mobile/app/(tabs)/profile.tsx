@@ -25,6 +25,7 @@ import Animated, {
 	useSharedValue,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import * as Application from 'expo-application'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const HEADER_MAX_HEIGHT = 220
@@ -51,6 +52,11 @@ export default function Profile() {
 	const { feedbacks } = useFeedbackStore()
 	const insets = useSafeAreaInsets()
 	const scrollY = useSharedValue(0)
+
+	const currentYear = new Date().getFullYear()
+
+	const appVersion = Application.nativeApplicationVersion || '1.0.0'
+	const appBuild = Application.nativeBuildVersion || '100'
 
 	const [notificationsEnabled, setNotificationsEnabled] = useState(
 		settings.notifications.pushEnabled
@@ -377,9 +383,11 @@ export default function Profile() {
 					entering={FadeInUp.duration(600).delay(600).springify()}
 					style={styles.appInfo}
 				>
-					<Text style={styles.appVersion}>BetaLift v1.0.0</Text>
+					<Text style={styles.appVersion}>
+						BetaLift {appVersion} (Build {appBuild})
+					</Text>
 					<Text style={styles.appCopyright}>
-						© 2025 BetaLift. All rights reserved.
+						© {currentYear} BetaLift. All rights reserved.
 					</Text>
 				</Animated.View>
 			</Animated.ScrollView>
