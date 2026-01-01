@@ -10,14 +10,19 @@ import {
 	useFonts,
 } from '@expo-google-fonts/inter'
 import { DarkTheme, ThemeProvider } from '@react-navigation/native'
-import { Stack, useRouter, useSegments } from 'expo-router'
+import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import * as SystemUI from 'expo-system-ui'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import 'react-native-reanimated'
+
+SplashScreen.setOptions({
+	duration: 1000,
+	fade: true,
+})
 
 SplashScreen.preventAutoHideAsync()
 
@@ -25,10 +30,9 @@ export const unstable_settings = {
 	anchor: '(tabs)',
 }
 
-export default function RootLayout() {
+export default function Layout() {
+	const [isReady, setIsReady] = useState(false)
 	const { isAuthenticated, hasSeenOnboarding } = useAuthStore()
-	const segments = useSegments()
-	const router = useRouter()
 
 	const [loaded, error] = useFonts({
 		'Inter-Regular': Inter_400Regular,
@@ -38,40 +42,29 @@ export default function RootLayout() {
 		'Inter-BoldItalic': Inter_700Bold_Italic,
 		'GreatVibes-Regular': GreatVibes_400Regular,
 	})
-
 	useEffect(() => {
-		SystemUI.setBackgroundColorAsync(Colors.background)
+		async function start() {
+			try {
+				await SystemUI.setBackgroundColorAsync(Colors.backgroundSecondary)
+			} catch (e) {
+				console.warn(e)
+			} finally {
+				setIsReady(true)
+			}
+		}
+		start()
 	}, [])
 
 	useEffect(() => {
-		if (loaded || error) {
+		if ((loaded || error) && isReady) {
 			SplashScreen.hideAsync()
 		}
-	}, [loaded, error])
-
-	// Auth guard effect
-	useEffect(() => {
-		if (!loaded) return
-
-		const inAuthGroup = segments[0] === '(auth)'
-		const currentRoute = segments[0]
-		const inOnboarding = !currentRoute || currentRoute === undefined
-
-		if (isAuthenticated) {
-			// If user is authenticated and tries to access auth pages or onboarding, redirect to tabs
-			if (inAuthGroup || inOnboarding) {
-				router.replace('/(tabs)')
-			}
-		} else {
-			// If user is not authenticated
-			if (!hasSeenOnboarding && !inOnboarding && !inAuthGroup) {
-				// Show onboarding if they haven't seen it and not in auth/onboarding
-				router.replace('/')
-			}
-		}
-	}, [isAuthenticated, hasSeenOnboarding, segments, loaded])
+	}, [loaded, error, isReady])
 
 	if (!loaded && !error) {
+		return null
+	}
+	if (!isReady) {
 		return null
 	}
 
@@ -80,66 +73,77 @@ export default function RootLayout() {
 			<GestureHandlerRootView>
 				<ThemeProvider value={DarkTheme}>
 					<Stack>
-						<Stack.Screen name='index' options={{ headerShown: false }} />
-						<Stack.Screen name='(auth)' options={{ headerShown: false }} />
-						<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+						<Stack.Protected guard={!hasSeenOnboarding}>
+							<Stack.Screen name='index' options={{ headerShown: false }} />
+						</Stack.Protected>
 
-						{/* Project screens */}
-						<Stack.Screen
-							name='project/[id]'
-							options={{ headerShown: false }}
-						/>
-						<Stack.Screen
-							name='project/create'
-							options={{
-								headerShown: false,
-								presentation: 'modal',
-							}}
-						/>
+						<Stack.Protected guard={!isAuthenticated}>
+							<Stack.Screen name='(auth)' options={{ headerShown: false }} />
+						</Stack.Protected>
 
-						{/* Feedback screens */}
-						<Stack.Screen
-							name='feedback/[id]'
-							options={{ headerShown: false }}
-						/>
-						<Stack.Screen
-							name='feedback/create'
-							options={{
-								headerShown: false,
-								presentation: 'modal',
-							}}
-						/>
-						<Stack.Screen
-							name='feedback/detail/[id]'
-							options={{ headerShown: false }}
-						/>
+						<Stack.Protected guard={isAuthenticated}>
+							<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
 
-						{/* Messages screens */}
-						<Stack.Screen
-							name='messages/index'
-							options={{ headerShown: false }}
-						/>
-						<Stack.Screen
-							name='messages/[id]'
-							options={{ headerShown: false }}
-						/>
+							{/* Project screens */}
+							<Stack.Screen
+								name='project/[id]'
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
+								name='project/create'
+								options={{
+									headerShown: false,
+									presentation: 'modal',
+								}}
+							/>
 
-						{/* User screens */}
-						<Stack.Screen name='user/[id]' options={{ headerShown: false }} />
-						<Stack.Screen name='users/index' options={{ headerShown: false }} />
+							{/* Feedback screens */}
+							<Stack.Screen
+								name='feedback/[id]'
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
+								name='feedback/create'
+								options={{
+									headerShown: false,
+									presentation: 'modal',
+								}}
+							/>
+							<Stack.Screen
+								name='feedback/detail/[id]'
+								options={{ headerShown: false }}
+							/>
 
-						{/* Profile screens */}
-						<Stack.Screen
-							name='profile/edit'
-							options={{
-								headerShown: false,
-								presentation: 'modal',
-							}}
-						/>
-						<Stack.Screen
-							name='profile/settings'
-							options={{ headerShown: false }}
-						/>
+							{/* Messages screens */}
+							<Stack.Screen
+								name='messages/index'
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
+								name='messages/[id]'
+								options={{ headerShown: false }}
+							/>
+
+							{/* User screens */}
+							<Stack.Screen name='user/[id]' options={{ headerShown: false }} />
+							<Stack.Screen
+								name='users/index'
+								options={{ headerShown: false }}
+							/>
+
+							{/* Profile screens */}
+							<Stack.Screen
+								name='profile/edit'
+								options={{
+									headerShown: false,
+									presentation: 'modal',
+								}}
+							/>
+							<Stack.Screen
+								name='profile/settings'
+								options={{ headerShown: false }}
+							/>
+						</Stack.Protected>
 					</Stack>
 					<StatusBar style='light' />
 				</ThemeProvider>

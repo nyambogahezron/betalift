@@ -8,7 +8,6 @@ import { Ionicons } from '@expo/vector-icons'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	ActivityIndicator,
-	Dimensions,
 	FlatList,
 	LayoutChangeEvent,
 	Pressable,
@@ -27,8 +26,6 @@ import Animated, {
 	useSharedValue,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 type FilterCategory = 'all' | 'web' | 'mobile' | 'desktop' | 'api'
 type SortOption = 'newest' | 'popular' | 'trending'
@@ -153,155 +150,6 @@ export default function Explore() {
 		}
 	}, [projects, searchQuery, selectedCategory, sortBy, user?.id])
 
-	const renderProject = useCallback(
-		({ item, index }: { item: Project; index: number }) => (
-			<Animated.View
-				entering={FadeInUp.duration(400)
-					.delay(index * 50)
-					.springify()}
-			>
-				<ProjectCard project={item} />
-			</Animated.View>
-		),
-		[]
-	)
-
-	const ListHeader = (
-		<>
-			{/* Search Bar */}
-			<Animated.View
-				entering={FadeInDown.duration(600).springify()}
-				style={styles.searchContainer}
-			>
-				<Ionicons
-					name='search'
-					size={20}
-					color={Colors.textTertiary}
-					style={styles.searchIcon}
-				/>
-				<TextInput
-					style={styles.searchInput}
-					placeholder='Search projects, tags...'
-					placeholderTextColor={Colors.textTertiary}
-					value={searchQuery}
-					onChangeText={setSearchQuery}
-				/>
-				{searchQuery.length > 0 && (
-					<Pressable onPress={() => setSearchQuery('')}>
-						<Ionicons
-							name='close-circle'
-							size={20}
-							color={Colors.textTertiary}
-						/>
-					</Pressable>
-				)}
-			</Animated.View>
-
-			{/* Categories - shown in list, will be replaced by sticky when scrolled */}
-			<Animated.View
-				entering={FadeInUp.duration(600).delay(100).springify()}
-				style={styles.categoriesWrapper}
-			>
-				<FlatList
-					horizontal
-					data={CATEGORIES}
-					keyExtractor={(item) => item.id}
-					showsHorizontalScrollIndicator={false}
-					contentContainerStyle={styles.categoriesContainer}
-					renderItem={({ item }) => (
-						<Pressable
-							style={[
-								styles.categoryChip,
-								selectedCategory === item.id && styles.categoryChipActive,
-							]}
-							onPress={() => setSelectedCategory(item.id)}
-						>
-							<Ionicons
-								name={item.icon}
-								size={16}
-								color={
-									selectedCategory === item.id
-										? Colors.text
-										: Colors.textSecondary
-								}
-							/>
-							<Text
-								style={[
-									styles.categoryText,
-									selectedCategory === item.id && styles.categoryTextActive,
-								]}
-							>
-								{item.label}
-							</Text>
-						</Pressable>
-					)}
-				/>
-			</Animated.View>
-
-			{/* Sort Options */}
-			<Animated.View
-				entering={FadeInUp.duration(600).delay(200).springify()}
-				style={styles.sortContainer}
-			>
-				<Text style={styles.resultsCount}>
-					{availableProjects.length} project
-					{availableProjects.length !== 1 ? 's' : ''} found
-				</Text>
-				<View style={styles.sortOptions}>
-					{(['newest', 'popular', 'trending'] as SortOption[]).map((option) => (
-						<Pressable
-							key={option}
-							style={[
-								styles.sortOption,
-								sortBy === option && styles.sortOptionActive,
-							]}
-							onPress={() => setSortBy(option)}
-						>
-							<Text
-								style={[
-									styles.sortOptionText,
-									sortBy === option && styles.sortOptionTextActive,
-								]}
-							>
-								{option.charAt(0).toUpperCase() + option.slice(1)}
-							</Text>
-						</Pressable>
-					))}
-				</View>
-			</Animated.View>
-		</>
-	)
-
-	const ListEmpty = (
-		<Animated.View
-			entering={FadeInUp.duration(600).springify()}
-			exiting={FadeOut.duration(300)}
-			style={styles.emptyContainer}
-		>
-			<View style={styles.emptyIcon}>
-				<Ionicons
-					name='telescope-outline'
-					size={64}
-					color={Colors.textTertiary}
-				/>
-			</View>
-			<Text style={styles.emptyTitle}>No Projects Found</Text>
-			<Text style={styles.emptyDescription}>
-				{searchQuery
-					? `No projects match "${searchQuery}". Try different keywords.`
-					: 'Check back later for new beta projects to test.'}
-			</Text>
-			{searchQuery && (
-				<Button
-					title='Clear Search'
-					variant='outline'
-					onPress={() => setSearchQuery('')}
-					style={styles.emptyButton}
-				/>
-			)}
-		</Animated.View>
-	)
-
 	return (
 		<View style={[styles.container, { paddingTop: insets.top }]}>
 			{/* Sticky Categories Header */}
@@ -356,12 +204,19 @@ export default function Explore() {
 				<Animated.FlatList
 					data={availableProjects}
 					keyExtractor={(item) => item.id}
-					renderItem={renderProject}
 					contentContainerStyle={styles.listContainer}
 					showsVerticalScrollIndicator={false}
+					renderItem={({ item, index }: { item: Project; index: number }) => (
+						<Animated.View
+							entering={FadeInUp.duration(400)
+								.delay(index * 50)
+								.springify()}
+						>
+							<ProjectCard project={item} />
+						</Animated.View>
+					)}
 					ListHeaderComponent={
 						<>
-							{/* Header */}
 							<Animated.View
 								entering={FadeInDown.duration(600).springify()}
 								style={styles.header}
@@ -372,10 +227,146 @@ export default function Explore() {
 									Discover beta projects to test
 								</Text>
 							</Animated.View>
-							{ListHeader}
+							(
+							<>
+								{/* Search Bar */}
+								<Animated.View
+									entering={FadeInDown.duration(600).springify()}
+									style={styles.searchContainer}
+								>
+									<Ionicons
+										name='search'
+										size={20}
+										color={Colors.textTertiary}
+										style={styles.searchIcon}
+									/>
+									<TextInput
+										style={styles.searchInput}
+										placeholder='Search projects, tags...'
+										placeholderTextColor={Colors.textTertiary}
+										value={searchQuery}
+										onChangeText={setSearchQuery}
+									/>
+									{searchQuery.length > 0 && (
+										<Pressable onPress={() => setSearchQuery('')}>
+											<Ionicons
+												name='close-circle'
+												size={20}
+												color={Colors.textTertiary}
+											/>
+										</Pressable>
+									)}
+								</Animated.View>
+
+								{/* Categories - shown in list, will be replaced by sticky when scrolled */}
+								<Animated.View
+									entering={FadeInUp.duration(600).delay(100).springify()}
+									style={styles.categoriesWrapper}
+								>
+									<FlatList
+										horizontal
+										data={CATEGORIES}
+										keyExtractor={(item) => item.id}
+										showsHorizontalScrollIndicator={false}
+										contentContainerStyle={styles.categoriesContainer}
+										renderItem={({ item }) => (
+											<Pressable
+												style={[
+													styles.categoryChip,
+													selectedCategory === item.id &&
+														styles.categoryChipActive,
+												]}
+												onPress={() => setSelectedCategory(item.id)}
+											>
+												<Ionicons
+													name={item.icon}
+													size={16}
+													color={
+														selectedCategory === item.id
+															? Colors.text
+															: Colors.textSecondary
+													}
+												/>
+												<Text
+													style={[
+														styles.categoryText,
+														selectedCategory === item.id &&
+															styles.categoryTextActive,
+													]}
+												>
+													{item.label}
+												</Text>
+											</Pressable>
+										)}
+									/>
+								</Animated.View>
+
+								{/* Sort Options */}
+								<Animated.View
+									entering={FadeInUp.duration(600).delay(200).springify()}
+									style={styles.sortContainer}
+								>
+									<Text style={styles.resultsCount}>
+										{availableProjects.length} project
+										{availableProjects.length !== 1 ? 's' : ''} found
+									</Text>
+									<View style={styles.sortOptions}>
+										{(['newest', 'popular', 'trending'] as SortOption[]).map(
+											(option) => (
+												<Pressable
+													key={option}
+													style={[
+														styles.sortOption,
+														sortBy === option && styles.sortOptionActive,
+													]}
+													onPress={() => setSortBy(option)}
+												>
+													<Text
+														style={[
+															styles.sortOptionText,
+															sortBy === option && styles.sortOptionTextActive,
+														]}
+													>
+														{option.charAt(0).toUpperCase() + option.slice(1)}
+													</Text>
+												</Pressable>
+											)
+										)}
+									</View>
+								</Animated.View>
+							</>
+							)
 						</>
 					}
-					ListEmptyComponent={ListEmpty}
+					ListEmptyComponent={
+						<Animated.View
+							entering={FadeInUp.duration(600).springify()}
+							exiting={FadeOut.duration(300)}
+							style={styles.emptyContainer}
+						>
+							<View style={styles.emptyIcon}>
+								<Ionicons
+									name='telescope-outline'
+									size={64}
+									color={Colors.textTertiary}
+								/>
+							</View>
+							<Text style={styles.emptyTitle}>No Projects Found</Text>
+							<Text style={styles.emptyDescription}>
+								{searchQuery
+									? `No projects match "${searchQuery}". Try different keywords.`
+									: 'Check back later for new beta projects to test.'}
+							</Text>
+							{searchQuery && (
+								<Button
+									title='Clear Search'
+									variant='outline'
+									onPress={() => setSearchQuery('')}
+									style={styles.emptyButton}
+								/>
+							)}
+						</Animated.View>
+					}
 					onScroll={scrollHandler}
 					scrollEventThrottle={16}
 					refreshControl={

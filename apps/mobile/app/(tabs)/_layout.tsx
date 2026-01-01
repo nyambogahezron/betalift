@@ -3,7 +3,7 @@ import React from 'react'
 
 import { HapticTab } from '@/components/haptic-tab'
 import { Colors, Fonts } from '@/constants/theme'
-import { Ionicons } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { Platform, StyleSheet } from 'react-native'
 
 export default function TabLayout() {
@@ -23,11 +23,7 @@ export default function TabLayout() {
 				options={{
 					title: 'Home',
 					tabBarIcon: ({ color, focused }) => (
-						<Ionicons
-							name={focused ? 'home' : 'home-outline'}
-							size={24}
-							color={color}
-						/>
+						<Feather name={focused ? 'home' : 'home'} size={24} color={color} />
 					),
 				}}
 			/>
@@ -64,11 +60,11 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
 	tabBar: {
 		backgroundColor: Colors.backgroundSecondary,
-		borderTopColor: Colors.border,
-		borderTopWidth: 1,
-		height: Platform.OS === 'ios' ? 88 : 68,
+		height: Platform.OS === 'ios' ? 88 : 115,
 		paddingTop: 8,
 		paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+		borderColor: 'transparent',
+		borderWidth: 0,
 	},
 	tabBarLabel: {
 		fontFamily: Fonts.medium,
