@@ -16,7 +16,16 @@ export interface IProject extends Document {
 	shortDescription?: string
 	ownerId: mongoose.Types.ObjectId
 	status: 'active' | 'beta' | 'closed' | 'paused'
-	category?: 'mobile-app' | 'web-app' | 'desktop-app' | 'game' | 'api' | 'other'
+	category?:
+		| 'mobile-app'
+		| 'web-app'
+		| 'desktop-app'
+		| 'game'
+		| 'api'
+		| 'other'
+		| 'Health & Fitness'
+		| 'Productivity'
+		| 'Social'
 	links?: IProjectLinks
 	screenshots?: string[]
 	icon?: string
@@ -72,7 +81,17 @@ const projectSchema = new Schema<IProject>(
 		},
 		category: {
 			type: String,
-			enum: ['mobile-app', 'web-app', 'desktop-app', 'game', 'api', 'other'],
+			enum: [
+				'mobile-app',
+				'web-app',
+				'desktop-app',
+				'game',
+				'api',
+				'other',
+				'Health & Fitness',
+				'Productivity',
+				'Social',
+			],
 		},
 		links: {
 			type: projectLinksSchema,

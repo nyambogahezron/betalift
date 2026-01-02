@@ -57,25 +57,31 @@ export const seedProjects = async (users: IUser[]) => {
 		const project = await Project.create(projectData)
 		
 		// Add owner as admin member
-		await ProjectMembership.create({
-			projectId: project._id,
-			userId: projectData.ownerId,
-			role: 'admin',
-			status: 'active',
-			permissions: ['view', 'edit', 'delete', 'manage_members', 'manage_releases'],
-		})
+		   await ProjectMembership.create({
+					projectId: project._id,
+					userId: projectData.ownerId,
+					role: 'creator',
+					status: 'approved',
+					permissions: [
+						'view',
+						'edit',
+						'delete',
+						'manage_members',
+						'manage_releases',
+					],
+				})
 		
 		// Add some additional members (testers)
 		const additionalMembers = users.filter(u => u._id.toString() !== projectData.ownerId?.toString()).slice(0, 2)
-		for (const member of additionalMembers) {
-			await ProjectMembership.create({
-				projectId: project._id,
-				userId: member._id,
-				role: 'tester',
-				status: 'active',
-				permissions: ['view'],
-			})
-		}
+		   for (const member of additionalMembers) {
+					await ProjectMembership.create({
+						projectId: project._id,
+						userId: member._id,
+						role: 'tester',
+						status: 'approved',
+						permissions: ['view'],
+					})
+				}
 		
 		// Create some releases
 		const releases = [

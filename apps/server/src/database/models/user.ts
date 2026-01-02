@@ -219,9 +219,6 @@ userSchema.methods.comparePassword = async function (
 	return bcrypt.compare(candidatePassword, this.password)
 }
 
-// Create indexes
-userSchema.index({ email: 1 })
-userSchema.index({ username: 1 })
 userSchema.index({ role: 1 })
 userSchema.index({ createdAt: -1 })
 
