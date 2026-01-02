@@ -94,8 +94,6 @@ const userEngagementSchema = new Schema<IUserEngagement>(
 	}
 )
 
-// Indexes
-userEngagementSchema.index({ userId: 1 })
 userEngagementSchema.index({ lastActiveAt: -1 })
 userEngagementSchema.index({ interests: 1 })
 userEngagementSchema.index({ skills: 1 })

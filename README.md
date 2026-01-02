@@ -1,8 +1,6 @@
 # Betalift
 
-Betalift is a collaborative platform designed to connect users, manage projects, and facilitate feedback and communication. The project includes a mobile app (React Native/Expo) and a Node.js/TypeScript backend server.
-
-## Features
+Betalift is a collaborative platform designed to connect users, manage projects, and facilitate feedback and communication. 
 
 - User authentication and profile management
 - Project creation, membership, and requests
@@ -48,7 +46,7 @@ Betalift is a collaborative platform designed to connect users, manage projects,
 
 ## Contributing
 
-See [CONTRIBUTION.md](CONTRIBUTION.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 

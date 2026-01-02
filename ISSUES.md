@@ -25,6 +25,6 @@ Thank you for taking the time to help improve Betalift! Please follow these guid
 
 - Be respectful and constructive.
 - Provide as much detail as possible.
-- Use [CONTRIBUTION.md](CONTRIBUTION.md) for contribution guidelines.
+- Use [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 Thank you for helping us make Betalift better!

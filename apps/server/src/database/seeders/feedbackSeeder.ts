@@ -111,7 +111,7 @@ export const seedFeedback = async (users: IUser[], projects: IProject[]) => {
 			await FeedbackVote.create({
 				feedbackId: feedback._id,
 				userId: voter._id,
-				type: Math.random() > 0.3 ? 'upvote' : 'downvote',
+				type: Math.random() > 0.3 ? 'up' : 'down',
 			})
 		}
 		

@@ -7,26 +7,23 @@ import { logger } from '../../utils/logger.js'
 
 const seedDatabase = async () => {
 	try {
-		// Connect to database
-		await mongoose.connect(ENV.mongodbUri)
+		await mongoose.connect(ENV.mongoUri)
 		logger.info('Connected to MongoDB')
 
-		// Clear existing data (optional - comment out if you want to keep existing data)
 		logger.info('Clearing existing data...')
 		await mongoose.connection.db?.dropDatabase()
 		logger.info('Database cleared')
 
-		// Seed data in order
 		logger.info('Starting database seeding...')
-		
+
 		const users = await seedUsers()
-		logger.info(`✓ Seeded ${users.length} users`)
+		logger.info(`Seeded ${users.length} users`)
 
 		const projects = await seedProjects(users)
-		logger.info(`✓ Seeded ${projects.length} projects`)
+		logger.info(`Seeded ${projects.length} projects`)
 
 		const feedback = await seedFeedback(users, projects)
-		logger.info(`✓ Seeded ${feedback.length} feedback items`)
+		logger.info(`Seeded ${feedback.length} feedback items`)
 
 		logger.info('Database seeding completed successfully!')
 		process.exit(0)
@@ -36,5 +33,4 @@ const seedDatabase = async () => {
 	}
 }
 
-// Run seeder
 seedDatabase()
