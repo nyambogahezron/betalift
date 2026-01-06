@@ -3,7 +3,7 @@ import Conversation from '../database/models/conversation'
 import Message from '../database/models/message'
 import User from '../database/models/user'
 import { AuthRequest, AuthenticatedRequest } from '../middleware/authentication'
-import { asyncHandler } from '../middleware/asyncHandler'
+import asyncHandler from '../middleware/asyncHandler'
 import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import ENV from '../config/env'
 

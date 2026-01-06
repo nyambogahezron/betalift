@@ -20,10 +20,26 @@ const router = Router()
 
 const idParamSchema = z.object({ id: mongoIdSchema })
 
-router.get('/', authenticate, getConversations)
-router.post('/', authenticate, validateBody(createConversationSchema), createConversation)
-router.get('/:id/messages', authenticate, validateParams(idParamSchema), validateQuery(paginationSchema), getMessages)
-router.post('/:id/messages', authenticate, validateParams(idParamSchema), validateBody(sendMessageSchema), sendMessage)
-router.patch('/:id/read', authenticate, validateParams(idParamSchema), markAsRead)
+router.use(authenticate)
+
+router
+	.route('/')
+	.get(getConversations)
+	.post(validateBody(createConversationSchema), createConversation)
+
+router
+	.route('/:id/messages')
+	.get(
+		validateParams(idParamSchema),
+		validateQuery(paginationSchema),
+		getMessages
+	)
+	.post(
+		validateParams(idParamSchema),
+		validateBody(sendMessageSchema),
+		sendMessage
+	)
+
+router.patch('/:id/read', validateParams(idParamSchema), markAsRead)
 
 export default router

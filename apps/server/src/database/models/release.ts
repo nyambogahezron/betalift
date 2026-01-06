@@ -99,7 +99,7 @@ const releaseSchema = new Schema<IRelease>(
 	}
 )
 
-// Indexes
+
 releaseSchema.index({ projectId: 1, createdAt: -1 })
 releaseSchema.index({ projectId: 1, status: 1 })
 releaseSchema.index({ projectId: 1, version: 1 }, { unique: true })

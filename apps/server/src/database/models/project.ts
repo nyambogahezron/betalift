@@ -144,7 +144,7 @@ const projectSchema = new Schema<IProject>(
 	}
 )
 
-// Indexes
+
 projectSchema.index({ ownerId: 1 })
 projectSchema.index({ status: 1 })
 projectSchema.index({ category: 1 })

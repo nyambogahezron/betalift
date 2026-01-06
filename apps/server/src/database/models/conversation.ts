@@ -32,7 +32,7 @@ const conversationSchema = new Schema<IConversation>(
 	}
 )
 
-// Indexes
+
 conversationSchema.index({ participants: 1 })
 conversationSchema.index({ updatedAt: -1 })
 

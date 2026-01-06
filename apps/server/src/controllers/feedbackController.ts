@@ -6,7 +6,7 @@ import Project from '../database/models/project'
 import User from '../database/models/user'
 import Notification from '../database/models/notification'
 import { AuthRequest, AuthenticatedRequest } from '../middleware/authentication'
-import { asyncHandler } from '../middleware/asyncHandler'
+import asyncHandler from '../middleware/asyncHandler'
 import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import ENV from '../config/env'
 
@@ -218,42 +218,39 @@ export const updateFeedback = asyncHandler(
 
 // @route   DELETE /api/v1/feedback/:id
 // @access  Private
-export const deleteFeedback = asyncHandler(
-	async (req: AuthenticatedRequest, res: Response) => {
-		const feedback = await Feedback.findById(req.params.id).populate(
-			'projectId',
-			'ownerId'
-		)
+export const deleteFeedback = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const feedback = await Feedback.findById(req.params.id).populate(
+		'projectId',
+		'ownerId'
+	)
 
-		if (!feedback) {
-			throw new NotFoundError('Feedback not found')
-		}
-
-		const project = feedback.projectId as any
-
-		// Only feedback author or project owner can delete
-		if (
-			feedback.userId.toString() !== req.user._id &&
-			project.ownerId.toString() !== req.user._id
-		) {
-			throw new ForbiddenError(
-				'You do not have permission to delete this feedback'
-			)
-		}
-
-		await Feedback.findByIdAndDelete(req.params.id)
-
-		// Update project feedback count
-		await Project.findByIdAndUpdate(feedback.projectId, {
-			$inc: { feedbackCount: -1 },
-		})
-
-		res.json({
-			success: true,
-			message: 'Feedback deleted successfully',
-		})
+	if (!feedback) {
+		throw new NotFoundError('Feedback not found')
 	}
-)
+
+	const project = feedback.projectId as any
+
+	// Only feedback author or project owner can delete
+	if (
+		feedback.userId.toString() !== req.user._id &&
+		project.ownerId.toString() !== req.user._id
+	) {
+		throw new ForbiddenError(
+			'You do not have permission to delete this feedback'
+		)
+	}
+
+	await Feedback.findByIdAndDelete(req.params.id)
+
+	await Project.findByIdAndUpdate(feedback.projectId, {
+		$inc: { feedbackCount: -1 },
+	})
+
+	res.json({
+		success: true,
+		message: 'Feedback deleted successfully',
+	})
+})
 
 // @route   GET /api/v1/feedback/:id/comments
 // @access  Public

@@ -8,9 +8,13 @@ import {
 	updateSettings,
 	getUserEngagement,
 	updateUserEngagement,
-} from '../../controllers/user'
+} from '../../controllers/userController'
 import { authenticate } from '../../middleware/authentication'
-import { validateParams, validateQuery, validateBody } from '../../validators/middleware'
+import {
+	validateParams,
+	validateQuery,
+	validateBody,
+} from '../../validators/middleware'
 import { z } from 'zod'
 import {
 	mongoIdSchema,
@@ -25,18 +29,33 @@ const router = Router()
 const idParamSchema = z.object({ id: mongoIdSchema })
 
 router.get('/', validateQuery(getUsersQuerySchema), getUsers)
-router.get('/:id', validateParams(idParamSchema), getUserById)
-router.patch('/:id', authenticate, validateParams(idParamSchema), validateBody(updateUserSchema), updateUser)
-router.delete('/:id', authenticate, validateParams(idParamSchema), deleteUser)
+
+router.use(authenticate)
+
+router
+	.route('/:id')
+	.get(validateParams(idParamSchema), getUserById)
+	.patch(
+		validateParams(idParamSchema),
+		validateBody(updateUserSchema),
+		updateUser
+	)
+	.delete(validateParams(idParamSchema), deleteUser)
 router.get('/:id/stats', validateParams(idParamSchema), getUserStats)
-router.patch('/:id/settings', authenticate, validateParams(idParamSchema), validateBody(updateUserSettingsSchema), updateSettings)
-router.get('/:id/engagement', authenticate, validateParams(idParamSchema), getUserEngagement)
 router.patch(
-	'/:id/engagement',
-	authenticate,
+	'/:id/settings',
 	validateParams(idParamSchema),
-	validateBody(updateUserEngagementSchema),
-	updateUserEngagement
+	validateBody(updateUserSettingsSchema),
+	updateSettings
 )
+
+router
+	.route('/:id/engagement')
+	.get(validateParams(idParamSchema), getUserEngagement)
+	.patch(
+		validateParams(idParamSchema),
+		validateBody(updateUserEngagementSchema),
+		updateUserEngagement
+	)
 
 export default router

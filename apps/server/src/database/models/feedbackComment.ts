@@ -39,7 +39,7 @@ const feedbackCommentSchema = new Schema<IFeedbackComment>(
 	}
 )
 
-// Indexes
+
 feedbackCommentSchema.index({ feedbackId: 1, createdAt: -1 })
 feedbackCommentSchema.index({ userId: 1 })
 

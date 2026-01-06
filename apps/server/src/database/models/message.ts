@@ -68,7 +68,7 @@ const messageSchema = new Schema<IMessage>(
 	}
 )
 
-// Indexes
+
 messageSchema.index({ conversationId: 1, createdAt: -1 })
 messageSchema.index({ senderId: 1 })
 

@@ -134,7 +134,7 @@ const feedbackSchema = new Schema<IFeedback>(
 	}
 )
 
-// Indexes
+
 feedbackSchema.index({ projectId: 1, createdAt: -1 })
 feedbackSchema.index({ userId: 1, createdAt: -1 })
 feedbackSchema.index({ status: 1 })

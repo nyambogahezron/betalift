@@ -15,10 +15,15 @@ const router = Router()
 
 const idParamSchema = z.object({ id: mongoIdSchema })
 
-router.get('/', authenticate, validateQuery(paginationSchema), getNotifications)
-router.patch('/read-all', authenticate, markAllNotificationsAsRead)
-router.delete('/', authenticate, deleteAllNotifications)
-router.patch('/:id/read', authenticate, validateParams(idParamSchema), markNotificationAsRead)
-router.delete('/:id', authenticate, validateParams(idParamSchema), deleteNotification)
+router.use(authenticate)
+
+router
+	.route('/')
+	.get(validateQuery(paginationSchema), getNotifications)
+	.delete(deleteAllNotifications)
+
+router.patch('/read-all', markAllNotificationsAsRead)
+router.patch('/:id/read', validateParams(idParamSchema), markNotificationAsRead)
+router.delete('/:id', validateParams(idParamSchema), deleteNotification)
 
 export default router
