@@ -5,32 +5,26 @@ import express, {
 	type Request,
 	type Response,
 } from "express";
-import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
 import ENV from "./config/env";
 import { connectDatabase } from "./database/connect";
+import { csrfMiddleware, generateCsrfToken } from "./middleware/csrf";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
+import { apiLimiter } from "./middleware/rateLimiter";
 import apiRoutes from "./routes";
 import { logger } from "./utils/logger";
 
 const app: Application = express();
 
-const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	max: 100,
-	message:
-		"Too many requests created from this IP, please try again after 15 minutes",
-	standardHeaders: true,
-	legacyHeaders: false,
-});
 
 connectDatabase();
 
 // Middleware
-app.use(helmet());
-app.use(limiter);
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(apiLimiter);
+app.use(csrfMiddleware);
 app.use(
 	cors({
 		origin: ENV.clientUrl,
@@ -63,6 +57,9 @@ app.get("/health", (_req: Request, res: Response) => {
 
 // API routes
 app.use("/api/v1", apiRoutes);
+
+// CSRF token route
+app.get("/csrf-token", generateCsrfToken);
 
 // Error handling middleware
 app.use(notFound);

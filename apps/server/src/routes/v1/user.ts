@@ -11,6 +11,7 @@ import {
 	updateUserEngagement,
 } from "../../controllers/userController";
 import { authenticate } from "../../middleware/authentication";
+import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
 import {
 	validateBody,
 	validateParams,
@@ -28,22 +29,29 @@ const router = Router();
 
 const idParamSchema = z.object({ id: mongoIdSchema });
 
-router.get("/", validateQuery(getUsersQuerySchema), getUsers);
+router.get("/", readLimiter, validateQuery(getUsersQuerySchema), getUsers);
 
 router.use(authenticate);
 
 router
 	.route("/:id")
-	.get(validateParams(idParamSchema), getUserById)
+	.get(readLimiter, validateParams(idParamSchema), getUserById)
 	.patch(
+		writeLimiter,
 		validateParams(idParamSchema),
 		validateBody(updateUserSchema),
 		updateUser,
 	)
-	.delete(validateParams(idParamSchema), deleteUser);
-router.get("/:id/stats", validateParams(idParamSchema), getUserStats);
+	.delete(writeLimiter, validateParams(idParamSchema), deleteUser);
+router.get(
+	"/:id/stats",
+	readLimiter,
+	validateParams(idParamSchema),
+	getUserStats,
+);
 router.patch(
 	"/:id/settings",
+	writeLimiter,
 	validateParams(idParamSchema),
 	validateBody(updateUserSettingsSchema),
 	updateSettings,
@@ -51,8 +59,9 @@ router.patch(
 
 router
 	.route("/:id/engagement")
-	.get(validateParams(idParamSchema), getUserEngagement)
+	.get(readLimiter, validateParams(idParamSchema), getUserEngagement)
 	.patch(
+		writeLimiter,
 		validateParams(idParamSchema),
 		validateBody(updateUserEngagementSchema),
 		updateUserEngagement,

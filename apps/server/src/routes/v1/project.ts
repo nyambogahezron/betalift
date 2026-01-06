@@ -24,6 +24,7 @@ import {
 	authenticate,
 	optionalAuthenticate,
 } from "../../middleware/authentication";
+import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
 import {
 	validateBody,
 	validateParams,
@@ -58,32 +59,55 @@ const requestIdParamSchema = z.object({
 // Project routes
 router
 	.route("/")
-	.get(validateQuery(getProjectsQuerySchema), getProjects)
-	.post(authenticate, validateBody(createProjectSchema), createProject);
+	.get(readLimiter, validateQuery(getProjectsQuerySchema), getProjects)
+	.post(
+		writeLimiter,
+		authenticate,
+		validateBody(createProjectSchema),
+		createProject,
+	);
 
 router
 	.route("/:id")
-	.get(optionalAuthenticate, validateParams(idParamSchema), getProjectById)
+	.get(
+		readLimiter,
+		optionalAuthenticate,
+		validateParams(idParamSchema),
+		getProjectById,
+	)
 	.patch(
+		writeLimiter,
 		authenticate,
 		validateParams(idParamSchema),
 		validateBody(updateProjectSchema),
 		updateProject,
 	)
-	.delete(authenticate, validateParams(idParamSchema), deleteProject);
+	.delete(
+		writeLimiter,
+		authenticate,
+		validateParams(idParamSchema),
+		deleteProject,
+	);
 
 // Project members routes
-router.get("/:id/members", validateParams(idParamSchema), getProjectMembers);
+router.get(
+	"/:id/members",
+	readLimiter,
+	validateParams(idParamSchema),
+	getProjectMembers,
+);
 
 // Project join requests routes
 router.get(
 	"/:id/requests",
+	readLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	getProjectJoinRequests,
 );
 router.post(
 	"/:id/requests",
+	writeLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(createJoinRequestSchema),
@@ -91,6 +115,7 @@ router.post(
 );
 router.patch(
 	"/:id/requests/:requestId",
+	writeLimiter,
 	authenticate,
 	validateParams(requestIdParamSchema),
 	validateBody(updateJoinRequestSchema),
@@ -100,12 +125,14 @@ router.patch(
 // Project releases routes
 router.get(
 	"/:id/releases",
+	readLimiter,
 	optionalAuthenticate,
 	validateParams(idParamSchema),
 	getProjectReleases,
 );
 router.post(
 	"/:id/releases",
+	writeLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(createReleaseSchema),
@@ -115,27 +142,36 @@ router.post(
 router
 	.route("/:id/releases/:releaseId")
 	.get(
+		readLimiter,
 		optionalAuthenticate,
 		validateParams(releaseIdParamSchema),
 		getReleaseById,
 	)
 	.patch(
+		writeLimiter,
 		authenticate,
 		validateParams(releaseIdParamSchema),
 		validateBody(updateReleaseSchema),
 		updateRelease,
 	)
-	.delete(authenticate, validateParams(releaseIdParamSchema), deleteRelease);
+	.delete(
+		writeLimiter,
+		authenticate,
+		validateParams(releaseIdParamSchema),
+		deleteRelease,
+	);
 
 // Project feedback routes
 router
 	.route("/:projectId/feedback")
 	.get(
+		readLimiter,
 		validateParams(projectIdParamSchema),
 		validateQuery(getFeedbackQuerySchema),
 		getFeedback,
 	)
 	.post(
+		writeLimiter,
 		authenticate,
 		validateParams(projectIdParamSchema),
 		validateBody(createFeedbackSchema),
