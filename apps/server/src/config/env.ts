@@ -7,14 +7,12 @@ const ENV = {
 	port: parseInt(process.env.PORT || '5000', 10),
 
 	// Database
-	mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/betalift',
-	mongoUriTest:
-		process.env.MONGODB_URI_TEST || 'mongodb://localhost:27017/betalift-test',
+	mongoUri: process.env.MONGODB_URI || '',
+	mongoUriTest: process.env.MONGODB_URI_TEST || '',
 
 	// JWT
-	jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this',
-	jwtRefreshSecret:
-		process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-jwt-key',
+	jwtSecret: process.env.JWT_SECRET || '',
+	jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || '',
 	jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
 	jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
 
@@ -24,7 +22,7 @@ const ENV = {
 	smtpSecure: process.env.SMTP_SECURE === 'true',
 	smtpUser: process.env.SMTP_USER || '',
 	smtpPassword: process.env.SMTP_PASSWORD || '',
-	emailFrom: process.env.EMAIL_FROM || 'noreply@betalift.com',
+	emailFrom: process.env.EMAIL_FROM || '',
 
 	// Client
 	clientUrl: process.env.CLIENT_URL || 'http://localhost:8081',

@@ -1,5 +1,4 @@
 import { Response } from 'express'
-import { validationResult } from 'express-validator'
 import mongoose from 'mongoose'
 import Project from '../database/models/project'
 import ProjectMembership from '../database/models/projectMembership'
@@ -8,7 +7,7 @@ import Release from '../database/models/release'
 import Feedback from '../database/models/feedback'
 import User from '../database/models/user'
 import Notification from '../database/models/notification'
-import { AuthRequest } from '../middleware/authentication'
+import { AuthRequest, AuthenticatedRequest } from '../middleware/authentication'
 import { asyncHandler } from '../middleware/asyncHandler'
 import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import ENV from '../config/env'
@@ -76,46 +75,35 @@ export const getProjects = asyncHandler(
 // @desc    Get project by ID
 // @route   GET /api/v1/projects/:id
 // @access  Public
-export const getProjectById = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
+export const getProjectById = asyncHandler(async (req: AuthRequest, res: Response) => {
+	const project = await Project.findById(req.params.id).populate(
+		'ownerId',
+		'username displayName avatar bio stats'
+	)
 
-		const project = await Project.findById(req.params.id).populate(
-			'ownerId',
-			'username displayName avatar bio stats'
-		)
-
-		if (!project) {
-			throw new NotFoundError('Project not found')
-		}
-
-		// Check if user has access to private projects
-		if (
-			!project.isPublic &&
-			(!req.user || req.user._id !== project.ownerId.toString())
-		) {
-			throw new ForbiddenError('This project is private')
-		}
-
-		res.json({
-			success: true,
-			data: project,
-		})
+	if (!project) {
+		throw new NotFoundError('Project not found')
 	}
-)
+
+	// Check if user has access to private projects
+	if (
+		!project.isPublic &&
+		(!req.user || req.user._id !== project.ownerId.toString())
+	) {
+		throw new ForbiddenError('This project is private')
+	}
+
+	res.json({
+		success: true,
+		data: project,
+	})
+})
 
 // @desc    Create new project
 // @route   POST /api/v1/projects
 // @access  Private
 export const createProject = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const projectData = {
 			...req.body,
 			ownerId: req.user._id,
@@ -149,16 +137,7 @@ export const createProject = asyncHandler(
 // @route   PATCH /api/v1/projects/:id
 // @access  Private
 export const updateProject = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {
@@ -188,16 +167,7 @@ export const updateProject = asyncHandler(
 // @route   DELETE /api/v1/projects/:id
 // @access  Private
 export const deleteProject = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {
@@ -228,11 +198,6 @@ export const deleteProject = asyncHandler(
 // @access  Public
 export const getProjectMembers = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
 		const status = (req.query.status as string) || 'approved'
 
 		const memberships = await ProjectMembership.find({
@@ -251,16 +216,7 @@ export const getProjectMembers = asyncHandler(
 // @route   GET /api/v1/projects/:id/requests
 // @access  Private
 export const getProjectJoinRequests = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {
@@ -292,16 +248,7 @@ export const getProjectJoinRequests = asyncHandler(
 // @route   POST /api/v1/projects/:id/requests
 // @access  Private
 export const createJoinRequest = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {
@@ -336,11 +283,14 @@ export const createJoinRequest = asyncHandler(
 		})
 
 		// Notify project owner
+		const currentUser = await User.findById(req.user._id)
 		await Notification.create({
 			userId: project.ownerId,
 			type: 'project_invite',
 			title: 'New Join Request',
-			message: `${req.user.username} requested to join ${project.name}`,
+			message: `${currentUser?.username || 'Someone'} requested to join ${
+				project.name
+			}`,
 			data: {
 				projectId: project._id,
 				requestId: joinRequest._id,
@@ -359,11 +309,7 @@ export const createJoinRequest = asyncHandler(
 // @route   PATCH /api/v1/projects/:id/requests/:requestId
 // @access  Private
 export const updateJoinRequest = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const { status, rejectionReason } = req.body
 
 		if (!['approved', 'rejected'].includes(status)) {
@@ -453,11 +399,6 @@ export const updateJoinRequest = asyncHandler(
 // @access  Public
 export const getProjectReleases = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {
@@ -488,16 +429,7 @@ export const getProjectReleases = asyncHandler(
 // @route   POST /api/v1/projects/:id/releases
 // @access  Private
 export const createRelease = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {
@@ -557,11 +489,7 @@ export const getReleaseById = asyncHandler(
 // @route   PATCH /api/v1/projects/:id/releases/:releaseId
 // @access  Private
 export const updateRelease = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {
@@ -595,11 +523,7 @@ export const updateRelease = asyncHandler(
 // @route   DELETE /api/v1/projects/:id/releases/:releaseId
 // @access  Private
 export const deleteRelease = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const project = await Project.findById(req.params.id)
 
 		if (!project) {

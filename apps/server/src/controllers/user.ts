@@ -1,10 +1,9 @@
 import { Response } from 'express'
-import { validationResult } from 'express-validator'
 import User from '../database/models/user'
 import UserEngagement from '../database/models/userEngagement'
 import Project from '../database/models/project'
 import Feedback from '../database/models/feedback'
-import { AuthRequest } from '../middleware/authentication'
+import { AuthRequest, AuthenticatedRequest } from '../middleware/authentication'
 import { asyncHandler } from '../middleware/asyncHandler'
 import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import ENV from '../config/env'
@@ -61,46 +60,30 @@ export const getUsers = asyncHandler(
 // @desc    Get user by ID
 // @route   GET /api/v1/users/:id
 // @access  Public
-export const getUserById = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
+export const getUserById = asyncHandler(async (req: AuthRequest, res: Response) => {
+	const user = await User.findById(req.params.id)
 
-		const user = await User.findById(req.params.id)
-
-		if (!user) {
-			throw new NotFoundError('User not found')
-		}
-
-		// Get user engagement if available
-		const engagement = await UserEngagement.findOne({ userId: user._id })
-
-		res.json({
-			success: true,
-			data: {
-				...user.toJSON(),
-				engagement: engagement?.toJSON(),
-			},
-		})
+	if (!user) {
+		throw new NotFoundError('User not found')
 	}
-)
+
+	// Get user engagement if available
+	const engagement = await UserEngagement.findOne({ userId: user._id })
+
+	res.json({
+		success: true,
+		data: {
+			...user.toJSON(),
+			engagement: engagement?.toJSON(),
+		},
+	})
+})
 
 // @desc    Update user profile
 // @route   PATCH /api/v1/users/:id
 // @access  Private
 export const updateUser = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		// Users can only update their own profile
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only update your own profile')
@@ -135,16 +118,7 @@ export const updateUser = asyncHandler(
 // @route   DELETE /api/v1/users/:id
 // @access  Private
 export const deleteUser = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		// Users can only delete their own account
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only delete your own account')
@@ -173,50 +147,34 @@ export const deleteUser = asyncHandler(
 // @desc    Get user stats
 // @route   GET /api/v1/users/:id/stats
 // @access  Public
-export const getUserStats = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
+export const getUserStats = asyncHandler(async (req: AuthRequest, res: Response) => {
+	const user = await User.findById(req.params.id)
 
-		const user = await User.findById(req.params.id)
-
-		if (!user) {
-			throw new NotFoundError('User not found')
-		}
-
-		// Get additional stats
-		const [projects, feedback] = await Promise.all([
-			Project.find({ ownerId: req.params.id }),
-			Feedback.find({ userId: req.params.id }),
-		])
-
-		res.json({
-			success: true,
-			data: {
-				...user.stats,
-				projects: projects.length,
-				recentFeedback: feedback.slice(0, 5),
-			},
-		})
+	if (!user) {
+		throw new NotFoundError('User not found')
 	}
-)
+
+	// Get additional stats
+	const [projects, feedback] = await Promise.all([
+		Project.find({ ownerId: req.params.id }),
+		Feedback.find({ userId: req.params.id }),
+	])
+
+	res.json({
+		success: true,
+		data: {
+			...user.stats,
+			projects: projects.length,
+			recentFeedback: feedback.slice(0, 5),
+		},
+	})
+})
 
 // @desc    Update user settings
 // @route   PATCH /api/v1/users/:id/settings
 // @access  Private
 export const updateSettings = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		// Users can only update their own settings
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only update your own settings')
@@ -246,16 +204,7 @@ export const updateSettings = asyncHandler(
 // @route   GET /api/v1/users/:id/engagement
 // @access  Private
 export const getUserEngagement = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const engagement = await UserEngagement.findOne({
 			userId: req.params.id,
 		}).populate('projectsViewed.projectId', 'name icon')
@@ -275,16 +224,7 @@ export const getUserEngagement = asyncHandler(
 // @route   PATCH /api/v1/users/:id/engagement
 // @access  Private
 export const updateUserEngagement = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		// Users can only update their own engagement
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only update your own engagement')

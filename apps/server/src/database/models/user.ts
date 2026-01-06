@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 import bcrypt from 'bcryptjs'
+import validator from 'validator'
 
 export interface IUserStats {
 	projectsCreated: number
@@ -115,7 +116,10 @@ const userSchema = new Schema<IUser>(
 			unique: true,
 			lowercase: true,
 			trim: true,
-			match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+			validate: {
+				validator: (value: string) => validator.isEmail(value),
+				message: 'Please enter a valid email',
+			},
 		},
 		password: {
 			type: String,
@@ -130,10 +134,10 @@ const userSchema = new Schema<IUser>(
 			trim: true,
 			minlength: [3, 'Username must be at least 3 characters'],
 			maxlength: [30, 'Username cannot exceed 30 characters'],
-			match: [
-				/^[a-zA-Z0-9_]+$/,
-				'Username can only contain letters, numbers, and underscores',
-			],
+			validate: {
+				validator: (value: string) => validator.isAlphanumeric(value),
+				message: 'Username can only contain letters and numbers',
+			},
 		},
 		displayName: {
 			type: String,
@@ -212,7 +216,6 @@ userSchema.pre('save', async function () {
 	this.password = await bcrypt.hash(this.password, salt)
 })
 
-// Compare password method
 userSchema.methods.comparePassword = async function (
 	candidatePassword: string
 ): Promise<boolean> {
