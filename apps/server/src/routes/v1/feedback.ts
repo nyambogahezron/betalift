@@ -10,6 +10,7 @@ import {
 	voteFeedback,
 } from "../../controllers/feedbackController";
 import { authenticate } from "../../middleware/authentication";
+import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
 import { validateBody, validateParams } from "../../validators/middleware";
 import {
 	createFeedbackCommentSchema,
@@ -28,19 +29,26 @@ const commentIdParamSchema = z.object({
 
 router
 	.route("/:id")
-	.get(validateParams(idParamSchema), getFeedbackById)
+	.get(readLimiter, validateParams(idParamSchema), getFeedbackById)
 	.patch(
+		writeLimiter,
 		authenticate,
 		validateParams(idParamSchema),
 		validateBody(updateFeedbackSchema),
 		updateFeedback,
 	)
-	.delete(authenticate, validateParams(idParamSchema), deleteFeedback);
+	.delete(
+		writeLimiter,
+		authenticate,
+		validateParams(idParamSchema),
+		deleteFeedback,
+	);
 
 router
 	.route("/:id/comments")
-	.get(validateParams(idParamSchema), getFeedbackComments)
+	.get(readLimiter, validateParams(idParamSchema), getFeedbackComments)
 	.post(
+		writeLimiter,
 		authenticate,
 		validateParams(idParamSchema),
 		validateBody(createFeedbackCommentSchema),
@@ -49,6 +57,7 @@ router
 
 router.delete(
 	"/:id/comments/:commentId",
+	writeLimiter,
 	authenticate,
 	validateParams(commentIdParamSchema),
 	deleteFeedbackComment,
@@ -56,6 +65,7 @@ router.delete(
 
 router.post(
 	"/:id/vote",
+	writeLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(voteFeedbackSchema),

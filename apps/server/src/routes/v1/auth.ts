@@ -10,6 +10,7 @@ import {
 	verifyEmail,
 } from "../../controllers/authController";
 import { authenticate } from "../../middleware/authentication";
+import { authLimiter, readLimiter } from "../../middleware/rateLimiter";
 import { validateBody } from "../../validators/middleware";
 import {
 	forgotPasswordSchema,
@@ -22,19 +23,31 @@ import {
 
 const router = Router();
 
-router.post("/register", validateBody(registerSchema), register);
-router.post("/login", validateBody(loginSchema), login);
-router.post("/refresh", validateBody(refreshTokenSchema), refreshToken);
-router.post("/logout", authenticate, logout);
-router.get("/me", authenticate, getCurrentUser);
-router.post("/verify-email", validateBody(verifyEmailSchema), verifyEmail);
+router.post("/register", authLimiter, validateBody(registerSchema), register);
+router.post("/login", authLimiter, validateBody(loginSchema), login);
+router.post(
+	"/refresh",
+	authLimiter,
+	validateBody(refreshTokenSchema),
+	refreshToken,
+);
+router.post("/logout", authLimiter, authenticate, logout);
+router.get("/me", readLimiter, authenticate, getCurrentUser);
+router.post(
+	"/verify-email",
+	authLimiter,
+	validateBody(verifyEmailSchema),
+	verifyEmail,
+);
 router.post(
 	"/forgot-password",
+	authLimiter,
 	validateBody(forgotPasswordSchema),
 	forgotPassword,
 );
 router.post(
 	"/reset-password",
+	authLimiter,
 	validateBody(resetPasswordSchema),
 	resetPassword,
 );
