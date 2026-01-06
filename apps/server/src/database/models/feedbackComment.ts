@@ -1,46 +1,51 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { type Document, Schema } from "mongoose";
 
 export interface IFeedbackComment extends Document {
-	feedbackId: mongoose.Types.ObjectId
-	userId: mongoose.Types.ObjectId
-	content: string
-	createdAt: Date
-	updatedAt: Date
+	feedbackId: mongoose.Types.ObjectId;
+	userId: mongoose.Types.ObjectId;
+	content: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 const feedbackCommentSchema = new Schema<IFeedbackComment>(
 	{
 		feedbackId: {
 			type: Schema.Types.ObjectId,
-			ref: 'Feedback',
+			ref: "Feedback",
 			required: true,
 		},
 		userId: {
 			type: Schema.Types.ObjectId,
-			ref: 'User',
+			ref: "User",
 			required: true,
 		},
 		content: {
 			type: String,
-			required: [true, 'Comment content is required'],
-			maxlength: [2000, 'Comment cannot exceed 2000 characters'],
+			required: [true, "Comment content is required"],
+			maxlength: [2000, "Comment cannot exceed 2000 characters"],
 		},
 	},
 	{
 		timestamps: true,
 		toJSON: {
-			transform: (_: any, ret: any) => {
-				ret.id = ret._id.toString()
-				delete ret._id
-				delete ret.__v
-				return ret
+			transform: (
+				_doc: Document,
+				ret: Record<string, unknown> & { _id: unknown },
+			) => {
+				ret.id = (ret._id as { toString(): string }).toString();
+				delete ret._id;
+				delete ret.__v;
+				return ret;
 			},
 		},
-	}
-)
+	},
+);
 
+feedbackCommentSchema.index({ feedbackId: 1, createdAt: -1 });
+feedbackCommentSchema.index({ userId: 1 });
 
-feedbackCommentSchema.index({ feedbackId: 1, createdAt: -1 })
-feedbackCommentSchema.index({ userId: 1 })
-
-export default mongoose.model<IFeedbackComment>('FeedbackComment', feedbackCommentSchema)
+export default mongoose.model<IFeedbackComment>(
+	"FeedbackComment",
+	feedbackCommentSchema,
+);

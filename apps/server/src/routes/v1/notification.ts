@@ -1,29 +1,33 @@
-import { Router } from 'express'
+import { Router } from "express";
+import { z } from "zod";
 import {
-	getNotifications,
-	markNotificationAsRead,
-	markAllNotificationsAsRead,
-	deleteNotification,
 	deleteAllNotifications,
-} from '../../controllers/notificationController'
-import { authenticate } from '../../middleware/authentication'
-import { validateParams, validateQuery } from '../../validators/middleware'
-import { z } from 'zod'
-import { mongoIdSchema, paginationSchema } from '../../validators/schemas'
+	deleteNotification,
+	getNotifications,
+	markAllNotificationsAsRead,
+	markNotificationAsRead,
+} from "../../controllers/notificationController";
+import { authenticate } from "../../middleware/authentication";
+import { validateParams, validateQuery } from "../../validators/middleware";
+import { mongoIdSchema, paginationSchema } from "../../validators/schemas";
 
-const router = Router()
+const router = Router();
 
-const idParamSchema = z.object({ id: mongoIdSchema })
+const idParamSchema = z.object({ id: mongoIdSchema });
 
-router.use(authenticate)
+router.use(authenticate);
 
 router
-	.route('/')
+	.route("/")
 	.get(validateQuery(paginationSchema), getNotifications)
-	.delete(deleteAllNotifications)
+	.delete(deleteAllNotifications);
 
-router.patch('/read-all', markAllNotificationsAsRead)
-router.patch('/:id/read', validateParams(idParamSchema), markNotificationAsRead)
-router.delete('/:id', validateParams(idParamSchema), deleteNotification)
+router.patch("/read-all", markAllNotificationsAsRead);
+router.patch(
+	"/:id/read",
+	validateParams(idParamSchema),
+	markNotificationAsRead,
+);
+router.delete("/:id", validateParams(idParamSchema), deleteNotification);
 
-export default router
+export default router;

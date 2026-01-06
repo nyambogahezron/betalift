@@ -1,145 +1,145 @@
-import { Router } from 'express'
+import { Router } from "express";
+import { z } from "zod";
 import {
-	getProjects,
-	getProjectById,
-	createProject,
-	updateProject,
-	deleteProject,
-	getProjectMembers,
-	getProjectJoinRequests,
-	createJoinRequest,
-	updateJoinRequest,
-	getProjectReleases,
-	createRelease,
-	getReleaseById,
-	updateRelease,
-	deleteRelease,
-} from '../../controllers/projectController'
-import {
-	getFeedback,
 	createFeedback,
-} from '../../controllers/feedbackController'
+	getFeedback,
+} from "../../controllers/feedbackController";
+import {
+	createJoinRequest,
+	createProject,
+	createRelease,
+	deleteProject,
+	deleteRelease,
+	getProjectById,
+	getProjectJoinRequests,
+	getProjectMembers,
+	getProjectReleases,
+	getProjects,
+	getReleaseById,
+	updateJoinRequest,
+	updateProject,
+	updateRelease,
+} from "../../controllers/projectController";
 import {
 	authenticate,
 	optionalAuthenticate,
-} from '../../middleware/authentication'
+} from "../../middleware/authentication";
 import {
+	validateBody,
 	validateParams,
 	validateQuery,
-	validateBody,
-} from '../../validators/middleware'
-import { z } from 'zod'
+} from "../../validators/middleware";
 import {
-	mongoIdSchema,
-	getProjectsQuerySchema,
-	getFeedbackQuerySchema,
-	createProjectSchema,
-	updateProjectSchema,
-	createJoinRequestSchema,
-	updateJoinRequestSchema,
-	createReleaseSchema,
-	updateReleaseSchema,
 	createFeedbackSchema,
-} from '../../validators/schemas'
+	createJoinRequestSchema,
+	createProjectSchema,
+	createReleaseSchema,
+	getFeedbackQuerySchema,
+	getProjectsQuerySchema,
+	mongoIdSchema,
+	updateJoinRequestSchema,
+	updateProjectSchema,
+	updateReleaseSchema,
+} from "../../validators/schemas";
 
-const router = Router()
+const router = Router();
 
-const idParamSchema = z.object({ id: mongoIdSchema })
-const projectIdParamSchema = z.object({ projectId: mongoIdSchema })
+const idParamSchema = z.object({ id: mongoIdSchema });
+const projectIdParamSchema = z.object({ projectId: mongoIdSchema });
 const releaseIdParamSchema = z.object({
 	id: mongoIdSchema,
 	releaseId: mongoIdSchema,
-})
+});
 const requestIdParamSchema = z.object({
 	id: mongoIdSchema,
 	requestId: mongoIdSchema,
-})
+});
 
 // Project routes
 router
-	.route('/')
+	.route("/")
 	.get(validateQuery(getProjectsQuerySchema), getProjects)
-	.post(authenticate, validateBody(createProjectSchema), createProject)
+	.post(authenticate, validateBody(createProjectSchema), createProject);
 
 router
-	.route('/:id')
+	.route("/:id")
 	.get(optionalAuthenticate, validateParams(idParamSchema), getProjectById)
 	.patch(
 		authenticate,
 		validateParams(idParamSchema),
 		validateBody(updateProjectSchema),
-		updateProject
+		updateProject,
 	)
-	.delete(authenticate, validateParams(idParamSchema), deleteProject)
+	.delete(authenticate, validateParams(idParamSchema), deleteProject);
 
 // Project members routes
-router.get('/:id/members', validateParams(idParamSchema), getProjectMembers)
+router.get("/:id/members", validateParams(idParamSchema), getProjectMembers);
 
 // Project join requests routes
 router.get(
-	'/:id/requests',
+	"/:id/requests",
 	authenticate,
 	validateParams(idParamSchema),
-	getProjectJoinRequests
-)
+	getProjectJoinRequests,
+);
 router.post(
-	'/:id/requests',
+	"/:id/requests",
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(createJoinRequestSchema),
-	createJoinRequest
-)
+	createJoinRequest,
+);
 router.patch(
-	'/:id/requests/:requestId',
+	"/:id/requests/:requestId",
 	authenticate,
 	validateParams(requestIdParamSchema),
 	validateBody(updateJoinRequestSchema),
-	updateJoinRequest
-)
+	updateJoinRequest,
+);
 
 // Project releases routes
 router.get(
-	'/:id/releases',
+	"/:id/releases",
 	optionalAuthenticate,
 	validateParams(idParamSchema),
-	getProjectReleases
-)
+	getProjectReleases,
+);
 router.post(
-	'/:id/releases',
+	"/:id/releases",
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(createReleaseSchema),
-	createRelease
-)
+	createRelease,
+);
 
 router
-	.route('/:id/releases/:releaseId')
+	.route("/:id/releases/:releaseId")
 	.get(
 		optionalAuthenticate,
 		validateParams(releaseIdParamSchema),
-		getReleaseById
+		getReleaseById,
 	)
 	.patch(
 		authenticate,
 		validateParams(releaseIdParamSchema),
 		validateBody(updateReleaseSchema),
-		updateRelease
+		updateRelease,
 	)
-	.delete(authenticate, validateParams(releaseIdParamSchema), deleteRelease)
+	.delete(authenticate, validateParams(releaseIdParamSchema), deleteRelease);
 
 // Project feedback routes
 router
-	.route('/:projectId/feedback')
+	.route("/:projectId/feedback")
 	.get(
 		validateParams(projectIdParamSchema),
 		validateQuery(getFeedbackQuerySchema),
-		getFeedback
+		getFeedback,
 	)
 	.post(
 		authenticate,
 		validateParams(projectIdParamSchema),
 		validateBody(createFeedbackSchema),
-		createFeedback
-	)
+		createFeedback,
+	);
 
-export default router
+export default router;

@@ -1,43 +1,43 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { type Document, Schema } from "mongoose";
 
 export interface IDeviceInfo {
-	platform?: 'ios' | 'android' | 'web'
-	model?: string
-	os?: string
-	osVersion?: string
-	deviceModel?: string
-	appVersion?: string
-	screenSize?: string
+	platform?: "ios" | "android" | "web";
+	model?: string;
+	os?: string;
+	osVersion?: string;
+	deviceModel?: string;
+	appVersion?: string;
+	screenSize?: string;
 }
 
 export interface IFeedback extends Document {
-	projectId: mongoose.Types.ObjectId
-	userId: mongoose.Types.ObjectId
-	type: 'bug' | 'feature' | 'improvement' | 'praise' | 'question' | 'other'
-	priority?: 'low' | 'medium' | 'high' | 'critical'
-	title: string
-	description: string
-	screenshots?: string[]
-	stepsToReproduce?: string
-	deviceInfo?: IDeviceInfo
+	projectId: mongoose.Types.ObjectId;
+	userId: mongoose.Types.ObjectId;
+	type: "bug" | "feature" | "improvement" | "praise" | "question" | "other";
+	priority?: "low" | "medium" | "high" | "critical";
+	title: string;
+	description: string;
+	screenshots?: string[];
+	stepsToReproduce?: string;
+	deviceInfo?: IDeviceInfo;
 	status:
-		| 'pending'
-		| 'open'
-		| 'in-progress'
-		| 'resolved'
-		| 'closed'
-		| 'wont-fix'
-	upvotes: number
-	downvotes: number
-	commentCount: number
-	resolvedAt?: Date
-	createdAt: Date
-	updatedAt: Date
+		| "pending"
+		| "open"
+		| "in-progress"
+		| "resolved"
+		| "closed"
+		| "wont-fix";
+	upvotes: number;
+	downvotes: number;
+	commentCount: number;
+	resolvedAt?: Date;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 const deviceInfoSchema = new Schema<IDeviceInfo>(
 	{
-		platform: { type: String, enum: ['ios', 'android', 'web'] },
+		platform: { type: String, enum: ["ios", "android", "web"] },
 		model: String,
 		os: String,
 		osVersion: String,
@@ -45,41 +45,41 @@ const deviceInfoSchema = new Schema<IDeviceInfo>(
 		appVersion: String,
 		screenSize: String,
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const feedbackSchema = new Schema<IFeedback>(
 	{
 		projectId: {
 			type: Schema.Types.ObjectId,
-			ref: 'Project',
+			ref: "Project",
 			required: true,
 		},
 		userId: {
 			type: Schema.Types.ObjectId,
-			ref: 'User',
+			ref: "User",
 			required: true,
 		},
 		type: {
 			type: String,
-			enum: ['bug', 'feature', 'improvement', 'praise', 'question', 'other'],
+			enum: ["bug", "feature", "improvement", "praise", "question", "other"],
 			required: true,
 		},
 		priority: {
 			type: String,
-			enum: ['low', 'medium', 'high', 'critical'],
-			default: 'medium',
+			enum: ["low", "medium", "high", "critical"],
+			default: "medium",
 		},
 		title: {
 			type: String,
-			required: [true, 'Feedback title is required'],
+			required: [true, "Feedback title is required"],
 			trim: true,
-			maxlength: [200, 'Title cannot exceed 200 characters'],
+			maxlength: [200, "Title cannot exceed 200 characters"],
 		},
 		description: {
 			type: String,
-			required: [true, 'Feedback description is required'],
-			maxlength: [5000, 'Description cannot exceed 5000 characters'],
+			required: [true, "Feedback description is required"],
+			maxlength: [5000, "Description cannot exceed 5000 characters"],
 		},
 		screenshots: [
 			{
@@ -88,7 +88,7 @@ const feedbackSchema = new Schema<IFeedback>(
 		],
 		stepsToReproduce: {
 			type: String,
-			maxlength: [2000, 'Steps cannot exceed 2000 characters'],
+			maxlength: [2000, "Steps cannot exceed 2000 characters"],
 		},
 		deviceInfo: {
 			type: deviceInfoSchema,
@@ -96,14 +96,14 @@ const feedbackSchema = new Schema<IFeedback>(
 		status: {
 			type: String,
 			enum: [
-				'pending',
-				'open',
-				'in-progress',
-				'resolved',
-				'closed',
-				'wont-fix',
+				"pending",
+				"open",
+				"in-progress",
+				"resolved",
+				"closed",
+				"wont-fix",
 			],
-			default: 'pending',
+			default: "pending",
 		},
 		upvotes: {
 			type: Number,
@@ -124,22 +124,24 @@ const feedbackSchema = new Schema<IFeedback>(
 	{
 		timestamps: true,
 		toJSON: {
-			transform: (_: any, ret: any) => {
-				ret.id = ret._id.toString()
-				delete ret._id
-				delete ret.__v
-				return ret
+			transform: (
+				_doc: Document,
+				ret: Record<string, unknown> & { _id: unknown },
+			) => {
+				ret.id = (ret._id as { toString(): string }).toString();
+				delete ret._id;
+				delete ret.__v;
+				return ret;
 			},
 		},
-	}
-)
+	},
+);
 
+feedbackSchema.index({ projectId: 1, createdAt: -1 });
+feedbackSchema.index({ userId: 1, createdAt: -1 });
+feedbackSchema.index({ status: 1 });
+feedbackSchema.index({ type: 1 });
+feedbackSchema.index({ priority: 1 });
+feedbackSchema.index({ title: "text", description: "text" });
 
-feedbackSchema.index({ projectId: 1, createdAt: -1 })
-feedbackSchema.index({ userId: 1, createdAt: -1 })
-feedbackSchema.index({ status: 1 })
-feedbackSchema.index({ type: 1 })
-feedbackSchema.index({ priority: 1 })
-feedbackSchema.index({ title: 'text', description: 'text' })
-
-export default mongoose.model<IFeedback>('Feedback', feedbackSchema)
+export default mongoose.model<IFeedback>("Feedback", feedbackSchema);

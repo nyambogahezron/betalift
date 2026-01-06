@@ -1,6 +1,6 @@
-import nodemailer from 'nodemailer'
-import ENV from '../config/env'
-import { logger } from '../utils/logger'
+import nodemailer from "nodemailer";
+import ENV from "../config/env";
+import { logger } from "../utils/logger";
 
 const transporter = nodemailer.createTransport({
 	host: ENV.smtpHost,
@@ -10,13 +10,13 @@ const transporter = nodemailer.createTransport({
 		user: ENV.smtpUser,
 		pass: ENV.smtpPassword,
 	},
-})
+});
 
 export interface EmailOptions {
-	to: string
-	subject: string
-	html: string
-	text?: string
+	to: string;
+	subject: string;
+	html: string;
+	text?: string;
 }
 
 export const sendEmail = async (options: EmailOptions): Promise<void> => {
@@ -27,21 +27,21 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
 			subject: options.subject,
 			text: options.text,
 			html: options.html,
-		})
+		});
 
-		logger.info(`Email sent: ${info.messageId}`)
+		logger.info(`Email sent: ${info.messageId}`);
 	} catch (error) {
-		logger.error('Error sending email:', error)
-		throw error
+		logger.error("Error sending email:", error);
+		throw error;
 	}
-}
+};
 
 export const sendVerificationEmail = async (
 	email: string,
 	username: string,
-	token: string
+	token: string,
 ): Promise<void> => {
-	const verificationUrl = `${ENV.clientUrl}/verify-email?token=${token}`
+	const verificationUrl = `${ENV.clientUrl}/verify-email?token=${token}`;
 
 	const html = `
 		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -56,22 +56,22 @@ export const sendVerificationEmail = async (
 			<p>This link will expire in 24 hours.</p>
 			<p>If you didn't create an account, please ignore this email.</p>
 		</div>
-	`
+	`;
 
 	await sendEmail({
 		to: email,
-		subject: 'Verify your email - BetaLift',
+		subject: "Verify your email - BetaLift",
 		html,
 		text: `Welcome to BetaLift! Please verify your email by visiting: ${verificationUrl}`,
-	})
-}
+	});
+};
 
 export const sendPasswordResetEmail = async (
 	email: string,
 	username: string,
-	token: string
+	token: string,
 ): Promise<void> => {
-	const resetUrl = `${ENV.clientUrl}/reset-password?token=${token}`
+	const resetUrl = `${ENV.clientUrl}/reset-password?token=${token}`;
 
 	const html = `
 		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -86,12 +86,12 @@ export const sendPasswordResetEmail = async (
 			<p>This link will expire in 1 hour.</p>
 			<p>If you didn't request a password reset, please ignore this email.</p>
 		</div>
-	`
+	`;
 
 	await sendEmail({
 		to: email,
-		subject: 'Reset your password - BetaLift',
+		subject: "Reset your password - BetaLift",
 		html,
 		text: `Reset your password by visiting: ${resetUrl}`,
-	})
-}
+	});
+};

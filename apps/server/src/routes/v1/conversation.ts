@@ -1,45 +1,49 @@
-import { Router } from 'express'
+import { Router } from "express";
+import { z } from "zod";
 import {
-	getConversations,
 	createConversation,
+	getConversations,
 	getMessages,
-	sendMessage,
 	markAsRead,
-} from '../../controllers/messageController'
-import { authenticate } from '../../middleware/authentication'
-import { validateParams, validateQuery, validateBody } from '../../validators/middleware'
-import { z } from 'zod'
+	sendMessage,
+} from "../../controllers/messageController";
+import { authenticate } from "../../middleware/authentication";
 import {
+	validateBody,
+	validateParams,
+	validateQuery,
+} from "../../validators/middleware";
+import {
+	createConversationSchema,
 	mongoIdSchema,
 	paginationSchema,
-	createConversationSchema,
 	sendMessageSchema,
-} from '../../validators/schemas'
+} from "../../validators/schemas";
 
-const router = Router()
+const router = Router();
 
-const idParamSchema = z.object({ id: mongoIdSchema })
+const idParamSchema = z.object({ id: mongoIdSchema });
 
-router.use(authenticate)
+router.use(authenticate);
 
 router
-	.route('/')
+	.route("/")
 	.get(getConversations)
-	.post(validateBody(createConversationSchema), createConversation)
+	.post(validateBody(createConversationSchema), createConversation);
 
 router
-	.route('/:id/messages')
+	.route("/:id/messages")
 	.get(
 		validateParams(idParamSchema),
 		validateQuery(paginationSchema),
-		getMessages
+		getMessages,
 	)
 	.post(
 		validateParams(idParamSchema),
 		validateBody(sendMessageSchema),
-		sendMessage
-	)
+		sendMessage,
+	);
 
-router.patch('/:id/read', validateParams(idParamSchema), markAsRead)
+router.patch("/:id/read", validateParams(idParamSchema), markAsRead);
 
-export default router
+export default router;

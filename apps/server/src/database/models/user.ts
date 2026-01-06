@@ -1,60 +1,60 @@
-import mongoose, { Document, Schema } from 'mongoose'
-import bcrypt from 'bcryptjs'
-import validator from 'validator'
+import bcrypt from "bcryptjs";
+import mongoose, { type Document, Schema } from "mongoose";
+import validator from "validator";
 
 export interface IUserStats {
-	projectsCreated: number
-	projectsTested: number
-	feedbackGiven: number
-	feedbackReceived: number
+	projectsCreated: number;
+	projectsTested: number;
+	feedbackGiven: number;
+	feedbackReceived: number;
 }
 
 export interface INotificationSettings {
-	pushEnabled: boolean
-	emailEnabled: boolean
-	feedbackUpdates: boolean
-	projectInvites: boolean
-	weeklyDigest: boolean
+	pushEnabled: boolean;
+	emailEnabled: boolean;
+	feedbackUpdates: boolean;
+	projectInvites: boolean;
+	weeklyDigest: boolean;
 }
 
 export interface IPrivacySettings {
-	profilePublic: boolean
-	showEmail: boolean
-	showStats: boolean
+	profilePublic: boolean;
+	showEmail: boolean;
+	showStats: boolean;
 }
 
 export interface IAppearanceSettings {
-	theme: 'dark' | 'light' | 'system'
-	language: string
+	theme: "dark" | "light" | "system";
+	language: string;
 }
 
 export interface IUserSettings {
-	notifications: INotificationSettings
-	privacy: IPrivacySettings
-	appearance: IAppearanceSettings
+	notifications: INotificationSettings;
+	privacy: IPrivacySettings;
+	appearance: IAppearanceSettings;
 }
 
 export interface IUser extends Document {
-	email: string
-	password: string
-	username: string
-	displayName?: string
-	avatar?: string
-	bio?: string
-	role: 'creator' | 'tester' | 'both'
-	stats: IUserStats
-	settings?: IUserSettings
-	isEmailVerified: boolean
-	emailVerificationToken?: string
-	emailVerificationExpires?: Date
-	resetPasswordToken?: string
-	resetPasswordExpires?: Date
-	refreshToken?: string
-	createdAt: Date
-	updatedAt: Date
-	comparePassword(candidatePassword: string): Promise<boolean>
-	generateAuthToken(): string
-	generateRefreshToken(): string
+	email: string;
+	password: string;
+	username: string;
+	displayName?: string;
+	avatar?: string;
+	bio?: string;
+	role: "creator" | "tester" | "both";
+	stats: IUserStats;
+	settings?: IUserSettings;
+	isEmailVerified: boolean;
+	emailVerificationToken?: string;
+	emailVerificationExpires?: Date;
+	resetPasswordToken?: string;
+	resetPasswordExpires?: Date;
+	refreshToken?: string;
+	createdAt: Date;
+	updatedAt: Date;
+	comparePassword(candidatePassword: string): Promise<boolean>;
+	generateAuthToken(): string;
+	generateRefreshToken(): string;
 }
 
 const userStatsSchema = new Schema<IUserStats>(
@@ -64,8 +64,8 @@ const userStatsSchema = new Schema<IUserStats>(
 		feedbackGiven: { type: Number, default: 0 },
 		feedbackReceived: { type: Number, default: 0 },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const notificationSettingsSchema = new Schema<INotificationSettings>(
 	{
@@ -75,8 +75,8 @@ const notificationSettingsSchema = new Schema<INotificationSettings>(
 		projectInvites: { type: Boolean, default: true },
 		weeklyDigest: { type: Boolean, default: false },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const privacySettingsSchema = new Schema<IPrivacySettings>(
 	{
@@ -84,20 +84,20 @@ const privacySettingsSchema = new Schema<IPrivacySettings>(
 		showEmail: { type: Boolean, default: false },
 		showStats: { type: Boolean, default: true },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const appearanceSettingsSchema = new Schema<IAppearanceSettings>(
 	{
 		theme: {
 			type: String,
-			enum: ['dark', 'light', 'system'],
-			default: 'system',
+			enum: ["dark", "light", "system"],
+			default: "system",
 		},
-		language: { type: String, default: 'en' },
+		language: { type: String, default: "en" },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const userSettingsSchema = new Schema<IUserSettings>(
 	{
@@ -105,56 +105,56 @@ const userSettingsSchema = new Schema<IUserSettings>(
 		privacy: { type: privacySettingsSchema, default: () => ({}) },
 		appearance: { type: appearanceSettingsSchema, default: () => ({}) },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const userSchema = new Schema<IUser>(
 	{
 		email: {
 			type: String,
-			required: [true, 'Email is required'],
+			required: [true, "Email is required"],
 			unique: true,
 			lowercase: true,
 			trim: true,
 			validate: {
 				validator: (value: string) => validator.isEmail(value),
-				message: 'Please enter a valid email',
+				message: "Please enter a valid email",
 			},
 		},
 		password: {
 			type: String,
-			required: [true, 'Password is required'],
-			minlength: [6, 'Password must be at least 6 characters'],
+			required: [true, "Password is required"],
+			minlength: [6, "Password must be at least 6 characters"],
 			select: false,
 		},
 		username: {
 			type: String,
-			required: [true, 'Username is required'],
+			required: [true, "Username is required"],
 			unique: true,
 			trim: true,
-			minlength: [3, 'Username must be at least 3 characters'],
-			maxlength: [30, 'Username cannot exceed 30 characters'],
+			minlength: [3, "Username must be at least 3 characters"],
+			maxlength: [30, "Username cannot exceed 30 characters"],
 			validate: {
 				validator: (value: string) => validator.isAlphanumeric(value),
-				message: 'Username can only contain letters and numbers',
+				message: "Username can only contain letters and numbers",
 			},
 		},
 		displayName: {
 			type: String,
 			trim: true,
-			maxlength: [50, 'Display name cannot exceed 50 characters'],
+			maxlength: [50, "Display name cannot exceed 50 characters"],
 		},
 		avatar: {
 			type: String,
 		},
 		bio: {
 			type: String,
-			maxlength: [500, 'Bio cannot exceed 500 characters'],
+			maxlength: [500, "Bio cannot exceed 500 characters"],
 		},
 		role: {
 			type: String,
-			enum: ['creator', 'tester', 'both'],
-			default: 'both',
+			enum: ["creator", "tester", "both"],
+			default: "both",
 		},
 		stats: {
 			type: userStatsSchema,
@@ -192,37 +192,40 @@ const userSchema = new Schema<IUser>(
 	{
 		timestamps: true,
 		toJSON: {
-			transform: (_: any, ret: any) => {
-				ret.id = ret._id.toString()
-				delete ret._id
-				delete ret.__v
-				delete ret.password
-				delete ret.refreshToken
-				delete ret.emailVerificationToken
-				delete ret.emailVerificationExpires
-				delete ret.resetPasswordToken
-				delete ret.resetPasswordExpires
-				return ret
+			transform: (
+				_doc: Document,
+				ret: Record<string, unknown> & { _id: unknown },
+			) => {
+				ret.id = (ret._id as { toString(): string }).toString();
+				delete ret._id;
+				delete ret.__v;
+				delete ret.password;
+				delete ret.refreshToken;
+				delete ret.emailVerificationToken;
+				delete ret.emailVerificationExpires;
+				delete ret.resetPasswordToken;
+				delete ret.resetPasswordExpires;
+				return ret;
 			},
 		},
-	}
-)
+	},
+);
 
 // Hash password before saving
-userSchema.pre('save', async function () {
-	if (!this.isModified('password')) return
+userSchema.pre("save", async function () {
+	if (!this.isModified("password")) return;
 
-	const salt = await bcrypt.genSalt(10)
-	this.password = await bcrypt.hash(this.password, salt)
-})
+	const salt = await bcrypt.genSalt(10);
+	this.password = await bcrypt.hash(this.password, salt);
+});
 
 userSchema.methods.comparePassword = async function (
-	candidatePassword: string
+	candidatePassword: string,
 ): Promise<boolean> {
-	return bcrypt.compare(candidatePassword, this.password)
-}
+	return bcrypt.compare(candidatePassword, this.password);
+};
 
-userSchema.index({ role: 1 })
-userSchema.index({ createdAt: -1 })
+userSchema.index({ role: 1 });
+userSchema.index({ createdAt: -1 });
 
-export default mongoose.model<IUser>('User', userSchema)
+export default mongoose.model<IUser>("User", userSchema);
