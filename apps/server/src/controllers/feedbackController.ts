@@ -120,9 +120,7 @@ export const createFeedback = asyncHandler(
 
 		const project = await Project.findById(projectId);
 
-		if (!project) {
-			throw new NotFoundError("Project not found");
-		}
+		if (!project) throw new NotFoundError("Project not found");
 
 		const feedback = await Feedback.create({
 			...req.body,
@@ -172,21 +170,18 @@ export const createFeedback = asyncHandler(
 // @route   PATCH /api/v1/feedback/:id
 // @access  Private
 export const updateFeedback = asyncHandler(
-	async (req: AuthenticatedRequest, _res: Response) => {
+	async (req: AuthenticatedRequest, res: Response) => {
 		const feedback = await Feedback.findById(req.params.id).populate(
 			"projectId",
 			"ownerId",
 		);
 
-		if (!feedback) {
-			throw new NotFoundError("Feedback not found");
-		}
-
+		if (!feedback) throw new NotFoundError("Feedback not found");
+		
 		const project = feedback.projectId as unknown as {
 			ownerId: mongoose.Types.ObjectId;
 		};
 
-		// Only feedback author or project owner can update
 		if (
 			feedback.userId.toString() !== req.user._id &&
 			project.ownerId.toString() !== req.user._id
@@ -195,10 +190,10 @@ export const updateFeedback = asyncHandler(
 				"You do not have permission to update this feedback",
 			);
 		}
-
-		// If status is being changed to resolved, set resolvedAt
+	
+		if (req.body.status === "resolved") {
 			req.body.resolvedAt = new Date();
-
+	
 			// Notify feedback author
 			if (project.ownerId.toString() === req.user._id) {
 				await Notification.create({
@@ -212,7 +207,7 @@ export const updateFeedback = asyncHandler(
 				});
 			}
 		}
-
+	
 		const updatedFeedback = await Feedback.findByIdAndUpdate(
 			req.params.id,
 			req.body,
@@ -232,26 +227,27 @@ export const updateFeedback = asyncHandler(
 // @route   DELETE /api/v1/feedback/:id
 // @access  Private
 export const deleteFeedback = asyncHandler(
-	async (req: AuthenticatedRequest, _res: Response) => {
+	async (req: AuthenticatedRequest, res: Response) => {
 		const feedback = await Feedback.findById(req.params.id).populate(
 			"projectId",
 			"ownerId",
 		);
 
-		if (!feedback) {
-			throw new NotFoundError("Feedback not found");
-		}
+		if (!feedback) throw new NotFoundError("Feedback not found");
 
 		const _project = feedback.projectId as unknown as {
 			ownerId: mongoose.Types.ObjectId;
 		};
-
-		// Only feedback author or project owner can delete
+	
+		if (
+			feedback.userId.toString() !== req.user._id &&
+			_project.ownerId.toString() !== req.user._id
+		) {
 			throw new ForbiddenError(
 				"You do not have permission to delete this feedback",
 			);
 		}
-
+	
 		await Feedback.findByIdAndDelete(req.params.id);
 
 		await Project.findByIdAndUpdate(feedback.projectId, {
@@ -296,12 +292,10 @@ export const createFeedbackComment = asyncHandler(
 			content: req.body.content,
 		});
 
-		// Update feedback comment count
 		await Feedback.findByIdAndUpdate(req.params.id, {
 			$inc: { commentCount: 1 },
 		});
 
-		// Notify feedback author (if not the commenter)
 		if (feedback.userId.toString() !== req.user._id) {
 			const currentUser = await User.findById(req.user._id);
 			await Notification.create({
@@ -336,9 +330,7 @@ export const deleteFeedbackComment = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
 		const comment = await FeedbackComment.findById(req.params.commentId);
 
-		if (!comment) {
-			throw new NotFoundError("Comment not found");
-		}
+		if (!comment) throw new NotFoundError("Comment not found");
 
 		if (comment.userId.toString() !== req.user._id) {
 			throw new ForbiddenError(
@@ -381,10 +373,9 @@ export const voteFeedback = asyncHandler(
 		});
 
 		if (existingVote) {
-			// If same vote, remove it (toggle)
+			if (existingVote.type === type) {
 				await FeedbackVote.findByIdAndDelete(existingVote._id);
 
-				// Update feedback vote count
 				await Feedback.findByIdAndUpdate(req.params.id, {
 					$inc: { [type === "up" ? "upvotes" : "downvotes"]: -1 },
 				});
@@ -396,7 +387,6 @@ export const voteFeedback = asyncHandler(
 				return;
 			}
 
-			// If different vote, update it
 			existingVote.type = type;
 			await existingVote.save();
 
