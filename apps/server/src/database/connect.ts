@@ -19,6 +19,13 @@ export const connectDatabase = async (): Promise<void> => {
 		});
 	} catch (error) {
 		logger.error("Failed to connect to MongoDB:", error);
+		logger.error(
+			"MongoDB Connection Failed\n" +
+				"Please ensure MongoDB is running:\n" +
+				"  • Start MongoDB: sudo systemctl start mongod\n" +
+				"  • Or use Docker: docker run -d -p 27017:27017 mongo\n" +
+				"  • Check MongoDB status: sudo systemctl status mongod\n",
+		);
 		process.exit(1);
 	}
 };
