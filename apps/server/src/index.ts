@@ -5,6 +5,7 @@ import express, {
 	type Request,
 	type Response,
 } from "express";
+import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
 import ENV from "./config/env";
@@ -16,11 +17,20 @@ import { logger } from "./utils/logger";
 
 const app: Application = express();
 
-// Connect to database
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	max: 100,
+	message:
+		"Too many requests created from this IP, please try again after 15 minutes",
+	standardHeaders: true,
+	legacyHeaders: false,
+});
+
 connectDatabase();
 
 // Middleware
 app.use(helmet());
+app.use(limiter);
 app.use(
 	cors({
 		origin: ENV.clientUrl,
