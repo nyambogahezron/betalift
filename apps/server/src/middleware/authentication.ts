@@ -7,13 +7,19 @@ export interface AuthRequest extends Request {
 	user?: JWTPayload & { _id: string }
 }
 
+export interface AuthenticatedRequest extends Request {
+	user: JWTPayload & { _id: string }
+}
+
 export const authenticate = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction
 ): Promise<void> => {
 	try {
-		const token = req.header('Authorization')?.replace('Bearer ', '')
+		const token =
+			req.cookies?.accessToken ||
+			req.header('Authorization')?.replace('Bearer ', '')
 
 		if (!token) {
 			throw new UnauthorizedError('No token provided')
@@ -21,11 +27,9 @@ export const authenticate = async (
 
 		const decoded = verifyAccessToken(token)
 
-		// Verify user still exists
 		const user = await User.findById(decoded.userId)
-		if (!user) {
-			throw new UnauthorizedError('User not found')
-		}
+
+		if (!user) throw new UnauthorizedError('User not found')
 
 		req.user = { ...decoded, _id: decoded.userId }
 		next()
@@ -40,7 +44,9 @@ export const optionalAuthenticate = async (
 	next: NextFunction
 ): Promise<void> => {
 	try {
-		const token = req.header('Authorization')?.replace('Bearer ', '')
+		const token =
+			req.cookies?.accessToken ||
+			req.header('Authorization')?.replace('Bearer ', '')
 
 		if (token) {
 			const decoded = verifyAccessToken(token)
@@ -48,7 +54,6 @@ export const optionalAuthenticate = async (
 		}
 		next()
 	} catch (error) {
-		// Continue without authentication
 		next()
 	}
 }

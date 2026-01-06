@@ -8,7 +8,7 @@ import { connectDatabase } from './database/connect'
 import { logger } from './utils/logger'
 import { errorHandler } from './middleware/errorHandler'
 import { notFound } from './middleware/notFound'
-import apiRoutes from './routes/api'
+import apiRoutes from './routes'
 
 const app: Application = express()
 
@@ -50,7 +50,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API routes
 app.use('/api/v1', apiRoutes)
 
-// Error handling middleware (must be last)
+// Error handling middleware
 app.use(notFound)
 app.use(errorHandler)
 
@@ -59,7 +59,6 @@ const server = app.listen(ENV.port, () => {
 	logger.info(`Environment: ${ENV.nodeEnv}`)
 })
 
-// Graceful shutdown
 const gracefulShutdown = (signal: string) => {
 	logger.info(`${signal} signal received: closing HTTP server`)
 	server.close(() => {
@@ -71,12 +70,10 @@ const gracefulShutdown = (signal: string) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
 	logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
 })
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
 	logger.error('Uncaught Exception:', error)
 	process.exit(1)

@@ -1,13 +1,11 @@
 import { Response } from 'express'
-import { validationResult } from 'express-validator'
-import mongoose from 'mongoose'
 import Feedback from '../database/models/feedback'
 import FeedbackComment from '../database/models/feedbackComment'
 import FeedbackVote from '../database/models/feedbackVote'
 import Project from '../database/models/project'
 import User from '../database/models/user'
 import Notification from '../database/models/notification'
-import { AuthRequest } from '../middleware/authentication'
+import { AuthRequest, AuthenticatedRequest } from '../middleware/authentication'
 import { asyncHandler } from '../middleware/asyncHandler'
 import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import ENV from '../config/env'
@@ -85,11 +83,6 @@ export const getFeedback = asyncHandler(
 // @access  Public
 export const getFeedbackById = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
 		const feedback = await Feedback.findById(req.params.id)
 			.populate('userId', 'username displayName avatar bio')
 			.populate('projectId', 'name icon ownerId')
@@ -109,14 +102,9 @@ export const getFeedbackById = asyncHandler(
 // @route   POST /api/v1/projects/:projectId/feedback
 // @access  Private
 export const createFeedback = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const { projectId } = req.params
 
-		// Verify project exists
 		const project = await Project.findById(projectId)
 
 		if (!project) {
@@ -129,27 +117,27 @@ export const createFeedback = asyncHandler(
 			userId: req.user._id,
 		})
 
-		// Update project feedback count
 		await Project.findByIdAndUpdate(projectId, {
 			$inc: { feedbackCount: 1 },
 		})
 
-		// Update user stats
 		await User.findByIdAndUpdate(req.user._id, {
 			$inc: { 'stats.feedbackGiven': 1 },
 		})
 
-		// Update project owner stats
 		await User.findByIdAndUpdate(project.ownerId, {
 			$inc: { 'stats.feedbackReceived': 1 },
 		})
 
-		// Notify project owner
+		const currentUser = await User.findById(req.user._id)
+
 		await Notification.create({
 			userId: project.ownerId,
 			type: 'feedback_received',
 			title: 'New Feedback',
-			message: `${req.user.username} submitted feedback on ${project.name}`,
+			message: `${currentUser?.username || 'Someone'} submitted feedback on ${
+				project.name
+			}`,
 			data: {
 				projectId,
 				feedbackId: feedback._id,
@@ -172,16 +160,7 @@ export const createFeedback = asyncHandler(
 // @route   PATCH /api/v1/feedback/:id
 // @access  Private
 export const updateFeedback = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const feedback = await Feedback.findById(req.params.id).populate(
 			'projectId',
 			'ownerId'
@@ -237,20 +216,10 @@ export const updateFeedback = asyncHandler(
 	}
 )
 
-// @desc    Delete feedback
 // @route   DELETE /api/v1/feedback/:id
 // @access  Private
 export const deleteFeedback = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const feedback = await Feedback.findById(req.params.id).populate(
 			'projectId',
 			'ownerId'
@@ -286,16 +255,10 @@ export const deleteFeedback = asyncHandler(
 	}
 )
 
-// @desc    Get feedback comments
 // @route   GET /api/v1/feedback/:id/comments
 // @access  Public
 export const getFeedbackComments = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
 		const comments = await FeedbackComment.find({ feedbackId: req.params.id })
 			.populate('userId', 'username displayName avatar')
 			.sort({ createdAt: 1 })
@@ -307,27 +270,15 @@ export const getFeedbackComments = asyncHandler(
 	}
 )
 
-// @desc    Create feedback comment
 // @route   POST /api/v1/feedback/:id/comments
 // @access  Private
 export const createFeedbackComment = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const feedback = await Feedback.findById(req.params.id).populate(
 			'projectId userId'
 		)
 
-		if (!feedback) {
-			throw new NotFoundError('Feedback not found')
-		}
+		if (!feedback) throw new NotFoundError('Feedback not found')
 
 		const comment = await FeedbackComment.create({
 			feedbackId: req.params.id,
@@ -342,11 +293,14 @@ export const createFeedbackComment = asyncHandler(
 
 		// Notify feedback author (if not the commenter)
 		if (feedback.userId.toString() !== req.user._id) {
+			const currentUser = await User.findById(req.user._id)
 			await Notification.create({
 				userId: feedback.userId,
 				type: 'feedback_comment',
 				title: 'New Comment',
-				message: `${req.user.username} commented on your feedback`,
+				message: `${
+					currentUser?.username || 'Someone'
+				} commented on your feedback`,
 				data: {
 					feedbackId: feedback._id,
 					commentId: comment._id,
@@ -366,22 +320,16 @@ export const createFeedbackComment = asyncHandler(
 	}
 )
 
-// @desc    Delete feedback comment
 // @route   DELETE /api/v1/feedback/:id/comments/:commentId
 // @access  Private
 export const deleteFeedbackComment = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const comment = await FeedbackComment.findById(req.params.commentId)
 
 		if (!comment) {
 			throw new NotFoundError('Comment not found')
 		}
 
-		// Only comment author can delete
 		if (comment.userId.toString() !== req.user._id) {
 			throw new ForbiddenError(
 				'You do not have permission to delete this comment'
@@ -390,7 +338,6 @@ export const deleteFeedbackComment = asyncHandler(
 
 		await FeedbackComment.findByIdAndDelete(req.params.commentId)
 
-		// Update feedback comment count
 		await Feedback.findByIdAndUpdate(req.params.id, {
 			$inc: { commentCount: -1 },
 		})
@@ -402,20 +349,10 @@ export const deleteFeedbackComment = asyncHandler(
 	}
 )
 
-// @desc    Vote on feedback
 // @route   POST /api/v1/feedback/:id/vote
 // @access  Private
 export const voteFeedback = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		if (!req.user) {
-			throw new ForbiddenError()
-		}
-
-		const errors = validationResult(req)
-		if (!errors.isEmpty()) {
-			throw new BadRequestError(errors.array()[0]?.msg || "Validation error")
-		}
-
+	async (req: AuthenticatedRequest, res: Response) => {
 		const { type } = req.body
 
 		if (!['up', 'down'].includes(type)) {
@@ -428,7 +365,6 @@ export const voteFeedback = asyncHandler(
 			throw new NotFoundError('Feedback not found')
 		}
 
-		// Check if user already voted
 		const existingVote = await FeedbackVote.findOne({
 			feedbackId: req.params.id,
 			userId: req.user._id,
@@ -455,7 +391,6 @@ export const voteFeedback = asyncHandler(
 			existingVote.type = type
 			await existingVote.save()
 
-			// Update feedback vote counts
 			await Feedback.findByIdAndUpdate(req.params.id, {
 				$inc: {
 					[type === 'up' ? 'upvotes' : 'downvotes']: 1,
@@ -470,14 +405,12 @@ export const voteFeedback = asyncHandler(
 			return
 		}
 
-		// Create new vote
 		await FeedbackVote.create({
 			feedbackId: req.params.id,
 			userId: req.user._id,
 			type,
 		})
 
-		// Update feedback vote count
 		await Feedback.findByIdAndUpdate(req.params.id, {
 			$inc: { [type === 'up' ? 'upvotes' : 'downvotes']: 1 },
 		})
