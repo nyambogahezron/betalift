@@ -1,61 +1,61 @@
-import { Router } from 'express'
+import { Router } from "express";
+import { z } from "zod";
 import {
-	getUsers,
-	getUserById,
-	updateUser,
 	deleteUser,
-	getUserStats,
-	updateSettings,
+	getUserById,
 	getUserEngagement,
+	getUserStats,
+	getUsers,
+	updateSettings,
+	updateUser,
 	updateUserEngagement,
-} from '../../controllers/userController'
-import { authenticate } from '../../middleware/authentication'
+} from "../../controllers/userController";
+import { authenticate } from "../../middleware/authentication";
 import {
+	validateBody,
 	validateParams,
 	validateQuery,
-	validateBody,
-} from '../../validators/middleware'
-import { z } from 'zod'
+} from "../../validators/middleware";
 import {
-	mongoIdSchema,
 	getUsersQuerySchema,
+	mongoIdSchema,
+	updateUserEngagementSchema,
 	updateUserSchema,
 	updateUserSettingsSchema,
-	updateUserEngagementSchema,
-} from '../../validators/schemas'
+} from "../../validators/schemas";
 
-const router = Router()
+const router = Router();
 
-const idParamSchema = z.object({ id: mongoIdSchema })
+const idParamSchema = z.object({ id: mongoIdSchema });
 
-router.get('/', validateQuery(getUsersQuerySchema), getUsers)
+router.get("/", validateQuery(getUsersQuerySchema), getUsers);
 
-router.use(authenticate)
+router.use(authenticate);
 
 router
-	.route('/:id')
+	.route("/:id")
 	.get(validateParams(idParamSchema), getUserById)
 	.patch(
 		validateParams(idParamSchema),
 		validateBody(updateUserSchema),
-		updateUser
+		updateUser,
 	)
-	.delete(validateParams(idParamSchema), deleteUser)
-router.get('/:id/stats', validateParams(idParamSchema), getUserStats)
+	.delete(validateParams(idParamSchema), deleteUser);
+router.get("/:id/stats", validateParams(idParamSchema), getUserStats);
 router.patch(
-	'/:id/settings',
+	"/:id/settings",
 	validateParams(idParamSchema),
 	validateBody(updateUserSettingsSchema),
-	updateSettings
-)
+	updateSettings,
+);
 
 router
-	.route('/:id/engagement')
+	.route("/:id/engagement")
 	.get(validateParams(idParamSchema), getUserEngagement)
 	.patch(
 		validateParams(idParamSchema),
 		validateBody(updateUserEngagementSchema),
-		updateUserEngagement
-	)
+		updateUserEngagement,
+	);
 
-export default router
+export default router;

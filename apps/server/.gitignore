@@ -5,6 +5,7 @@ logs/
 *.log
 coverage/
 .DS_Store
-.vscode/
 .idea/
 npm-debug.log*
+**/*.test.ts
+**/*.spec.ts

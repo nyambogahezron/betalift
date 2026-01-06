@@ -1,42 +1,42 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { type Document, Schema } from "mongoose";
 
 export interface IProjectLinks {
-	website?: string
-	testFlight?: string
-	playStore?: string
-	appStore?: string
-	github?: string
-	discord?: string
-	documentation?: string
+	website?: string;
+	testFlight?: string;
+	playStore?: string;
+	appStore?: string;
+	github?: string;
+	discord?: string;
+	documentation?: string;
 }
 
 export interface IProject extends Document {
-	name: string
-	description: string
-	shortDescription?: string
-	ownerId: mongoose.Types.ObjectId
-	status: 'active' | 'beta' | 'closed' | 'paused'
+	name: string;
+	description: string;
+	shortDescription?: string;
+	ownerId: mongoose.Types.ObjectId;
+	status: "active" | "beta" | "closed" | "paused";
 	category?:
-		| 'mobile-app'
-		| 'web-app'
-		| 'desktop-app'
-		| 'game'
-		| 'api'
-		| 'other'
-		| 'Health & Fitness'
-		| 'Productivity'
-		| 'Social'
-	links?: IProjectLinks
-	screenshots?: string[]
-	icon?: string
-	techStack: string[]
-	testerCount: number
-	feedbackCount: number
-	rating?: number
-	maxTesters?: number
-	isPublic: boolean
-	createdAt: Date
-	updatedAt: Date
+		| "mobile-app"
+		| "web-app"
+		| "desktop-app"
+		| "game"
+		| "api"
+		| "other"
+		| "Health & Fitness"
+		| "Productivity"
+		| "Social";
+	links?: IProjectLinks;
+	screenshots?: string[];
+	icon?: string;
+	techStack: string[];
+	testerCount: number;
+	feedbackCount: number;
+	rating?: number;
+	maxTesters?: number;
+	isPublic: boolean;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 const projectLinksSchema = new Schema<IProjectLinks>(
@@ -49,48 +49,48 @@ const projectLinksSchema = new Schema<IProjectLinks>(
 		discord: String,
 		documentation: String,
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const projectSchema = new Schema<IProject>(
 	{
 		name: {
 			type: String,
-			required: [true, 'Project name is required'],
+			required: [true, "Project name is required"],
 			trim: true,
-			maxlength: [100, 'Project name cannot exceed 100 characters'],
+			maxlength: [100, "Project name cannot exceed 100 characters"],
 		},
 		description: {
 			type: String,
-			required: [true, 'Project description is required'],
-			maxlength: [5000, 'Description cannot exceed 5000 characters'],
+			required: [true, "Project description is required"],
+			maxlength: [5000, "Description cannot exceed 5000 characters"],
 		},
 		shortDescription: {
 			type: String,
-			maxlength: [200, 'Short description cannot exceed 200 characters'],
+			maxlength: [200, "Short description cannot exceed 200 characters"],
 		},
 		ownerId: {
 			type: Schema.Types.ObjectId,
-			ref: 'User',
+			ref: "User",
 			required: true,
 		},
 		status: {
 			type: String,
-			enum: ['active', 'beta', 'closed', 'paused'],
-			default: 'active',
+			enum: ["active", "beta", "closed", "paused"],
+			default: "active",
 		},
 		category: {
 			type: String,
 			enum: [
-				'mobile-app',
-				'web-app',
-				'desktop-app',
-				'game',
-				'api',
-				'other',
-				'Health & Fitness',
-				'Productivity',
-				'Social',
+				"mobile-app",
+				"web-app",
+				"desktop-app",
+				"game",
+				"api",
+				"other",
+				"Health & Fitness",
+				"Productivity",
+				"Social",
 			],
 		},
 		links: {
@@ -134,22 +134,24 @@ const projectSchema = new Schema<IProject>(
 	{
 		timestamps: true,
 		toJSON: {
-			transform: (_: any, ret: any) => {
-				ret.id = ret._id.toString()
-				delete ret._id
-				delete ret.__v
-				return ret
+			transform: (
+				_doc: Document,
+				ret: Record<string, unknown> & { _id: unknown },
+			) => {
+				ret.id = (ret._id as { toString(): string }).toString();
+				delete ret._id;
+				delete ret.__v;
+				return ret;
 			},
 		},
-	}
-)
+	},
+);
 
+projectSchema.index({ ownerId: 1 });
+projectSchema.index({ status: 1 });
+projectSchema.index({ category: 1 });
+projectSchema.index({ isPublic: 1 });
+projectSchema.index({ createdAt: -1 });
+projectSchema.index({ name: "text", description: "text" });
 
-projectSchema.index({ ownerId: 1 })
-projectSchema.index({ status: 1 })
-projectSchema.index({ category: 1 })
-projectSchema.index({ isPublic: 1 })
-projectSchema.index({ createdAt: -1 })
-projectSchema.index({ name: 'text', description: 'text' })
-
-export default mongoose.model<IProject>('Project', projectSchema)
+export default mongoose.model<IProject>("Project", projectSchema);
