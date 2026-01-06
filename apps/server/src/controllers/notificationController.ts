@@ -1,7 +1,7 @@
 import { Response } from 'express'
 import Notification from '../database/models/notification'
 import { AuthRequest, AuthenticatedRequest } from '../middleware/authentication'
-import { asyncHandler } from '../middleware/asyncHandler'
+import asyncHandler from '../middleware/asyncHandler'
 import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import ENV from '../config/env'
 

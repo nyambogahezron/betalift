@@ -7,7 +7,7 @@ import {
 	createFeedbackComment,
 	deleteFeedbackComment,
 	voteFeedback,
-} from '../../controllers/feedback'
+} from '../../controllers/feedbackController'
 import { authenticate } from '../../middleware/authentication'
 import { validateParams, validateBody } from '../../validators/middleware'
 import { z } from 'zod'

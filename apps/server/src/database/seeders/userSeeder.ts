@@ -62,7 +62,6 @@ export const seedUsers = async () => {
 		// Create engagement profile for each user
 		await UserEngagement.create({
 			userId: user._id,
-			totalTimeSpent: Math.floor(Math.random() * 10000),
 			lastActiveAt: new Date(),
 		})
 		

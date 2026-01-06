@@ -14,13 +14,20 @@ import {
 	getReleaseById,
 	updateRelease,
 	deleteRelease,
-} from '../../controllers/project'
-import { getFeedback, createFeedback } from '../../controllers/feedback'
+} from '../../controllers/projectController'
+import {
+	getFeedback,
+	createFeedback,
+} from '../../controllers/feedbackController'
 import {
 	authenticate,
 	optionalAuthenticate,
 } from '../../middleware/authentication'
-import { validateParams, validateQuery, validateBody } from '../../validators/middleware'
+import {
+	validateParams,
+	validateQuery,
+	validateBody,
+} from '../../validators/middleware'
 import { z } from 'zod'
 import {
 	mongoIdSchema,
@@ -39,15 +46,31 @@ const router = Router()
 
 const idParamSchema = z.object({ id: mongoIdSchema })
 const projectIdParamSchema = z.object({ projectId: mongoIdSchema })
-const releaseIdParamSchema = z.object({ id: mongoIdSchema, releaseId: mongoIdSchema })
-const requestIdParamSchema = z.object({ id: mongoIdSchema, requestId: mongoIdSchema })
+const releaseIdParamSchema = z.object({
+	id: mongoIdSchema,
+	releaseId: mongoIdSchema,
+})
+const requestIdParamSchema = z.object({
+	id: mongoIdSchema,
+	requestId: mongoIdSchema,
+})
 
 // Project routes
-router.get('/', validateQuery(getProjectsQuerySchema), getProjects)
-router.post('/', authenticate, validateBody(createProjectSchema), createProject)
-router.get('/:id', optionalAuthenticate, validateParams(idParamSchema), getProjectById)
-router.patch('/:id', authenticate, validateParams(idParamSchema), validateBody(updateProjectSchema), updateProject)
-router.delete('/:id', authenticate, validateParams(idParamSchema), deleteProject)
+router
+	.route('/')
+	.get(validateQuery(getProjectsQuerySchema), getProjects)
+	.post(authenticate, validateBody(createProjectSchema), createProject)
+
+router
+	.route('/:id')
+	.get(optionalAuthenticate, validateParams(idParamSchema), getProjectById)
+	.patch(
+		authenticate,
+		validateParams(idParamSchema),
+		validateBody(updateProjectSchema),
+		updateProject
+	)
+	.delete(authenticate, validateParams(idParamSchema), deleteProject)
 
 // Project members routes
 router.get('/:id/members', validateParams(idParamSchema), getProjectMembers)
@@ -59,8 +82,20 @@ router.get(
 	validateParams(idParamSchema),
 	getProjectJoinRequests
 )
-router.post('/:id/requests', authenticate, validateParams(idParamSchema), validateBody(createJoinRequestSchema), createJoinRequest)
-router.patch('/:id/requests/:requestId', authenticate, validateParams(requestIdParamSchema), validateBody(updateJoinRequestSchema), updateJoinRequest)
+router.post(
+	'/:id/requests',
+	authenticate,
+	validateParams(idParamSchema),
+	validateBody(createJoinRequestSchema),
+	createJoinRequest
+)
+router.patch(
+	'/:id/requests/:requestId',
+	authenticate,
+	validateParams(requestIdParamSchema),
+	validateBody(updateJoinRequestSchema),
+	updateJoinRequest
+)
 
 // Project releases routes
 router.get(
@@ -69,13 +104,42 @@ router.get(
 	validateParams(idParamSchema),
 	getProjectReleases
 )
-router.post('/:id/releases', authenticate, validateParams(idParamSchema), validateBody(createReleaseSchema), createRelease)
-router.get('/:id/releases/:releaseId', optionalAuthenticate, validateParams(releaseIdParamSchema), getReleaseById)
-router.patch('/:id/releases/:releaseId', authenticate, validateParams(releaseIdParamSchema), validateBody(updateReleaseSchema), updateRelease)
-router.delete('/:id/releases/:releaseId', authenticate, validateParams(releaseIdParamSchema), deleteRelease)
+router.post(
+	'/:id/releases',
+	authenticate,
+	validateParams(idParamSchema),
+	validateBody(createReleaseSchema),
+	createRelease
+)
+
+router
+	.route('/:id/releases/:releaseId')
+	.get(
+		optionalAuthenticate,
+		validateParams(releaseIdParamSchema),
+		getReleaseById
+	)
+	.patch(
+		authenticate,
+		validateParams(releaseIdParamSchema),
+		validateBody(updateReleaseSchema),
+		updateRelease
+	)
+	.delete(authenticate, validateParams(releaseIdParamSchema), deleteRelease)
 
 // Project feedback routes
-router.get('/:projectId/feedback', validateParams(projectIdParamSchema), validateQuery(getFeedbackQuerySchema), getFeedback)
-router.post('/:projectId/feedback', authenticate, validateParams(projectIdParamSchema), validateBody(createFeedbackSchema), createFeedback)
+router
+	.route('/:projectId/feedback')
+	.get(
+		validateParams(projectIdParamSchema),
+		validateQuery(getFeedbackQuerySchema),
+		getFeedback
+	)
+	.post(
+		authenticate,
+		validateParams(projectIdParamSchema),
+		validateBody(createFeedbackSchema),
+		createFeedback
+	)
 
 export default router

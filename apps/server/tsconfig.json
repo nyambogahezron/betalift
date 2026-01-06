@@ -1,40 +1,18 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
-  "compilerOptions": {
-		// File Layout
+	"compilerOptions": {
 		"rootDir": "./src",
 		"outDir": "./dist",
-
-		// Environment Settings
-		// See also https://aka.ms/tsconfig/module
 		"module": "es2020",
-		"moduleResolution": "node",
+		// "moduleResolution": "node",
 		"target": "ES2020",
-		// For nodejs:
 		"lib": ["esnext"],
 		"types": ["node"],
 		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		// and npm install -D @types/node
-
-		// Other Outputs
+		// "allowSyntheticDefaultImports": true,
 		"sourceMap": true,
 		"declaration": true,
 		"declarationMap": true,
-
-		// Stricter Typechecking Options
 		"noUncheckedIndexedAccess": true,
-		// "exactOptionalPropertyTypes": true,
-
-		// Style Options
-		// "noImplicitReturns": true,
-		// "noImplicitOverride": true,
-		// "noUnusedLocals": true,
-		// "noUnusedParameters": true,
-		// "noFallthroughCasesInSwitch": true,
-		// "noPropertyAccessFromIndexSignature": true,
-
-		// Recommended Options
 		"strict": true,
 		"jsx": "react-jsx",
 		"isolatedModules": true,
@@ -42,6 +20,6 @@
 		"moduleDetection": "force",
 		"skipLibCheck": true
 	},
-   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+	"include": ["src/**/*"],
+	"exclude": ["node_modules"]
 }

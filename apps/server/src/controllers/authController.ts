@@ -5,7 +5,7 @@ import {
 	AuthRequest,
 	AuthenticatedRequest,
 } from '../middleware/authentication.js'
-import { asyncHandler } from '../middleware/asyncHandler.js'
+import asyncHandler from '../middleware/asyncHandler.js'
 import {
 	generateAccessToken,
 	generateRefreshToken,

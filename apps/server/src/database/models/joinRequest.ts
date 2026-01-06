@@ -62,7 +62,7 @@ const joinRequestSchema = new Schema<IJoinRequest>(
 	}
 )
 
-// Indexes
+
 joinRequestSchema.index({ projectId: 1, status: 1, createdAt: -1 })
 joinRequestSchema.index({ userId: 1, status: 1, createdAt: -1 })
 joinRequestSchema.index({ projectId: 1, userId: 1 })

@@ -4,11 +4,10 @@ import UserEngagement from '../database/models/userEngagement'
 import Project from '../database/models/project'
 import Feedback from '../database/models/feedback'
 import { AuthRequest, AuthenticatedRequest } from '../middleware/authentication'
-import { asyncHandler } from '../middleware/asyncHandler'
-import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
+import asyncHandler from '../middleware/asyncHandler'
+import { NotFoundError, ForbiddenError } from '../utils/errors'
 import ENV from '../config/env'
 
-// @desc    Get all users
 // @route   GET /api/v1/users
 // @access  Public
 export const getUsers = asyncHandler(
@@ -33,9 +32,7 @@ export const getUsers = asyncHandler(
 			]
 		}
 
-		if (role) {
-			query.role = role
-		}
+		if (role) query.role = role
 
 		const [users, total] = await Promise.all([
 			User.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
@@ -57,34 +54,30 @@ export const getUsers = asyncHandler(
 	}
 )
 
-// @desc    Get user by ID
 // @route   GET /api/v1/users/:id
 // @access  Public
-export const getUserById = asyncHandler(async (req: AuthRequest, res: Response) => {
-	const user = await User.findById(req.params.id)
+export const getUserById = asyncHandler(
+	async (req: AuthRequest, res: Response) => {
+		const user = await User.findById(req.params.id)
 
-	if (!user) {
-		throw new NotFoundError('User not found')
+		if (!user) throw new NotFoundError('User not found')
+
+		const engagement = await UserEngagement.findOne({ userId: user._id })
+
+		res.json({
+			success: true,
+			data: {
+				...user.toJSON(),
+				engagement: engagement?.toJSON(),
+			},
+		})
 	}
+)
 
-	// Get user engagement if available
-	const engagement = await UserEngagement.findOne({ userId: user._id })
-
-	res.json({
-		success: true,
-		data: {
-			...user.toJSON(),
-			engagement: engagement?.toJSON(),
-		},
-	})
-})
-
-// @desc    Update user profile
 // @route   PATCH /api/v1/users/:id
 // @access  Private
 export const updateUser = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
-		// Users can only update their own profile
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only update your own profile')
 		}
@@ -102,9 +95,7 @@ export const updateUser = asyncHandler(
 			runValidators: true,
 		})
 
-		if (!user) {
-			throw new NotFoundError('User not found')
-		}
+		if (!user) throw new NotFoundError('User not found')
 
 		res.json({
 			success: true,
@@ -114,27 +105,21 @@ export const updateUser = asyncHandler(
 	}
 )
 
-// @desc    Delete user
 // @route   DELETE /api/v1/users/:id
 // @access  Private
 export const deleteUser = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
-		// Users can only delete their own account
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only delete your own account')
 		}
 
 		const user = await User.findById(req.params.id)
 
-		if (!user) {
-			throw new NotFoundError('User not found')
-		}
+		if (!user) throw new NotFoundError('User not found')
 
-		// Delete user and associated data
 		await Promise.all([
 			User.findByIdAndDelete(req.params.id),
 			UserEngagement.findOneAndDelete({ userId: req.params.id }),
-			// Note: You might want to handle projects, feedback, etc. differently
 		])
 
 		res.json({
@@ -144,38 +129,34 @@ export const deleteUser = asyncHandler(
 	}
 )
 
-// @desc    Get user stats
 // @route   GET /api/v1/users/:id/stats
 // @access  Public
-export const getUserStats = asyncHandler(async (req: AuthRequest, res: Response) => {
-	const user = await User.findById(req.params.id)
+export const getUserStats = asyncHandler(
+	async (req: AuthRequest, res: Response) => {
+		const user = await User.findById(req.params.id)
 
-	if (!user) {
-		throw new NotFoundError('User not found')
+		if (!user) throw new NotFoundError('User not found')
+
+		const [projects, feedback] = await Promise.all([
+			Project.find({ ownerId: req.params.id }),
+			Feedback.find({ userId: req.params.id }),
+		])
+
+		res.json({
+			success: true,
+			data: {
+				...user.stats,
+				projects: projects.length,
+				recentFeedback: feedback.slice(0, 5),
+			},
+		})
 	}
+)
 
-	// Get additional stats
-	const [projects, feedback] = await Promise.all([
-		Project.find({ ownerId: req.params.id }),
-		Feedback.find({ userId: req.params.id }),
-	])
-
-	res.json({
-		success: true,
-		data: {
-			...user.stats,
-			projects: projects.length,
-			recentFeedback: feedback.slice(0, 5),
-		},
-	})
-})
-
-// @desc    Update user settings
 // @route   PATCH /api/v1/users/:id/settings
 // @access  Private
 export const updateSettings = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
-		// Users can only update their own settings
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only update your own settings')
 		}
@@ -188,9 +169,7 @@ export const updateSettings = asyncHandler(
 			{ new: true, runValidators: true }
 		)
 
-		if (!user) {
-			throw new NotFoundError('User not found')
-		}
+		if (!user) throw new NotFoundError('User not found')
 
 		res.json({
 			success: true,
@@ -200,7 +179,6 @@ export const updateSettings = asyncHandler(
 	}
 )
 
-// @desc    Get user engagement
 // @route   GET /api/v1/users/:id/engagement
 // @access  Private
 export const getUserEngagement = asyncHandler(
@@ -220,12 +198,10 @@ export const getUserEngagement = asyncHandler(
 	}
 )
 
-// @desc    Update user engagement
 // @route   PATCH /api/v1/users/:id/engagement
 // @access  Private
 export const updateUserEngagement = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
-		// Users can only update their own engagement
 		if (req.user._id !== req.params.id) {
 			throw new ForbiddenError('You can only update your own engagement')
 		}
