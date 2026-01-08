@@ -1,27 +1,24 @@
 import { Button, Input } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
 import { ProjectStatus } from '@/interfaces'
+import { useCreateProject } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import React, { useState } from 'react'
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+	Alert,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Text,
+	View,
 } from 'react-native'
-import Animated, {
-    FadeInDown,
-    FadeInUp,
-} from 'react-native-reanimated'
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 type ProjectFormData = {
@@ -40,17 +37,33 @@ type ProjectFormData = {
 	}
 }
 
-const STATUS_OPTIONS: { id: ProjectStatus; label: string; description: string }[] = [
+const STATUS_OPTIONS: {
+	id: ProjectStatus
+	label: string
+	description: string
+}[] = [
 	{ id: 'active', label: 'Active', description: 'Open for testers' },
 	{ id: 'beta', label: 'Beta', description: 'In beta testing' },
 	{ id: 'paused', label: 'Paused', description: 'Not accepting testers' },
 ]
 
 const SUGGESTED_TECH = [
-	'React Native', 'Flutter', 'Swift', 'Kotlin',
-	'React', 'Vue', 'Angular', 'Next.js',
-	'Node.js', 'Python', 'Go', 'Rust',
-	'TypeScript', 'Firebase', 'AWS', 'Docker'
+	'React Native',
+	'Flutter',
+	'Swift',
+	'Kotlin',
+	'React',
+	'Vue',
+	'Angular',
+	'Next.js',
+	'Node.js',
+	'Python',
+	'Go',
+	'Rust',
+	'TypeScript',
+	'Firebase',
+	'AWS',
+	'Docker',
 ]
 
 export default function CreateProject() {
@@ -66,10 +79,12 @@ export default function CreateProject() {
 		status: 'active',
 		links: {},
 	})
-	const [errors, setErrors] = useState<Partial<Record<keyof ProjectFormData, string>>>({})
+	const [errors, setErrors] = useState<
+		Partial<Record<keyof ProjectFormData, string>>
+	>({})
 
 	const { user } = useAuthStore()
-	const { createProject } = useProjectStore()
+	const createProjectMutation = useCreateProject()
 
 	const updateField = <K extends keyof ProjectFormData>(
 		field: K,
@@ -104,7 +119,10 @@ export default function CreateProject() {
 
 		if (!result.canceled) {
 			const newImages = result.assets.map((asset) => asset.uri)
-			updateField('screenshots', [...formData.screenshots, ...newImages].slice(0, 5))
+			updateField(
+				'screenshots',
+				[...formData.screenshots, ...newImages].slice(0, 5)
+			)
 		}
 	}
 
@@ -117,7 +135,10 @@ export default function CreateProject() {
 
 	const toggleTech = (tech: string) => {
 		if (formData.techStack.includes(tech)) {
-			updateField('techStack', formData.techStack.filter((t) => t !== tech))
+			updateField(
+				'techStack',
+				formData.techStack.filter((t) => t !== tech)
+			)
 		} else if (formData.techStack.length < 8) {
 			updateField('techStack', [...formData.techStack, tech])
 		}
@@ -125,7 +146,11 @@ export default function CreateProject() {
 
 	const addCustomTech = () => {
 		const trimmed = newTech.trim()
-		if (trimmed && !formData.techStack.includes(trimmed) && formData.techStack.length < 8) {
+		if (
+			trimmed &&
+			!formData.techStack.includes(trimmed) &&
+			formData.techStack.length < 8
+		) {
 			updateField('techStack', [...formData.techStack, trimmed])
 			setNewTech('')
 		}
@@ -178,30 +203,35 @@ export default function CreateProject() {
 		setIsSubmitting(true)
 
 		try {
-			await createProject({
+			const result = await projectQueries.createProject({
 				name: formData.name.trim(),
 				description: formData.description.trim(),
 				icon: formData.icon,
 				screenshots: formData.screenshots,
 				techStack: formData.techStack,
 				status: formData.status,
-				ownerId: user.id,
-				ownerName: user.displayName || user.username,
-				ownerAvatar: user.avatar,
 				links: formData.links,
 				isPublic: true,
 			})
 
-			Alert.alert(
-				'Project Created! 🚀',
-				'Your project is now live and ready to receive testers.',
-				[
-					{
-						text: 'View Project',
-						onPress: () => router.replace('/(tabs)'),
-					},
-				]
-			)
+			if (result.success && result.data) {
+				addProject(result.data)
+				Alert.alert(
+					'Project Created! 🚀',
+					'Your project is now live and ready to receive testers.',
+					[
+						{
+							text: 'View Project',
+							onPress: () => router.replace('/(tabs)'),
+						},
+					]
+				)
+			} else {
+				Alert.alert(
+					'Error',
+					result.error || 'Failed to create project. Please try again.'
+				)
+			}
 		} catch {
 			Alert.alert('Error', 'Failed to create project. Please try again.')
 		} finally {
@@ -236,7 +266,11 @@ export default function CreateProject() {
 						/>
 					) : (
 						<>
-							<Ionicons name='image-outline' size={32} color={Colors.textTertiary} />
+							<Ionicons
+								name='image-outline'
+								size={32}
+								color={Colors.textTertiary}
+							/>
 							<Text style={styles.iconPickerText}>Tap to add icon</Text>
 						</>
 					)}
@@ -270,7 +304,8 @@ export default function CreateProject() {
 			{/* Screenshots */}
 			<View style={styles.screenshotsSection}>
 				<Text style={styles.sectionLabel}>
-					Screenshots <Text style={styles.optionalLabel}>(optional, max 5)</Text>
+					Screenshots{' '}
+					<Text style={styles.optionalLabel}>(optional, max 5)</Text>
 				</Text>
 				<ScrollView
 					horizontal
@@ -293,7 +328,10 @@ export default function CreateProject() {
 						</View>
 					))}
 					{formData.screenshots.length < 5 && (
-						<Pressable style={styles.addScreenshotButton} onPress={pickScreenshots}>
+						<Pressable
+							style={styles.addScreenshotButton}
+							onPress={pickScreenshots}
+						>
 							<Ionicons name='add' size={32} color={Colors.primary} />
 						</Pressable>
 					)}
@@ -308,7 +346,9 @@ export default function CreateProject() {
 			<Text style={styles.sectionDescription}>
 				Select the technologies used in your project (max 8)
 			</Text>
-			{errors.techStack && <Text style={styles.errorText}>{errors.techStack}</Text>}
+			{errors.techStack && (
+				<Text style={styles.errorText}>{errors.techStack}</Text>
+			)}
 
 			{/* Suggested Tech */}
 			<View style={styles.techGrid}>
@@ -324,7 +364,8 @@ export default function CreateProject() {
 						<Text
 							style={[
 								styles.techChipText,
-								formData.techStack.includes(tech) && styles.techChipTextSelected,
+								formData.techStack.includes(tech) &&
+									styles.techChipTextSelected,
 							]}
 						>
 							{tech}
@@ -370,7 +411,9 @@ export default function CreateProject() {
 			)}
 
 			{/* Status */}
-			<Text style={[styles.sectionLabel, { marginTop: Spacing.lg }]}>Project Status</Text>
+			<Text style={[styles.sectionLabel, { marginTop: Spacing.lg }]}>
+				Project Status
+			</Text>
 			<View style={styles.statusOptions}>
 				{STATUS_OPTIONS.map((option) => (
 					<Pressable
@@ -510,12 +553,10 @@ export default function CreateProject() {
 						{currentStep === 0
 							? 'Basic Info'
 							: currentStep === 1
-								? 'Tech & Status'
-								: 'Links'}
+							? 'Tech & Status'
+							: 'Links'}
 					</Text>
-					<Text style={styles.stepSubtitle}>
-						Step {currentStep + 1} of 3
-					</Text>
+					<Text style={styles.stepSubtitle}>Step {currentStep + 1} of 3</Text>
 				</Animated.View>
 
 				{/* Content */}
@@ -551,7 +592,11 @@ export default function CreateProject() {
 						}
 						onPress={currentStep === 2 ? handleSubmit : nextStep}
 						loading={isSubmitting}
-						style={currentStep === 0 ? { ...styles.navButton, flex: 1 } : styles.navButton}
+						style={
+							currentStep === 0
+								? { ...styles.navButton, flex: 1 }
+								: styles.navButton
+						}
 					/>
 				</Animated.View>
 			</KeyboardAvoidingView>

@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/theme'
+import { queryClient } from '@/queries/queryClient'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { GreatVibes_400Regular } from '@expo-google-fonts/great-vibes'
 import {
@@ -10,6 +11,7 @@ import {
 	useFonts,
 } from '@expo-google-fonts/inter'
 import { DarkTheme, ThemeProvider } from '@react-navigation/native'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
@@ -70,84 +72,84 @@ export default function Layout() {
 
 	return (
 		<View style={{ flex: 1 }}>
-			<GestureHandlerRootView>
-				<ThemeProvider value={DarkTheme}>
-					<Stack>
-						<Stack.Protected guard={!hasSeenOnboarding}>
-							<Stack.Screen name='index' options={{ headerShown: false }} />
-						</Stack.Protected>
+			<QueryClientProvider client={queryClient}>
+				<GestureHandlerRootView>
+					<ThemeProvider value={DarkTheme}>
+						<Stack>
+							<Stack.Protected guard={!hasSeenOnboarding}>
+								<Stack.Screen name='index' options={{ headerShown: false }} />
+							</Stack.Protected>
 
-						<Stack.Protected guard={!isAuthenticated}>
-							<Stack.Screen name='(auth)' options={{ headerShown: false }} />
-						</Stack.Protected>
+							<Stack.Protected guard={!isAuthenticated}>
+								<Stack.Screen name='(auth)' options={{ headerShown: false }} />
+							</Stack.Protected>
 
-						<Stack.Protected guard={isAuthenticated}>
-							<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+							<Stack.Protected guard={isAuthenticated}>
+								<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
 
-							{/* Project screens */}
-							<Stack.Screen
-								name='project/[id]'
-								options={{ headerShown: false }}
-							/>
-							<Stack.Screen
-								name='project/create'
-								options={{
-									headerShown: false,
-									presentation: 'modal',
-								}}
-							/>
+								<Stack.Screen
+									name='project/[id]'
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name='project/create'
+									options={{
+										headerShown: false,
+										presentation: 'modal',
+									}}
+								/>
 
-							{/* Feedback screens */}
-							<Stack.Screen
-								name='feedback/[id]'
-								options={{ headerShown: false }}
-							/>
-							<Stack.Screen
-								name='feedback/create'
-								options={{
-									headerShown: false,
-									presentation: 'modal',
-								}}
-							/>
-							<Stack.Screen
-								name='feedback/detail/[id]'
-								options={{ headerShown: false }}
-							/>
+								<Stack.Screen
+									name='feedback/[id]'
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name='feedback/create'
+									options={{
+										headerShown: false,
+										presentation: 'modal',
+									}}
+								/>
+								<Stack.Screen
+									name='feedback/detail/[id]'
+									options={{ headerShown: false }}
+								/>
 
-							{/* Messages screens */}
-							<Stack.Screen
-								name='messages/index'
-								options={{ headerShown: false }}
-							/>
-							<Stack.Screen
-								name='messages/[id]'
-								options={{ headerShown: false }}
-							/>
+								<Stack.Screen
+									name='messages/index'
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name='messages/[id]'
+									options={{ headerShown: false }}
+								/>
 
-							{/* User screens */}
-							<Stack.Screen name='user/[id]' options={{ headerShown: false }} />
-							<Stack.Screen
-								name='users/index'
-								options={{ headerShown: false }}
-							/>
+								<Stack.Screen
+									name='user/[id]'
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name='users/index'
+									options={{ headerShown: false }}
+								/>
 
-							{/* Profile screens */}
-							<Stack.Screen
-								name='profile/edit'
-								options={{
-									headerShown: false,
-									presentation: 'modal',
-								}}
-							/>
-							<Stack.Screen
-								name='profile/settings'
-								options={{ headerShown: false }}
-							/>
-						</Stack.Protected>
-					</Stack>
-					<StatusBar style='light' />
-				</ThemeProvider>
-			</GestureHandlerRootView>
+								<Stack.Screen
+									name='profile/edit'
+									options={{
+										headerShown: false,
+										presentation: 'modal',
+									}}
+								/>
+								<Stack.Screen
+									name='profile/settings'
+									options={{ headerShown: false }}
+								/>
+							</Stack.Protected>
+						</Stack>
+						<StatusBar style='light' />
+					</ThemeProvider>
+				</GestureHandlerRootView>
+			</QueryClientProvider>
 		</View>
 	)
 }

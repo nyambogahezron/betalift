@@ -3,11 +3,11 @@ import { Avatar, Button, Card } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
 import { mockConversations } from '@/data/mockData'
 import { Conversation, Project } from '@/interfaces'
+import { useProjects } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
 	ActivityIndicator,
 	FlatList,
@@ -87,34 +87,42 @@ export default function Home() {
 	)
 
 	const { user } = useAuthStore()
-	const {
-		myProjects,
-		joinedProjects,
-		pendingInvites,
-		fetchMyProjects,
-		fetchJoinedProjects,
-		fetchProjects,
-		isLoading,
-	} = useProjectStore()
+	const { data: projectsData, isLoading, refetch } = useProjects()
 
-	const loadData = useCallback(async () => {
-		if (!user?.id) return
-		await Promise.all([
-			fetchProjects(),
-			fetchMyProjects(user.id),
-			fetchJoinedProjects(user.id),
-		])
-	}, [user?.id, fetchProjects, fetchMyProjects, fetchJoinedProjects])
+	const allProjects = useMemo(() => {
+		return projectsData?.projects || projectsData || []
+	}, [projectsData])
 
-	useEffect(() => {
-		loadData()
-	}, [loadData])
+	const myProjects = useMemo(() => {
+		if (!user?.id) return []
+		return allProjects.filter(
+			(p: any) => p.owner?._id === user.id || p.ownerId === user.id
+		)
+	}, [allProjects, user?.id])
+
+	const joinedProjects = useMemo(() => {
+		if (!user?.id) return []
+		return allProjects.filter((p: any) => {
+			const ownerId = p.owner?._id || p.ownerId
+			return (
+				ownerId !== user.id &&
+				p.members?.some(
+					(m: any) => m.user?._id === user.id || m.userId === user.id
+				)
+			)
+		})
+	}, [allProjects, user?.id])
+
+	const pendingInvites = useMemo(() => {
+		// TODO: Implement pending invites when backend is ready
+		return []
+	}, [])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
-		await loadData()
+		await refetch()
 		setRefreshing(false)
-	}, [loadData])
+	}, [refetch])
 
 	const showMyProjects = user?.role === 'creator' || user?.role === 'both'
 

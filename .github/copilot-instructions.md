@@ -34,7 +34,7 @@ All secrets in `.env`: `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MONGODB_URI`, SMTP c
 ## Mobile Architecture (React Native/Expo)
 
 ### State Management
-Zustand stores with persistence: `useAuthStore` (user, login/logout), `useFeedbackStore` (feedback list), `useProjectStore` (projects). Stores persist to AsyncStorage using Zustand middleware.
+Zustand store for auth only: `useAuthStore` (user state, login/logout, onboarding). All data fetching uses React Query (`@tanstack/react-query`) with query hooks in `queries/` folder (authQueries, projectQueries, feedbackQueries, messageQueries, notificationQueries, userQueries). API calls made directly in query functions using `apiClient` from `services/api.ts`.
 
 ### Navigation Structure
 Expo Router file-based routing in `app/` directory. Main layout `_layout.tsx` initializes fonts and theme. Routes organized:
@@ -49,7 +49,7 @@ Expo Router file-based routing in `app/` directory. Main layout `_layout.tsx` in
 Reusable components in `components/ui/` (button, input, card, avatar, badge). Project-specific components in `components/project/` and `components/feedback/`. Export patterns use `index.ts` for barrel exports.
 
 ### API Integration Point
-Mobile will implement API calls in `services/api.ts` (currently empty). Should use axios/fetch with base URL pointing to server (`ENV.clientUrl`). Authentication: attach JWT from `useAuthStore` as Bearer token in Authorization header.
+Mobile uses `apiClient` from `services/api.ts` (axios instance) with base URL pointing to server. Authentication: JWT from `useAuthStore` automatically attached as Bearer token in Authorization header. All API calls are made directly in query functions within `queries/` folder.
 
 ## Development Workflow
 
@@ -79,8 +79,8 @@ Server has no tests configured (`npm test` fails). Mobile has no test setup. Tes
 5. **Email**: Use `emailService` (configured with SMTP_HOST, SMTP_USER, SMTP_PASSWORD)
 
 ### Frontend
-1. **State updates**: Use Zustand actions; never mutate directly
-2. **API calls**: Will integrate with `api.ts` service, include error boundaries
+1. **State updates**: Use Zustand actions for auth store only; never mutate directly
+2. **API calls**: Use React Query hooks from `queries/` folder; all API logic is inside query functions
 3. **Navigation**: Use `expo-router` Link component or `useRouter()` hook
 4. **Icons**: Use `@expo/vector-icons` (preconfigured with Feather, MaterialCommunityIcons)
 

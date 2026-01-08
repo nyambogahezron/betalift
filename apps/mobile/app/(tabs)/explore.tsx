@@ -2,10 +2,10 @@ import { ProjectCard } from '@/components/project'
 import { Button } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
 import { Project } from '@/interfaces'
+import { useProjects } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
 	ActivityIndicator,
 	FlatList,
@@ -51,9 +51,10 @@ export default function Explore() {
 	const [headerHeight, setHeaderHeight] = useState(0)
 
 	const { user } = useAuthStore()
-	const { projects, fetchProjects, isLoading } = useProjectStore()
 	const insets = useSafeAreaInsets()
 	const scrollY = useSharedValue(0)
+
+	const { data: projects = [] as Project[], isLoading, refetch } = useProjects()
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
@@ -74,15 +75,11 @@ export default function Explore() {
 		setHeaderHeight(event.nativeEvent.layout.height)
 	}
 
-	useEffect(() => {
-		fetchProjects()
-	}, [])
-
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
-		await fetchProjects()
+		await refetch()
 		setRefreshing(false)
-	}, [])
+	}, [refetch])
 
 	// Filter projects that are open for testing and user hasn't created
 	const availableProjects = useMemo(() => {

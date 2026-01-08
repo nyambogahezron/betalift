@@ -1,12 +1,12 @@
 import { Avatar, Card } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
+import { useLogout } from '@/queries/authQueries'
+import { useProjects } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useFeedbackStore } from '@/stores/useFeedbackStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
 	Alert,
 	Dimensions,
@@ -47,9 +47,9 @@ type SettingsItem = {
 }
 
 export default function Profile() {
-	const { user, settings, updateSettings, logout } = useAuthStore()
-	const { myProjects, joinedProjects } = useProjectStore()
-	const { feedbacks } = useFeedbackStore()
+	const { user, clearAuth } = useAuthStore()
+	const { data: projectsData } = useProjects()
+	const logoutMutation = useLogout()
 	const insets = useSafeAreaInsets()
 	const scrollY = useSharedValue(0)
 
@@ -58,9 +58,31 @@ export default function Profile() {
 	const appVersion = Application.nativeApplicationVersion || '1.0.0'
 	const appBuild = Application.nativeBuildVersion || '100'
 
-	const [notificationsEnabled, setNotificationsEnabled] = useState(
-		settings.notifications.pushEnabled
-	)
+	const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+
+	const allProjects = useMemo(() => {
+		return projectsData?.projects || projectsData || []
+	}, [projectsData])
+
+	const myProjects = useMemo(() => {
+		if (!user?.id) return []
+		return allProjects.filter(
+			(p: any) => p.owner?._id === user.id || p.ownerId === user.id
+		)
+	}, [allProjects, user?.id])
+
+	const joinedProjects = useMemo(() => {
+		if (!user?.id) return []
+		return allProjects.filter((p: any) => {
+			const ownerId = p.owner?._id || p.ownerId
+			return (
+				ownerId !== user.id &&
+				p.members?.some(
+					(m: any) => m.user?._id === user.id || m.userId === user.id
+				)
+			)
+		})
+	}, [allProjects, user?.id])
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
@@ -132,17 +154,23 @@ export default function Profile() {
 	const userStats = {
 		projects: myProjects.length,
 		testing: joinedProjects.length,
-		feedback: feedbacks.filter((f) => f.userId === user?.id).length,
+		feedback: 0, // TODO: Add feedback count when endpoint is ready
 	}
 
-	const handleLogout = () => {
+	const handleLogout = async () => {
 		Alert.alert('Logout', 'Are you sure you want to logout?', [
 			{ text: 'Cancel', style: 'cancel' },
 			{
 				text: 'Logout',
 				style: 'destructive',
-				onPress: () => {
-					logout()
+				onPress: async () => {
+					try {
+						await logoutMutation.mutateAsync()
+					} catch (error) {
+						// Ignore logout errors
+					}
+					// Clear local auth (even if API fails)
+					clearAuth()
 					router.replace('/(auth)/login')
 				},
 			},

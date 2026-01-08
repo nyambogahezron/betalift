@@ -1,70 +1,57 @@
 import { Platform } from 'react-native'
 
-// Dark theme colors for BetaLift
 export const Colors = {
-	// Primary colors
 	primary: '#0096A8',
 	primaryDark: '#007A8A',
 	primaryLight: '#00B4C8',
 
-	// Background colors
 	background: '#0D0D0D',
 	backgroundSecondary: '#1A1A1A',
 	backgroundTertiary: '#262626',
 	card: '#1E1E1E',
 	cardHover: '#2A2A2A',
 
-	// Landing page (light theme)
 	landingBackground: '#F5D4A6',
 	landingCard: '#FFE3C1',
 	landingAccent: '#D4A574',
 	landingText: '#2C2C2C',
 	landingTextSecondary: '#5C5C5C',
 
-	// Text colors
 	text: '#FFFFFF',
 	textSecondary: '#A0A0A0',
 	textTertiary: '#666666',
 	textMuted: '#4A4A4A',
 
-	// Status colors
 	success: '#10B981',
 	warning: '#F59E0B',
 	error: '#EF4444',
 	info: '#3B82F6',
 
-	// Feedback type colors
 	bug: '#EF4444',
 	feature: '#8B5CF6',
 	praise: '#10B981',
 
-	// Status badge colors
 	statusOpen: '#3B82F6',
 	statusInProgress: '#F59E0B',
 	statusResolved: '#10B981',
 	statusClosed: '#6B7280',
 
-	// Project status
 	projectActive: '#10B981',
 	projectClosed: '#6B7280',
 
-	// UI elements
 	border: '#333333',
 	borderLight: '#444444',
 	divider: '#2A2A2A',
 	overlay: 'rgba(0, 0, 0, 0.7)',
 
-	// Tab bar
 	tint: '#0096A8',
 	tabIconDefault: '#666666',
 	tabIconSelected: '#0096A8',
 	tabBarBackground: '#0D0D0D',
 
-	// Legacy (for compatibility)
 	icon: '#9BA1A6',
 }
 
-// Spacing scale
 export const Spacing = {
 	xs: 4,
 	sm: 8,
@@ -74,7 +61,16 @@ export const Spacing = {
 	xxl: 48,
 }
 
-// Border radius scale
+export const FontSizes = {
+	xs: 12,
+	sm: 14,
+	md: 16,
+	lg: 18,
+	xl: 20,
+	xxl: 28,
+	xxxl: 36,
+}
+
 export const BorderRadius = {
 	sm: 8,
 	md: 12,
@@ -83,7 +79,6 @@ export const BorderRadius = {
 	full: 9999,
 }
 
-// Shadow presets
 export const Shadows = {
 	sm: {
 		shadowColor: '#000',
