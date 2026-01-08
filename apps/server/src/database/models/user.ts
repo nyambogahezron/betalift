@@ -35,27 +35,33 @@ export interface IUserSettings {
 }
 
 export interface IUser extends Document {
-	email: string;
-	password: string;
-	username: string;
-	displayName?: string;
-	avatar?: string;
-	bio?: string;
-	role: "creator" | "tester" | "both";
-	stats: IUserStats;
-	settings?: IUserSettings;
-	isEmailVerified: boolean;
-	emailVerificationToken?: string;
-	emailVerificationExpires?: Date;
-	resetPasswordToken?: string;
-	resetPasswordExpires?: Date;
-	refreshToken?: string;
-	createdAt: Date;
-	updatedAt: Date;
-	comparePassword(candidatePassword: string): Promise<boolean>;
-	generateAuthToken(): string;
-	generateRefreshToken(): string;
-}
+		email: string;
+		password: string;
+		username: string;
+		displayName?: string;
+		avatar?: string;
+		bio?: string;
+		role: "creator" | "tester" | "both";
+		stats: IUserStats;
+		settings?: IUserSettings;
+		isEmailVerified: boolean;
+		emailVerificationToken?: string;
+		emailVerificationExpires?: Date;
+		resetPasswordToken?: string;
+		resetPasswordExpires?: Date;
+		refreshToken?: string;
+		failedLoginAttempts: number;
+		accountLockedUntil?: Date;
+		lastFailedLogin?: Date;
+		createdAt: Date;
+		updatedAt: Date;
+		comparePassword(candidatePassword: string): Promise<boolean>;
+		generateAuthToken(): string;
+		generateRefreshToken(): string;
+		isAccountLocked(): boolean;
+		incrementFailedAttempts(): Promise<void>;
+		resetFailedAttempts(): Promise<void>;
+	}
 
 const userStatsSchema = new Schema<IUserStats>(
 	{
@@ -188,6 +194,18 @@ const userSchema = new Schema<IUser>(
 			type: String,
 			select: false,
 		},
+		failedLoginAttempts: {
+			type: Number,
+			default: 0,
+		},
+		accountLockedUntil: {
+			type: Date,
+			select: false,
+		},
+		lastFailedLogin: {
+			type: Date,
+			select: false,
+		},
 	},
 	{
 		timestamps: true,
@@ -223,6 +241,46 @@ userSchema.methods.comparePassword = async function (
 	candidatePassword: string,
 ): Promise<boolean> {
 	return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Check if account is locked
+userSchema.methods.isAccountLocked = function (): boolean {
+	if (this.accountLockedUntil && this.accountLockedUntil > new Date()) {
+		return true;
+	}
+	return false;
+};
+
+// Increment failed login attempts and lock account if needed
+userSchema.methods.incrementFailedAttempts = async function (): Promise<void> {
+	const MAX_LOGIN_ATTEMPTS = 5;
+	const LOCK_TIME_MINUTES = [5, 15, 30, 60, 120]; // Progressive lockout times
+
+	// Increment failed attempts
+	this.failedLoginAttempts += 1;
+	this.lastFailedLogin = new Date();
+
+	// Calculate lockout duration based on number of attempts
+	if (this.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+		const lockoutIndex = Math.min(
+			Math.floor((this.failedLoginAttempts - MAX_LOGIN_ATTEMPTS) / 3),
+			LOCK_TIME_MINUTES.length - 1,
+		);
+		const lockoutMinutes = LOCK_TIME_MINUTES[lockoutIndex];
+		this.accountLockedUntil = new Date(Date.now() + lockoutMinutes * 60 * 1000);
+	}
+
+	await this.save();
+};
+
+// Reset failed login attempts
+userSchema.methods.resetFailedAttempts = async function (): Promise<void> {
+	if (this.failedLoginAttempts > 0 || this.accountLockedUntil) {
+		this.failedLoginAttempts = 0;
+		this.accountLockedUntil = undefined;
+		this.lastFailedLogin = undefined;
+		await this.save();
+	}
 };
 
 userSchema.index({ role: 1 });

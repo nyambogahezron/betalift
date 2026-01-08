@@ -6,25 +6,24 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:5000/api/v1" },
-    { "key": "testEmail", "value": "tester@example.com" },
-    { "key": "testPassword", "value": "Passw0rd!" },
-    { "key": "testUsername", "value": "testuser" },
-    { "key": "displayName", "value": "Test User" },
-    { "key": "accessToken", "value": "" },
-    { "key": "refreshToken", "value": "" },
-    { "key": "userId", "value": "" },
-    { "key": "projectId", "value": "" },
-    { "key": "feedbackId", "value": "" },
-    { "key": "commentId", "value": "" },
-    { "key": "joinRequestId", "value": "" },
-    { "key": "releaseId", "value": "" },
-    { "key": "conversationId", "value": "" },
-    { "key": "notificationId", "value": "" },
-    { "key": "participantId", "value": "" },
-    { "key": "verificationToken", "value": "" },
-    { "key": "passwordResetToken", "value": "" }
-  ],
+		{ "key": "baseUrl", "value": "http://localhost:5000/api/v1" },
+		{ "key": "testEmail", "value": "tester@example.com" },
+		{ "key": "testPassword", "value": "Passw0rd!" },
+		{ "key": "testUsername", "value": "testuser" },
+		{ "key": "displayName", "value": "Test User" },
+		{ "key": "accessToken", "value": "" },
+		{ "key": "userId", "value": "" },
+		{ "key": "projectId", "value": "" },
+		{ "key": "feedbackId", "value": "" },
+		{ "key": "commentId", "value": "" },
+		{ "key": "joinRequestId", "value": "" },
+		{ "key": "releaseId", "value": "" },
+		{ "key": "conversationId", "value": "" },
+		{ "key": "notificationId", "value": "" },
+		{ "key": "participantId", "value": "" },
+		{ "key": "verificationToken", "value": "" },
+		{ "key": "passwordResetToken", "value": "" }
+	],
   "auth": {
     "type": "bearer",
     "bearer": [
@@ -61,13 +60,12 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const json = pm.response.json();",
-                  "pm.test('status 201', () => pm.response.to.have.status(201));",
-                  "pm.test('success true', () => pm.expect(json.success).to.be.true);",
-                  "pm.collectionVariables.set('accessToken', json.data.accessToken);",
-                  "pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
-                  "pm.collectionVariables.set('userId', json.data.user?.id || json.data.user?._id);"
-                ]
+									"const json = pm.response.json();",
+									"pm.test('status 201', () => pm.response.to.have.status(201));",
+									"pm.test('success true', () => pm.expect(json.success).to.be.true);",
+									"pm.collectionVariables.set('accessToken', json.data.accessToken);",
+									"pm.collectionVariables.set('userId', json.data.user?.id || json.data.user?._id);"
+								]
               }
             }
           ],
@@ -91,13 +89,12 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const json = pm.response.json();",
-                  "pm.test('status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('success true', () => pm.expect(json.success).to.be.true);",
-                  "pm.collectionVariables.set('accessToken', json.data.accessToken);",
-                  "pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
-                  "pm.collectionVariables.set('userId', json.data.user?.id || json.data.user?._id);"
-                ]
+									"const json = pm.response.json();",
+									"pm.test('status 200', () => pm.response.to.have.status(200));",
+									"pm.test('success true', () => pm.expect(json.success).to.be.true);",
+									"pm.collectionVariables.set('accessToken', json.data.accessToken);",
+									"pm.collectionVariables.set('userId', json.data.user?.id || json.data.user?._id);"
+								]
               }
             }
           ],
@@ -114,49 +111,35 @@
           }
         },
         {
-          "name": "Refresh Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const json = pm.response.json();",
-                  "pm.test('status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('has access token', () => pm.expect(json.data.accessToken).to.be.a('string'));",
-                  "pm.collectionVariables.set('accessToken', json.data.accessToken);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
-            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] }
-          }
-        },
-        {
-          "name": "Logout",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('success true', () => pm.expect(pm.response.json().success).to.be.true);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "bearer", "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}] },
-            "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
-          }
-        },
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('status 200', () => pm.response.to.have.status(200));",
+									"pm.test('success true', () => pm.expect(pm.response.json().success).to.be.true);"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{ "key": "token", "value": "{{accessToken}}", "type": "string" }
+							]
+						},
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						}
+					}
+				},
         {
           "name": "Get Current User",
           "event": [

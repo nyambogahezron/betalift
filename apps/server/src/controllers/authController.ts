@@ -7,6 +7,10 @@ import type {
 	AuthRequest,
 } from "../middleware/authentication.js";
 import {
+	recordFailedIpAttempt,
+	resetIpAttempts,
+} from "../middleware/loginAttemptTracker.js";
+import {
 	sendPasswordResetEmail,
 	sendVerificationEmail,
 } from "../services/emailService.js";
@@ -17,12 +21,9 @@ import {
 	UnauthorizedError,
 } from "../utils/errors/index.js";
 import {
-	attachTokensToResponse,
 	generateAccessToken,
-	generateRefreshToken,
 	generateResetToken,
 	generateVerificationToken,
-	verifyRefreshToken,
 } from "../utils/jwt.js";
 
 // @route   POST /api/v1/auth/register
@@ -31,11 +32,11 @@ export const register = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
 		const { email, password, username, displayName, role } = req.body;
 
-		const existingUser = await User.findOne({
+		const isUserAvailable = await User.findOne({
 			$or: [{ email }, { username }],
 		});
 
-		if (existingUser) {
+		if (isUserAvailable) {
 			throw new ConflictError("Email or username already in use");
 		}
 
@@ -48,34 +49,27 @@ export const register = asyncHandler(
 			displayName: displayName || username,
 			role: role || "both",
 			emailVerificationToken: verificationToken,
-			emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+			emailVerificationExpires: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours
 		});
 
-		// Create user engagement profile
-		await UserEngagement.create({
-			userId: user._id,
-		});
+		await UserEngagement.create({ userId: user._id });
 
-		// Send verification email
 		try {
 			await sendVerificationEmail(user.email, user.username, verificationToken);
 		} catch (error) {
 			console.error("Failed to send verification email:", error);
 		}
 
-		// Generate tokens
 		const accessToken = generateAccessToken({
 			userId: user._id.toString(),
 		});
 
-		const refreshToken = generateRefreshToken({
-			userId: user._id.toString(),
+		res.cookie("accessToken", accessToken, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 		});
-
-		user.refreshToken = refreshToken;
-		await user.save();
-
-		attachTokensToResponse(res, accessToken, refreshToken);
 
 		res.status(201).json({
 			success: true,
@@ -84,7 +78,6 @@ export const register = asyncHandler(
 			data: {
 				user: user.toJSON(),
 				accessToken,
-				refreshToken,
 			},
 		});
 	},
@@ -95,94 +88,76 @@ export const register = asyncHandler(
 export const login = asyncHandler(async (req: AuthRequest, res: Response) => {
 	const { email, password } = req.body;
 
-	const user = await User.findOne({ email }).select("+password");
+	const user = await User.findOne({ email }).select(
+		"+password +accountLockedUntil +failedLoginAttempts",
+	);
 
-	if (!user || !(await user.comparePassword(password))) {
+	if (!user) {
+		recordFailedIpAttempt(req);
 		throw new UnauthorizedError("Invalid email or password");
 	}
 
-	// Generate tokens
+	if (user.isAccountLocked()) {
+		const lockTimeRemaining = user.accountLockedUntil
+			? Math.ceil((user.accountLockedUntil.getTime() - Date.now()) / 1000 / 60)
+			: 0;
+
+		throw new UnauthorizedError(
+			`Account is temporarily locked due to multiple failed login attempts. Please try again in ${lockTimeRemaining} minute${lockTimeRemaining !== 1 ? "s" : ""}.`,
+		);
+	}
+
+	const isPasswordValid = await user.comparePassword(password);
+
+	if (!isPasswordValid) {
+		await user.incrementFailedAttempts();
+		recordFailedIpAttempt(req);
+
+		const remainingAttempts = Math.max(0, 5 - user.failedLoginAttempts);
+
+		if (remainingAttempts > 0 && remainingAttempts <= 3) {
+			throw new UnauthorizedError(
+				`Invalid email or password. ${remainingAttempts} attempt${remainingAttempts !== 1 ? "s" : ""} remaining before account lockout.`,
+			);
+		}
+
+		throw new UnauthorizedError("Invalid email or password");
+	}
+
+	await user.resetFailedAttempts();
+	resetIpAttempts(req);
+
 	const accessToken = generateAccessToken({
 		userId: user._id.toString(),
 	});
 
-	const refreshToken = generateRefreshToken({
-		userId: user._id.toString(),
-	});
-
-	user.refreshToken = refreshToken;
-	await user.save();
-
-	// Update last active
 	await UserEngagement.findOneAndUpdate(
 		{ userId: user._id },
 		{ lastActiveAt: new Date() },
 	);
 
-	attachTokensToResponse(res, accessToken, refreshToken);
+	res.cookie("accessToken", accessToken, {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: "strict",
+		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+	});
 
 	res.json({
 		success: true,
 		message: "Login successful",
 		data: {
-			user: user.toJSON(),
+			user,
 			accessToken,
-			refreshToken,
 		},
 	});
 });
 
-// @route   POST /api/v1/auth/refresh
-// @access  Public
-export const refreshToken = asyncHandler(
-	async (req: AuthRequest, res: Response) => {
-		const token = req.cookies?.refreshToken;
-
-		if (!token) {
-			throw new BadRequestError("Refresh token is required");
-		}
-
-		try {
-			const decoded = verifyRefreshToken(token);
-
-			const user = await User.findById(decoded.userId).select("+refreshToken");
-
-			if (!user || user.refreshToken !== token) {
-				throw new UnauthorizedError("Invalid refresh token");
-			}
-
-			// Generate new access token
-			const accessToken = generateAccessToken({
-				userId: user._id.toString(),
-			});
-
-			res.cookie("accessToken", accessToken, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
-				sameSite: "strict",
-				maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-			});
-
-			res.json({
-				success: true,
-				data: {
-					accessToken,
-				},
-			});
-		} catch (_error) {
-			throw new UnauthorizedError("Invalid or expired refresh token");
-		}
-	},
-);
-
 // @route   POST /api/v1/auth/logout
 // @access  Private
 export const logout = asyncHandler(
-	async (req: AuthenticatedRequest, res: Response) => {
-		await User.findByIdAndUpdate(req.user._id, { refreshToken: null });
-
+	async (_req: AuthenticatedRequest, res: Response) => {
 		res.clearCookie("accessToken");
-		res.clearCookie("refreshToken");
 
 		res.json({
 			success: true,
@@ -195,13 +170,14 @@ export const logout = asyncHandler(
 // @access  Private
 export const getCurrentUser = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
+		
 		const user = await User.findById(req.user._id);
 
 		if (!user) throw new NotFoundError("User not found");
 
 		res.json({
 			success: true,
-			data: user.toJSON(),
+			user,
 		});
 	},
 );
@@ -254,7 +230,6 @@ export const forgotPassword = asyncHandler(
 			return;
 		}
 
-		// Generate reset token
 		const resetToken = generateResetToken();
 		user.resetPasswordToken = resetToken;
 		user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
