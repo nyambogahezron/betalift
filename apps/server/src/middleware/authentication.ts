@@ -21,10 +21,8 @@ export const authenticate = async (
 			req.cookies?.accessToken ||
 			req.header("Authorization")?.replace("Bearer ", "");
 
-		if (!token) {
-			throw new UnauthorizedError("No token provided");
-		}
-
+		if (!token) throw new UnauthorizedError("No token provided");
+		
 		const decoded = verifyAccessToken(token);
 
 		const user = await User.findById(decoded.userId);

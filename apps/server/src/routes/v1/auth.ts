@@ -4,18 +4,21 @@ import {
 	getCurrentUser,
 	login,
 	logout,
-	refreshToken,
 	register,
 	resetPassword,
 	verifyEmail,
 } from "../../controllers/authController";
 import { authenticate } from "../../middleware/authentication";
-import { authLimiter, readLimiter } from "../../middleware/rateLimiter";
+import { checkIpLockout } from "../../middleware/loginAttemptTracker";
+import {
+	authLimiter,
+	loginRateLimiter,
+	readLimiter,
+} from "../../middleware/rateLimiter";
 import { validateBody } from "../../validators/middleware";
 import {
 	forgotPasswordSchema,
 	loginSchema,
-	refreshTokenSchema,
 	registerSchema,
 	resetPasswordSchema,
 	verifyEmailSchema,
@@ -24,12 +27,12 @@ import {
 const router = Router();
 
 router.post("/register", authLimiter, validateBody(registerSchema), register);
-router.post("/login", authLimiter, validateBody(loginSchema), login);
 router.post(
-	"/refresh",
-	authLimiter,
-	validateBody(refreshTokenSchema),
-	refreshToken,
+	"/login",
+	loginRateLimiter,
+	checkIpLockout,
+	validateBody(loginSchema),
+	login,
 );
 router.post("/logout", authLimiter, authenticate, logout);
 router.get("/me", readLimiter, authenticate, getCurrentUser);

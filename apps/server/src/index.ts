@@ -9,7 +9,6 @@ import helmet from "helmet";
 import morgan from "morgan";
 import ENV from "./config/env";
 import { connectDatabase } from "./database/connect";
-import { csrfMiddleware, generateCsrfToken } from "./middleware/csrf";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import { apiLimiter } from "./middleware/rateLimiter";
@@ -18,13 +17,12 @@ import { logger } from "./utils/logger";
 
 const app: Application = express();
 
-
 connectDatabase();
 
 // Middleware
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(apiLimiter);
-app.use(csrfMiddleware);
+// app.use(csrfMiddleware);
 app.use(
 	cors({
 		origin: ENV.clientUrl,
@@ -59,7 +57,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.use("/api/v1", apiRoutes);
 
 // CSRF token route
-app.get("/csrf-token", generateCsrfToken);
+// app.get("/csrf-token", generateCsrfToken);
 
 // Error handling middleware
 app.use(notFound);
