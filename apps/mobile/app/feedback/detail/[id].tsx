@@ -1,9 +1,13 @@
 import { Avatar, Card } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { getFeedbackById, getUserById, mockFeedbacks } from '@/data/mockData'
 import type { Feedback } from '@/interfaces'
+import {
+	useFeedback,
+	useFeedbackComments,
+	useCreateComment,
+	useVoteFeedback,
+} from '@/queries/feedbackQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useFeedbackStore } from '@/stores/useFeedbackStore'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Image } from 'expo-image'
@@ -11,51 +15,30 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
 import React, { useMemo, useState } from 'react'
 import {
-    Dimensions,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+	ActivityIndicator,
+	Dimensions,
+	Modal,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Text,
+	TextInput,
+	View,
 } from 'react-native'
 import Animated, {
-    Extrapolation,
-    FadeInUp,
-    SlideInUp,
-    interpolate,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue
+	Extrapolation,
+	FadeInUp,
+	SlideInUp,
+	interpolate,
+	useAnimatedScrollHandler,
+	useAnimatedStyle,
+	useSharedValue,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const HEADER_MAX_HEIGHT = 120
 const HEADER_MIN_HEIGHT = 80
-
-// Mock comments for feedback
-const mockComments = [
-	{
-		id: 'c1',
-		userId: 'demo',
-		content: 'Thanks for reporting this! We\'re looking into it.',
-		createdAt: new Date('2024-12-28T10:00:00'),
-	},
-	{
-		id: 'c2',
-		userId: 'u2',
-		content: 'I\'m experiencing the same issue on my device.',
-		createdAt: new Date('2024-12-28T14:30:00'),
-	},
-	{
-		id: 'c3',
-		userId: 'u1',
-		content: 'The workaround is to restart the app after the update.',
-		createdAt: new Date('2024-12-29T09:15:00'),
-	},
-]
 
 export default function FeedbackDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>()
@@ -66,40 +49,33 @@ export default function FeedbackDetailScreen() {
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
 	const { user } = useAuthStore()
-	const { voteFeedback } = useFeedbackStore()
-
-	// Get feedback from centralized mock data
-	const feedback = useMemo(() => {
-		const found = getFeedbackById(id || '')
-		return found || mockFeedbacks[0]
-	}, [id])
-
-	const feedbackUser = useMemo(() => {
-		return feedback?.user || getUserById(feedback?.userId || '') || {
-			id: 'unknown',
-			username: 'unknown',
-			displayName: 'Unknown User',
-			email: 'unknown@example.com',
-			role: 'tester' as const,
-			stats: { projectsCreated: 0, projectsTested: 0, feedbackGiven: 0, feedbackReceived: 0 },
-			createdAt: new Date(),
-		}
-	}, [feedback])
+	const { data: feedback, isLoading } = useFeedback(id || '')
+	const { data: commentsData } = useFeedbackComments(id || '')
+	const createCommentMutation = useCreateComment()
+	const voteFeedbackMutation = useVoteFeedback()
 
 	const comments = useMemo(() => {
-		return mockComments.map(c => ({
-			...c,
-			user: getUserById(c.userId) || {
-				id: c.userId,
-				username: c.userId,
-				displayName: c.userId === 'demo' ? 'You' : `User ${c.userId}`,
-				email: '',
+		return commentsData?.comments || commentsData || []
+	}, [commentsData])
+
+	const feedbackUser = useMemo(() => {
+		return (
+			feedback?.user || {
+				id: 'unknown',
+				username: 'unknown',
+				displayName: 'Unknown User',
+				email: 'unknown@example.com',
 				role: 'tester' as const,
-				stats: { projectsCreated: 0, projectsTested: 0, feedbackGiven: 0, feedbackReceived: 0 },
+				stats: {
+					projectsCreated: 0,
+					projectsTested: 0,
+					feedbackGiven: 0,
+					feedbackReceived: 0,
+				},
 				createdAt: new Date(),
 			}
-		}))
-	}, [])
+		)
+	}, [feedback])
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
@@ -188,17 +164,31 @@ export default function FeedbackDetailScreen() {
 		}
 	}
 
-	const handleVote = (voteType: 'up' | 'down') => {
+	const handleVote = async (voteType: 'up' | 'down') => {
 		if (!user?.id || !feedback) return
 		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-		voteFeedback(feedback.id, user.id, voteType)
+		try {
+			await voteFeedbackMutation.mutateAsync({
+				feedbackId: feedback.id,
+				voteType,
+			})
+		} catch (error) {
+			console.error('Error voting:', error)
+		}
 	}
 
-	const handleAddComment = () => {
-		if (!commentText.trim()) return
+	const handleAddComment = async () => {
+		if (!commentText.trim() || !feedback) return
 		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-		// In real app, this would call an API
-		setCommentText('')
+		try {
+			await createCommentMutation.mutateAsync({
+				feedbackId: feedback.id,
+				content: commentText.trim(),
+			})
+			setCommentText('')
+		} catch (error) {
+			console.error('Error adding comment:', error)
+		}
 	}
 
 	const openImageModal = (index: number) => {
@@ -216,6 +206,22 @@ export default function FeedbackDetailScreen() {
 		})
 	}
 
+	if (isLoading) {
+		return (
+			<View style={[styles.container, styles.centerContent]}>
+				<ActivityIndicator size='large' color={Colors.primary} />
+			</View>
+		)
+	}
+
+	if (!feedback) {
+		return (
+			<View style={[styles.container, styles.centerContent]}>
+				<Text style={styles.errorText}>Feedback not found</Text>
+			</View>
+		)
+	}
+
 	const typeColor = getTypeColor(feedback.type)
 	const statusColor = getStatusColor(feedback.status)
 
@@ -229,13 +235,20 @@ export default function FeedbackDetailScreen() {
 				/>
 				<View style={[styles.navBar, { paddingTop: insets.top }]}>
 					<Pressable style={styles.navButton} onPress={() => router.back()}>
-						<Ionicons name="arrow-back" size={24} color={Colors.text} />
+						<Ionicons name='arrow-back' size={24} color={Colors.text} />
 					</Pressable>
-					<Animated.Text style={[styles.headerTitle, headerTitleStyle]} numberOfLines={1}>
+					<Animated.Text
+						style={[styles.headerTitle, headerTitleStyle]}
+						numberOfLines={1}
+					>
 						{feedback.title}
 					</Animated.Text>
 					<Pressable style={styles.navButton}>
-						<Ionicons name="ellipsis-horizontal" size={22} color={Colors.text} />
+						<Ionicons
+							name='ellipsis-horizontal'
+							size={22}
+							color={Colors.text}
+						/>
 					</Pressable>
 				</View>
 			</Animated.View>
@@ -251,23 +264,53 @@ export default function FeedbackDetailScreen() {
 				scrollEventThrottle={16}
 			>
 				{/* Type & Status Badges */}
-				<Animated.View entering={FadeInUp.duration(300).delay(100)} style={styles.badges}>
-					<View style={[styles.typeBadge, { backgroundColor: `${typeColor}15` }]}>
-						<Ionicons name={getTypeIcon(feedback.type) as any} size={16} color={typeColor} />
+				<Animated.View
+					entering={FadeInUp.duration(300).delay(100)}
+					style={styles.badges}
+				>
+					<View
+						style={[styles.typeBadge, { backgroundColor: `${typeColor}15` }]}
+					>
+						<Ionicons
+							name={getTypeIcon(feedback.type) as any}
+							size={16}
+							color={typeColor}
+						/>
 						<Text style={[styles.typeBadgeText, { color: typeColor }]}>
 							{feedback.type.charAt(0).toUpperCase() + feedback.type.slice(1)}
 						</Text>
 					</View>
-					<View style={[styles.statusBadge, { backgroundColor: `${statusColor}15` }]}>
-						<View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+					<View
+						style={[
+							styles.statusBadge,
+							{ backgroundColor: `${statusColor}15` },
+						]}
+					>
+						<View
+							style={[styles.statusDot, { backgroundColor: statusColor }]}
+						/>
 						<Text style={[styles.statusBadgeText, { color: statusColor }]}>
 							{(feedback.status || 'pending').replace('-', ' ')}
 						</Text>
 					</View>
 					{feedback.priority && (
-						<View style={[styles.priorityBadge, { backgroundColor: `${getPriorityColor(feedback.priority)}15` }]}>
-							<Ionicons name="flag" size={14} color={getPriorityColor(feedback.priority)} />
-							<Text style={[styles.priorityText, { color: getPriorityColor(feedback.priority) }]}>
+						<View
+							style={[
+								styles.priorityBadge,
+								{ backgroundColor: `${getPriorityColor(feedback.priority)}15` },
+							]}
+						>
+							<Ionicons
+								name='flag'
+								size={14}
+								color={getPriorityColor(feedback.priority)}
+							/>
+							<Text
+								style={[
+									styles.priorityText,
+									{ color: getPriorityColor(feedback.priority) },
+								]}
+							>
 								{feedback.priority}
 							</Text>
 						</View>
@@ -280,15 +323,26 @@ export default function FeedbackDetailScreen() {
 				</Animated.View>
 
 				{/* Author Info */}
-				<Animated.View entering={FadeInUp.duration(300).delay(200)} style={styles.authorCard}>
-					<Pressable 
+				<Animated.View
+					entering={FadeInUp.duration(300).delay(200)}
+					style={styles.authorCard}
+				>
+					<Pressable
 						style={styles.authorInfo}
 						onPress={() => router.push(`/user/${feedbackUser.id}`)}
 					>
-						<Avatar source={feedbackUser.avatar} name={feedbackUser.displayName || feedbackUser.username} size="md" />
+						<Avatar
+							source={feedbackUser.avatar}
+							name={feedbackUser.displayName || feedbackUser.username}
+							size='md'
+						/>
 						<View style={styles.authorDetails}>
-							<Text style={styles.authorName}>{feedbackUser.displayName || feedbackUser.username}</Text>
-							<Text style={styles.authorDate}>{formatDate(feedback.createdAt)}</Text>
+							<Text style={styles.authorName}>
+								{feedbackUser.displayName || feedbackUser.username}
+							</Text>
+							<Text style={styles.authorDate}>
+								{formatDate(feedback.createdAt)}
+							</Text>
 						</View>
 					</Pressable>
 				</Animated.View>
@@ -304,13 +358,17 @@ export default function FeedbackDetailScreen() {
 				{feedback.screenshots && feedback.screenshots.length > 0 && (
 					<Animated.View entering={FadeInUp.duration(300).delay(300)}>
 						<Text style={styles.sectionTitle}>Screenshots</Text>
-						<ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.screenshotsScroll}>
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							style={styles.screenshotsScroll}
+						>
 							{feedback.screenshots.map((uri: string, index: number) => (
 								<Pressable key={index} onPress={() => openImageModal(index)}>
 									<Image
 										source={{ uri }}
 										style={styles.screenshot}
-										contentFit="cover"
+										contentFit='cover'
 									/>
 								</Pressable>
 							))}
@@ -323,7 +381,11 @@ export default function FeedbackDetailScreen() {
 					<Animated.View entering={FadeInUp.duration(300).delay(350)}>
 						<Card style={styles.deviceCard}>
 							<View style={styles.deviceHeader}>
-								<Ionicons name="phone-portrait" size={20} color={Colors.primary} />
+								<Ionicons
+									name='phone-portrait'
+									size={20}
+									color={Colors.primary}
+								/>
 								<Text style={styles.deviceTitle}>Device Information</Text>
 							</View>
 							<View style={styles.deviceGrid}>
@@ -335,15 +397,21 @@ export default function FeedbackDetailScreen() {
 								</View>
 								<View style={styles.deviceItem}>
 									<Text style={styles.deviceLabel}>OS Version</Text>
-									<Text style={styles.deviceValue}>{feedback.deviceInfo.osVersion}</Text>
+									<Text style={styles.deviceValue}>
+										{feedback.deviceInfo.osVersion}
+									</Text>
 								</View>
 								<View style={styles.deviceItem}>
 									<Text style={styles.deviceLabel}>Device</Text>
-									<Text style={styles.deviceValue}>{feedback.deviceInfo.deviceModel}</Text>
+									<Text style={styles.deviceValue}>
+										{feedback.deviceInfo.deviceModel}
+									</Text>
 								</View>
 								<View style={styles.deviceItem}>
 									<Text style={styles.deviceLabel}>App Version</Text>
-									<Text style={styles.deviceValue}>{feedback.deviceInfo.appVersion}</Text>
+									<Text style={styles.deviceValue}>
+										{feedback.deviceInfo.appVersion}
+									</Text>
 								</View>
 							</View>
 						</Card>
@@ -354,15 +422,21 @@ export default function FeedbackDetailScreen() {
 				<Animated.View entering={FadeInUp.duration(300).delay(400)}>
 					<Card style={styles.votesCard}>
 						<View style={styles.votesRow}>
-							<Pressable style={styles.voteButton} onPress={() => handleVote('up')}>
-								<Ionicons name="arrow-up" size={24} color={Colors.success} />
+							<Pressable
+								style={styles.voteButton}
+								onPress={() => handleVote('up')}
+							>
+								<Ionicons name='arrow-up' size={24} color={Colors.success} />
 								<Text style={[styles.voteCount, { color: Colors.success }]}>
 									{feedback.upvotes || 0}
 								</Text>
 							</Pressable>
 							<View style={styles.voteDivider} />
-							<Pressable style={styles.voteButton} onPress={() => handleVote('down')}>
-								<Ionicons name="arrow-down" size={24} color={Colors.error} />
+							<Pressable
+								style={styles.voteButton}
+								onPress={() => handleVote('down')}
+							>
+								<Ionicons name='arrow-down' size={24} color={Colors.error} />
 								<Text style={[styles.voteCount, { color: Colors.error }]}>
 									{feedback.downvotes || 0}
 								</Text>
@@ -374,23 +448,33 @@ export default function FeedbackDetailScreen() {
 				{/* Comments Section */}
 				<Animated.View entering={FadeInUp.duration(300).delay(450)}>
 					<View style={styles.commentsHeader}>
-						<Ionicons name="chatbubbles" size={20} color={Colors.primary} />
-						<Text style={styles.commentsTitle}>Comments ({comments.length})</Text>
+						<Ionicons name='chatbubbles' size={20} color={Colors.primary} />
+						<Text style={styles.commentsTitle}>
+							Comments ({comments.length})
+						</Text>
 					</View>
-					
-					{comments.map((comment, index) => (
+
+					{comments.map((comment: any, index: number) => (
 						<Card key={comment.id} style={styles.commentCard}>
 							<View style={styles.commentHeader}>
-								<Pressable 
+								<Pressable
 									style={styles.commentAuthor}
 									onPress={() => router.push(`/user/${comment.user.id}`)}
 								>
-									<Avatar source={comment.user.avatar} name={comment.user.displayName || comment.user.username} size="sm" />
+									<Avatar
+										source={comment.user.avatar}
+										name={comment.user.displayName || comment.user.username}
+										size='sm'
+									/>
 									<View>
 										<Text style={styles.commentAuthorName}>
-											{comment.user.id === 'demo' ? 'You' : comment.user.displayName || comment.user.username}
+											{comment.user.id === 'demo'
+												? 'You'
+												: comment.user.displayName || comment.user.username}
 										</Text>
-										<Text style={styles.commentDate}>{formatDate(comment.createdAt)}</Text>
+										<Text style={styles.commentDate}>
+											{formatDate(comment.createdAt)}
+										</Text>
 									</View>
 								</Pressable>
 							</View>
@@ -404,24 +488,34 @@ export default function FeedbackDetailScreen() {
 			</Animated.ScrollView>
 
 			{/* Comment Input */}
-			<Animated.View 
+			<Animated.View
 				entering={SlideInUp.duration(300)}
-				style={[styles.commentInputContainer, { paddingBottom: insets.bottom + Spacing.sm }]}
+				style={[
+					styles.commentInputContainer,
+					{ paddingBottom: insets.bottom + Spacing.sm },
+				]}
 			>
 				<TextInput
 					style={styles.commentInput}
-					placeholder="Add a comment..."
+					placeholder='Add a comment...'
 					placeholderTextColor={Colors.textTertiary}
 					value={commentText}
 					onChangeText={setCommentText}
 					multiline
 				/>
-				<Pressable 
-					style={[styles.sendButton, !commentText.trim() && styles.sendButtonDisabled]}
+				<Pressable
+					style={[
+						styles.sendButton,
+						!commentText.trim() && styles.sendButtonDisabled,
+					]}
 					onPress={handleAddComment}
 					disabled={!commentText.trim()}
 				>
-					<Ionicons name="send" size={20} color={commentText.trim() ? Colors.text : Colors.textTertiary} />
+					<Ionicons
+						name='send'
+						size={20}
+						color={commentText.trim() ? Colors.text : Colors.textTertiary}
+					/>
 				</Pressable>
 			</Animated.View>
 
@@ -429,18 +523,21 @@ export default function FeedbackDetailScreen() {
 			<Modal
 				visible={imageModalVisible}
 				transparent
-				animationType="fade"
+				animationType='fade'
 				onRequestClose={() => setImageModalVisible(false)}
 			>
 				<View style={styles.imageModalContainer}>
-					<Pressable style={styles.imageModalClose} onPress={() => setImageModalVisible(false)}>
-						<Ionicons name="close" size={28} color={Colors.text} />
+					<Pressable
+						style={styles.imageModalClose}
+						onPress={() => setImageModalVisible(false)}
+					>
+						<Ionicons name='close' size={28} color={Colors.text} />
 					</Pressable>
 					{feedback.screenshots && (
 						<Image
 							source={{ uri: feedback.screenshots[selectedImageIndex] }}
 							style={styles.fullScreenImage}
-							contentFit="contain"
+							contentFit='contain'
 						/>
 					)}
 				</View>
@@ -453,6 +550,15 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: Colors.background,
+	},
+	centerContent: {
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	errorText: {
+		fontSize: 16,
+		fontFamily: Fonts.medium,
+		color: Colors.textSecondary,
 	},
 	header: {
 		position: 'absolute',

@@ -1,8 +1,8 @@
 import { Avatar, Badge, Button, Card, ProjectStatusBadge } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
+import { useProjectFeedback } from '@/queries/feedbackQueries'
+import { useProject } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useFeedbackStore } from '@/stores/useFeedbackStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -39,18 +39,20 @@ export default function ProjectDetail() {
 	const scrollY = useSharedValue(0)
 
 	const { user } = useAuthStore()
-	const { projects, joinedProjects, joinProject, leaveProject } =
-		useProjectStore()
-	const { feedbacks, fetchFeedbacks } = useFeedbackStore()
+	const { data: project } = useProject(id || '')
+	const { data: feedbackData } = useProjectFeedback(id || '', {
+		page: 1,
+		limit: 10,
+	})
 
-	const project = useMemo(
-		() => projects.find((p) => p.id === id),
-		[projects, id]
-	)
+	const projectFeedbacks = useMemo(() => {
+		return feedbackData?.feedback || feedbackData || []
+	}, [feedbackData])
 
 	const isOwner = project?.ownerId === user?.id
-	const isTester = joinedProjects.some((p) => p.id === id)
-	const projectFeedbacks = feedbacks.filter((f) => f.projectId === id)
+	const isTester = project?.members?.some(
+		(m: any) => m.user?._id === user?.id || m.userId === user?.id
+	)
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {

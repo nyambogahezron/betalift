@@ -1,9 +1,9 @@
 import { Button, Card, Input } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
 import { FeedbackPriority, FeedbackType } from '@/interfaces'
+import { useCreateFeedback } from '@/queries/feedbackQueries'
+import { useProject } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useFeedbackStore } from '@/stores/useFeedbackStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
 import * as Device from 'expo-device'
 import { Image } from 'expo-image'
@@ -81,10 +81,8 @@ export default function CreateFeedback() {
 	>({})
 
 	const { user } = useAuthStore()
-	const { projects } = useProjectStore()
-	const { createFeedback } = useFeedbackStore()
-
-	const project = projects.find((p) => p.id === projectId)
+	const { data: project } = useProject(projectId || '')
+	const createFeedbackMutation = useCreateFeedback()
 
 	const updateField = <K extends keyof FeedbackFormData>(
 		field: K,
@@ -188,19 +186,15 @@ export default function CreateFeedback() {
 				appVersion: '1.0.0',
 			}
 
-			await createFeedback({
+			await createFeedbackMutation.mutateAsync({
 				projectId,
-				userId: user.id,
-				userName: user.displayName || user.username,
-				userAvatar: user.avatar,
-				title: formData.title.trim(),
-				description: formData.description.trim(),
-				type: formData.type,
-				status: 'pending',
-				priority: formData.priority,
-				screenshots: formData.screenshots,
-				deviceInfo,
-				stepsToReproduce: formData.stepsToReproduce.trim() || undefined,
+				feedbackData: {
+					title: formData.title.trim(),
+					description: formData.description.trim(),
+					type: formData.type,
+					priority: formData.priority,
+					attachments: formData.screenshots,
+				},
 			})
 
 			Alert.alert(
@@ -214,7 +208,12 @@ export default function CreateFeedback() {
 				]
 			)
 		} catch (error) {
-			Alert.alert('Error', 'Failed to submit feedback. Please try again.')
+			Alert.alert(
+				'Error',
+				error instanceof Error
+					? error.message
+					: 'Failed to submit feedback. Please try again.'
+			)
 		} finally {
 			setIsSubmitting(false)
 		}

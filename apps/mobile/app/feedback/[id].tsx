@@ -1,9 +1,9 @@
 import { Avatar, Badge, Button, Card } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
 import { Feedback, FeedbackStatus, FeedbackType } from '@/interfaces'
+import { useProjectFeedback, useVoteFeedback } from '@/queries/feedbackQueries'
+import { useProject } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useFeedbackStore } from '@/stores/useFeedbackStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -49,28 +49,29 @@ export default function FeedbackList() {
 	)
 
 	const { user } = useAuthStore()
-	const { projects } = useProjectStore()
-	const { feedbacks, fetchFeedbacks, voteFeedback, isLoading } =
-		useFeedbackStore()
+	const { data: project } = useProject(id || '')
+	const {
+		data: feedbackData,
+		isLoading,
+		refetch,
+	} = useProjectFeedback(id || '', {
+		page: 1,
+		limit: 50,
+	})
+	const voteFeedbackMutation = useVoteFeedback()
 
-	const project = useMemo(
-		() => projects.find((p) => p.id === id),
-		[projects, id]
-	)
+	const feedbacks = useMemo(() => {
+		return feedbackData?.feedback || feedbackData || []
+	}, [feedbackData])
+
 	const isOwner = project?.ownerId === user?.id
-
-	useEffect(() => {
-		if (id) {
-			fetchFeedbacks(id)
-		}
-	}, [id])
 
 	const onRefresh = useCallback(async () => {
 		if (!id) return
 		setRefreshing(true)
-		await fetchFeedbacks(id)
+		await refetch()
 		setRefreshing(false)
-	}, [id])
+	}, [id, refetch])
 
 	const filteredFeedbacks = useMemo(() => {
 		let filtered = feedbacks.filter((f) => f.projectId === id)
@@ -91,7 +92,14 @@ export default function FeedbackList() {
 
 	const handleVote = async (feedbackId: string, voteType: 'up' | 'down') => {
 		if (!user?.id) return
-		await voteFeedback(feedbackId, user.id, voteType)
+		try {
+			await voteFeedbackMutation.mutateAsync({
+				feedbackId,
+				voteType,
+			})
+		} catch (error) {
+			// Error already handled by mutation
+		}
 	}
 
 	const renderFeedbackItem = ({

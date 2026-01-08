@@ -1,6 +1,7 @@
 import { Button, Input } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
 import type { User } from '@/interfaces'
+import { useRegister } from '@/queries/authQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -142,7 +143,8 @@ export default function Register() {
 	const [acceptedTerms, setAcceptedTerms] = useState(false)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
-	const { register, isLoading } = useAuthStore()
+	const { setUser } = useAuthStore()
+	const registerMutation = useRegister()
 
 	const validateStep1 = () => {
 		const newErrors: Record<string, string> = {}
@@ -195,11 +197,40 @@ export default function Register() {
 	const handleRegister = async () => {
 		if (!validateStep2()) return
 
-		const success = await register(email, password, username, role)
-		if (success) {
-			router.replace('/(tabs)')
-		} else {
-			Alert.alert('Error', 'Registration failed. Please try again.')
+		try {
+			const result = await registerMutation.mutateAsync({
+				email: email.trim(),
+				password,
+				username: username.trim(),
+				role,
+			})
+
+			// Store user data in the auth store
+			const userData = {
+				...result.user,
+				id: result.user._id,
+				accessToken: result.accessToken,
+			}
+
+			setUser(userData as any)
+
+			Alert.alert(
+				'Success',
+				'Account created successfully! Please check your email to verify your account.',
+				[
+					{
+						text: 'OK',
+						onPress: () => router.replace('/(tabs)'),
+					},
+				]
+			)
+		} catch (error) {
+			Alert.alert(
+				'Error',
+				error instanceof Error
+					? error.message
+					: 'Registration failed. Please try again.'
+			)
 		}
 	}
 
@@ -391,7 +422,7 @@ export default function Register() {
 							<Button
 								title='Create Account'
 								onPress={handleRegister}
-								loading={isLoading}
+								loading={registerMutation.isPending}
 								fullWidth
 								size='lg'
 								style={styles.continueButton}

@@ -1,23 +1,22 @@
 import { Button, Input } from '@/components/ui'
 import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { getProjectById } from '@/data/mockData'
 import { ProjectStatus } from '@/interfaces'
+import { useProject, useUpdateProject } from '@/queries/projectQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useProjectStore } from '@/stores/useProjectStore'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+	Alert,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Text,
+	View,
 } from 'react-native'
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -87,13 +86,8 @@ export default function EditProject() {
 	>({})
 
 	const { user } = useAuthStore()
-	const { projects } = useProjectStore()
-
-	// Get existing project data
-	const project = useMemo(
-		() => projects.find((p) => p.id === id) || getProjectById(id || ''),
-		[projects, id]
-	)
+	const { data: project } = useProject(id || '')
+	const updateProjectMutation = useUpdateProject()
 
 	// Pre-fill form with project data
 	useEffect(() => {
@@ -246,11 +240,7 @@ export default function EditProject() {
 		return (
 			<SafeAreaView style={styles.container}>
 				<View style={styles.errorContainer}>
-					<Ionicons
-						name='alert-circle'
-						size={64}
-						color={Colors.textTertiary}
-					/>
+					<Ionicons name='alert-circle' size={64} color={Colors.textTertiary} />
 					<Text style={styles.errorText}>Project not found</Text>
 					<Button
 						title='Go Back'
@@ -354,10 +344,7 @@ export default function EditProject() {
 							<View style={styles.iconSection}>
 								<Text style={styles.inputLabel}>Project Icon</Text>
 								<Pressable
-									style={[
-										styles.iconPicker,
-										errors.icon && styles.inputError,
-									]}
+									style={[styles.iconPicker, errors.icon && styles.inputError]}
 									onPress={pickIcon}
 								>
 									{formData.icon ? (
@@ -480,11 +467,7 @@ export default function EditProject() {
 											onPress={() => toggleTech(tech)}
 										>
 											<Text style={styles.selectedTechText}>{tech}</Text>
-											<Ionicons
-												name='close'
-												size={16}
-												color={Colors.text}
-											/>
+											<Ionicons name='close' size={16} color={Colors.text} />
 										</Pressable>
 									))}
 								</View>

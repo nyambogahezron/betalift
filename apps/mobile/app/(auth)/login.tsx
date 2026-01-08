@@ -1,5 +1,6 @@
 import { Button, Input } from '@/components/ui'
 import { Colors, Fonts, Spacing } from '@/constants/theme'
+import { useLogin } from '@/queries/authQueries'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -24,7 +25,8 @@ export default function Login() {
 		{}
 	)
 
-	const { login, loginAsDemo, isLoading } = useAuthStore()
+	const { setUser } = useAuthStore()
+	const loginMutation = useLogin()
 
 	const validate = () => {
 		const newErrors: { email?: string; password?: string } = {}
@@ -48,23 +50,31 @@ export default function Login() {
 	const handleLogin = async () => {
 		if (!validate()) return
 
-		const success = await login(email, password)
-		if (success) {
+		try {
+			const result = await loginMutation.mutateAsync({
+				email: email.trim(),
+				password,
+			})
+
+			const userData = {
+				...result.user,
+				id: result.user._id,
+				accessToken: result.accessToken,
+			}
+			setUser(userData as any)
 			router.replace('/(tabs)')
-		} else {
-			Alert.alert('Error', 'Invalid credentials. Please try again.')
+		} catch (error) {
+			Alert.alert(
+				'Error',
+				error instanceof Error
+					? error.message
+					: 'Invalid credentials. Please try again.'
+			)
 		}
 	}
 
 	const handleSocialLogin = (provider: string) => {
 		Alert.alert('Coming Soon', `${provider} login will be available soon!`)
-	}
-
-	const handleDemoLogin = async () => {
-		const success = await loginAsDemo()
-		if (success) {
-			router.replace('/(tabs)')
-		}
 	}
 
 	return (
@@ -122,14 +132,17 @@ export default function Login() {
 							error={errors.password}
 						/>
 
-						<Pressable style={styles.forgotPassword}>
+						<Pressable
+							style={styles.forgotPassword}
+							onPress={() => router.push('/(auth)/forgot-password')}
+						>
 							<Text style={styles.forgotPasswordText}>Forgot Password?</Text>
 						</Pressable>
 
 						<Button
 							title='Sign In'
 							onPress={handleLogin}
-							loading={isLoading}
+							loading={loginMutation.isPending}
 							fullWidth
 							size='lg'
 							style={styles.loginButton}
@@ -173,30 +186,12 @@ export default function Login() {
 						</Pressable>
 					</Animated.View>
 
-					{/* Demo Account */}
-					<Animated.View
-						entering={FadeInUp.duration(600).delay(450).springify()}
-					>
-						<Pressable
-							style={styles.demoButton}
-							onPress={handleDemoLogin}
-							disabled={isLoading}
-						>
-							<Ionicons
-								name='person-circle-outline'
-								size={20}
-								color={Colors.primary}
-							/>
-							<Text style={styles.demoButtonText}>Try Demo Account</Text>
-						</Pressable>
-					</Animated.View>
-
 					{/* Footer */}
 					<Animated.View
 						entering={FadeInUp.duration(600).delay(500).springify()}
 						style={styles.footer}
 					>
-						<Text style={styles.footerText}>Don't have an account? </Text>
+						<Text style={styles.footerText}>Don&apos;t have an account? </Text>
 						<Pressable onPress={() => router.push('/(auth)/register')}>
 							<Text style={styles.footerLink}>Sign Up</Text>
 						</Pressable>
