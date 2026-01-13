@@ -1,5 +1,15 @@
 import nodemailer from "nodemailer";
 import ENV from "../config/env";
+import {
+	getFeedbackCommentEmail,
+	getFeedbackReceivedEmail,
+	getFeedbackStatusChangedEmail,
+	getPasswordResetEmail,
+	getProjectInviteEmail,
+	getProjectJoinedEmail,
+	getProjectUpdateEmail,
+	getVerifyEmail,
+} from "../templates/emails";
 import { logger } from "../utils/logger";
 
 const transporter = nodemailer.createTransport({
@@ -42,21 +52,7 @@ export const sendVerificationEmail = async (
 	token: string,
 ): Promise<void> => {
 	const verificationUrl = `${ENV.clientUrl}/verify-email?token=${token}`;
-
-	const html = `
-		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-			<h2>Welcome to BetaLift, ${username}!</h2>
-			<p>Thank you for signing up. Please verify your email address to get started.</p>
-			<p>Click the button below to verify your email:</p>
-			<a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;">
-				Verify Email
-			</a>
-			<p>Or copy and paste this link into your browser:</p>
-			<p style="word-break: break-all;">${verificationUrl}</p>
-			<p>This link will expire in 24 hours.</p>
-			<p>If you didn't create an account, please ignore this email.</p>
-		</div>
-	`;
+	const html = getVerifyEmail(username, verificationUrl, token);
 
 	await sendEmail({
 		to: email,
@@ -72,26 +68,136 @@ export const sendPasswordResetEmail = async (
 	token: string,
 ): Promise<void> => {
 	const resetUrl = `${ENV.clientUrl}/reset-password?token=${token}`;
-
-	const html = `
-		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-			<h2>Password Reset Request</h2>
-			<p>Hi ${username},</p>
-			<p>You requested to reset your password. Click the button below to reset it:</p>
-			<a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;">
-				Reset Password
-			</a>
-			<p>Or copy and paste this link into your browser:</p>
-			<p style="word-break: break-all;">${resetUrl}</p>
-			<p>This link will expire in 1 hour.</p>
-			<p>If you didn't request a password reset, please ignore this email.</p>
-		</div>
-	`;
+	const html = getPasswordResetEmail(username, resetUrl, token);
 
 	await sendEmail({
 		to: email,
 		subject: "Reset your password - BetaLift",
 		html,
 		text: `Reset your password by visiting: ${resetUrl}`,
+	});
+};
+
+export const sendProjectInviteEmail = async (
+	email: string,
+	inviterName: string,
+	projectName: string,
+	projectId: string,
+): Promise<void> => {
+	const inviteUrl = `${ENV.clientUrl}/projects/${projectId}/join`;
+	const html = getProjectInviteEmail(inviterName, projectName, inviteUrl);
+
+	await sendEmail({
+		to: email,
+		subject: `Invitation to join ${projectName} on BetaLift`,
+		html,
+		text: `${inviterName} has invited you to join the project "${projectName}". Join here: ${inviteUrl}`,
+	});
+};
+
+export const sendProjectJoinedEmail = async (
+	email: string,
+	username: string,
+	projectName: string,
+	projectId: string,
+): Promise<void> => {
+	const projectUrl = `${ENV.clientUrl}/projects/${projectId}`;
+	const html = getProjectJoinedEmail(username, projectName, projectUrl);
+
+	await sendEmail({
+		to: email,
+		subject: `Welcome to ${projectName}`,
+		html,
+		text: `You have successfully joined "${projectName}". View project: ${projectUrl}`,
+	});
+};
+
+export const sendFeedbackReceivedEmail = async (
+	email: string,
+	projectName: string,
+	feedbackTitle: string,
+	submitterName: string,
+	feedbackId: string,
+): Promise<void> => {
+	const feedbackUrl = `${ENV.clientUrl}/feedback/${feedbackId}`;
+	const html = getFeedbackReceivedEmail(
+		projectName,
+		feedbackTitle,
+		submitterName,
+		feedbackUrl,
+	);
+
+	await sendEmail({
+		to: email,
+		subject: `New feedback on ${projectName}`,
+		html,
+		text: `New feedback "${feedbackTitle}" from ${submitterName}. View here: ${feedbackUrl}`,
+	});
+};
+
+export const sendFeedbackCommentEmail = async (
+	email: string,
+	feedbackTitle: string,
+	commenterName: string,
+	commentPreview: string,
+	feedbackId: string,
+): Promise<void> => {
+	const feedbackUrl = `${ENV.clientUrl}/feedback/${feedbackId}`;
+	const html = getFeedbackCommentEmail(
+		feedbackTitle,
+		commenterName,
+		commentPreview,
+		feedbackUrl,
+	);
+
+	await sendEmail({
+		to: email,
+		subject: `New comment on ${feedbackTitle}`,
+		html,
+		text: `${commenterName} commented on "${feedbackTitle}": "${commentPreview}". View here: ${feedbackUrl}`,
+	});
+};
+
+export const sendFeedbackStatusChangedEmail = async (
+	email: string,
+	feedbackTitle: string,
+	newStatus: string,
+	feedbackId: string,
+): Promise<void> => {
+	const feedbackUrl = `${ENV.clientUrl}/feedback/${feedbackId}`;
+	const html = getFeedbackStatusChangedEmail(
+		feedbackTitle,
+		newStatus,
+		feedbackUrl,
+	);
+
+	await sendEmail({
+		to: email,
+		subject: `Status update: ${feedbackTitle}`,
+		html,
+		text: `The status of your feedback "${feedbackTitle}" is now ${newStatus}. View here: ${feedbackUrl}`,
+	});
+};
+
+export const sendProjectUpdateEmail = async (
+	email: string,
+	projectName: string,
+	updateTitle: string,
+	updatePreview: string,
+	updateId: string,
+): Promise<void> => {
+	const updateUrl = `${ENV.clientUrl}/updates/${updateId}`;
+	const html = getProjectUpdateEmail(
+		projectName,
+		updateTitle,
+		updatePreview,
+		updateUrl,
+	);
+
+	await sendEmail({
+		to: email,
+		subject: `Update on ${projectName}: ${updateTitle}`,
+		html,
+		text: `Project Update: ${updateTitle}. ${updatePreview}. Read more: ${updateUrl}`,
 	});
 };
