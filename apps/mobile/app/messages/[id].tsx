@@ -1,157 +1,175 @@
-import { Avatar } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { getMessagesForConversation, getUserById, mockConversations } from '@/data/mockData'
-import type { Message, User } from '@/interfaces'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
-import * as ImagePicker from 'expo-image-picker'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native'
+	FlatList,
+	Image,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	View,
+} from "react-native";
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeInUp,
-    SlideInDown,
-} from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+	FadeIn,
+	FadeInDown,
+	FadeInUp,
+	SlideInDown,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import {
+	getMessagesForConversation,
+	getUserById,
+	mockConversations,
+} from "@/data/mockData";
+import type { Message, User } from "@/interfaces";
 
 export default function ChatScreen() {
-	const { id } = useLocalSearchParams<{ id: string }>()
-	const insets = useSafeAreaInsets()
-	const flatListRef = useRef<FlatList>(null)
-	
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const insets = useSafeAreaInsets();
+	const flatListRef = useRef<FlatList>(null);
+
 	// Get conversation and related data from centralized mock data
-	const conversation = useMemo(() => 
-		mockConversations.find(c => c.id === id), [id]
-	)
-	
+	const conversation = useMemo(
+		() => mockConversations.find((c) => c.id === id),
+		[id],
+	);
+
 	const otherUser = useMemo((): User => {
 		// Try to find user from conversation participants
 		if (conversation?.participants?.[0]) {
-			return conversation.participants[0]
+			return conversation.participants[0];
 		}
 		// Fallback to getUserById if this is a direct user message
-		const userFromId = getUserById(id || '')
+		const userFromId = getUserById(id || "");
 		if (userFromId) {
-			return userFromId
+			return userFromId;
 		}
 		// Default fallback user
 		return {
-			id: id || 'unknown',
-			email: 'unknown@example.com',
-			username: 'unknown',
-			displayName: 'Unknown User',
-			role: 'tester',
-			stats: { projectsCreated: 0, projectsTested: 0, feedbackGiven: 0, feedbackReceived: 0 },
+			id: id || "unknown",
+			email: "unknown@example.com",
+			username: "unknown",
+			displayName: "Unknown User",
+			role: "tester",
+			stats: {
+				projectsCreated: 0,
+				projectsTested: 0,
+				feedbackGiven: 0,
+				feedbackReceived: 0,
+			},
 			createdAt: new Date(),
-		}
-	}, [id, conversation])
-	
-	const initialMessages = useMemo(() => 
-		getMessagesForConversation(conversation?.id || id || ''), [conversation?.id, id]
-	)
-	
-	const [messages, setMessages] = useState<Message[]>(initialMessages)
-	const [inputText, setInputText] = useState('')
-	const [isTyping, setIsTyping] = useState(false)
-	const [selectedImage, setSelectedImage] = useState<string | null>(null)
+		};
+	}, [id, conversation]);
+
+	const initialMessages = useMemo(
+		() => getMessagesForConversation(conversation?.id || id || ""),
+		[conversation?.id, id],
+	);
+
+	const [messages, setMessages] = useState<Message[]>(initialMessages);
+	const [inputText, setInputText] = useState("");
+	const [isTyping, setIsTyping] = useState(false);
+	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
 	useEffect(() => {
 		// Scroll to bottom on mount
 		setTimeout(() => {
-			flatListRef.current?.scrollToEnd({ animated: false })
-		}, 100)
-	}, [])
+			flatListRef.current?.scrollToEnd({ animated: false });
+		}, 100);
+	}, []);
 
 	const handleSend = () => {
-		if (!inputText.trim() && !selectedImage) return
+		if (!inputText.trim() && !selectedImage) return;
 
-		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
 		const newMessage: Message = {
 			id: `m${Date.now()}`,
 			conversationId: id,
-			senderId: 'me',
+			senderId: "me",
 			content: inputText.trim(),
-			type: selectedImage ? 'image' : 'text',
+			type: selectedImage ? "image" : "text",
 			createdAt: new Date(),
-			readBy: ['me'],
+			readBy: ["me"],
 			attachments: selectedImage
-				? [{ id: `a${Date.now()}`, type: 'image', url: selectedImage, name: 'image.jpg' }]
+				? [
+						{
+							id: `a${Date.now()}`,
+							type: "image",
+							url: selectedImage,
+							name: "image.jpg",
+						},
+					]
 				: undefined,
-		}
+		};
 
-		setMessages((prev) => [...prev, newMessage])
-		setInputText('')
-		setSelectedImage(null)
+		setMessages((prev) => [...prev, newMessage]);
+		setInputText("");
+		setSelectedImage(null);
 
 		// Scroll to bottom
 		setTimeout(() => {
-			flatListRef.current?.scrollToEnd({ animated: true })
-		}, 100)
+			flatListRef.current?.scrollToEnd({ animated: true });
+		}, 100);
 
 		// Simulate typing response
-		setIsTyping(true)
+		setIsTyping(true);
 		setTimeout(() => {
-			setIsTyping(false)
-		}, 2000)
-	}
+			setIsTyping(false);
+		}, 2000);
+	};
 
 	const handlePickImage = async () => {
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ImagePicker.MediaTypeOptions.Images,
 			allowsEditing: true,
 			quality: 0.8,
-		})
+		});
 
 		if (!result.canceled) {
-			setSelectedImage(result.assets[0].uri)
+			setSelectedImage(result.assets[0].uri);
 		}
-	}
+	};
 
 	const formatTime = (date: Date) => {
-		return date.toLocaleTimeString('en-US', {
-			hour: 'numeric',
-			minute: '2-digit',
+		return date.toLocaleTimeString("en-US", {
+			hour: "numeric",
+			minute: "2-digit",
 			hour12: true,
-		})
-	}
+		});
+	};
 
 	const formatDateHeader = (date: Date) => {
-		const now = new Date()
-		const diff = now.getTime() - date.getTime()
-		const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+		const now = new Date();
+		const diff = now.getTime() - date.getTime();
+		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-		if (days === 0) return 'Today'
-		if (days === 1) return 'Yesterday'
-		return date.toLocaleDateString('en-US', {
-			weekday: 'long',
-			month: 'short',
-			day: 'numeric',
-		})
-	}
+		if (days === 0) return "Today";
+		if (days === 1) return "Yesterday";
+		return date.toLocaleDateString("en-US", {
+			weekday: "long",
+			month: "short",
+			day: "numeric",
+		});
+	};
 
 	const shouldShowDateHeader = (index: number) => {
-		if (index === 0) return true
-		const currentDate = messages[index].createdAt.toDateString()
-		const previousDate = messages[index - 1].createdAt.toDateString()
-		return currentDate !== previousDate
-	}
+		if (index === 0) return true;
+		const currentDate = messages[index].createdAt.toDateString();
+		const previousDate = messages[index - 1].createdAt.toDateString();
+		return currentDate !== previousDate;
+	};
 
 	const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-		const isMe = item.senderId === 'me'
-		const showDateHeader = shouldShowDateHeader(index)
+		const isMe = item.senderId === "me";
+		const showDateHeader = shouldShowDateHeader(index);
 
 		return (
 			<View>
@@ -216,13 +234,15 @@ export default function ChatScreen() {
 							{isMe && (
 								<Ionicons
 									name={
-										(item.readBy?.length || 0) > 1 ? 'checkmark-done' : 'checkmark'
+										(item.readBy?.length || 0) > 1
+											? "checkmark-done"
+											: "checkmark"
 									}
 									size={14}
 									color={
 										(item.readBy?.length || 0) > 1
 											? Colors.primary
-											: 'rgba(255,255,255,0.6)'
+											: "rgba(255,255,255,0.6)"
 									}
 									style={styles.readIcon}
 								/>
@@ -231,13 +251,13 @@ export default function ChatScreen() {
 					</View>
 				</Animated.View>
 			</View>
-		)
-	}
+		);
+	};
 
 	return (
 		<KeyboardAvoidingView
 			style={styles.container}
-			behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+			behavior={Platform.OS === "ios" ? "padding" : undefined}
 			keyboardVerticalOffset={0}
 		>
 			{/* Header */}
@@ -259,7 +279,7 @@ export default function ChatScreen() {
 							{otherUser.displayName || otherUser.username}
 						</Text>
 						<Text style={styles.userStatus}>
-							{isTyping ? 'typing...' : 'Online'}
+							{isTyping ? "typing..." : "Online"}
 						</Text>
 					</View>
 				</Pressable>
@@ -325,7 +345,12 @@ export default function ChatScreen() {
 			)}
 
 			{/* Input */}
-			<View style={[styles.inputContainer, { paddingBottom: insets.bottom + Spacing.sm }]}>
+			<View
+				style={[
+					styles.inputContainer,
+					{ paddingBottom: insets.bottom + Spacing.sm },
+				]}
+			>
 				<Pressable style={styles.attachButton} onPress={handlePickImage}>
 					<Ionicons name="add-circle" size={28} color={Colors.primary} />
 				</Pressable>
@@ -340,7 +365,11 @@ export default function ChatScreen() {
 						maxLength={1000}
 					/>
 					<Pressable style={styles.emojiButton}>
-						<Ionicons name="happy-outline" size={24} color={Colors.textTertiary} />
+						<Ionicons
+							name="happy-outline"
+							size={24}
+							color={Colors.textTertiary}
+						/>
 					</Pressable>
 				</View>
 				<Pressable
@@ -363,7 +392,7 @@ export default function ChatScreen() {
 				</Pressable>
 			</View>
 		</KeyboardAvoidingView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -374,8 +403,8 @@ const styles = StyleSheet.create({
 
 	// Header
 	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		paddingHorizontal: Spacing.md,
 		paddingBottom: Spacing.md,
 		backgroundColor: Colors.background,
@@ -385,13 +414,13 @@ const styles = StyleSheet.create({
 	backButton: {
 		width: 40,
 		height: 40,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	userInfo: {
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginLeft: Spacing.xs,
 	},
 	userDetails: {
@@ -408,13 +437,13 @@ const styles = StyleSheet.create({
 		color: Colors.success,
 	},
 	headerActions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 	},
 	headerAction: {
 		width: 40,
 		height: 40,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 
 	// Messages
@@ -423,7 +452,7 @@ const styles = StyleSheet.create({
 		paddingVertical: Spacing.md,
 	},
 	dateHeaderContainer: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginVertical: Spacing.md,
 	},
 	dateHeaderText: {
@@ -436,19 +465,19 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.full,
 	},
 	messageRow: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		marginBottom: Spacing.sm,
-		alignItems: 'flex-end',
+		alignItems: "flex-end",
 		gap: Spacing.xs,
 	},
 	messageRowMe: {
-		justifyContent: 'flex-end',
+		justifyContent: "flex-end",
 	},
 	messageRowOther: {
-		justifyContent: 'flex-start',
+		justifyContent: "flex-start",
 	},
 	messageBubble: {
-		maxWidth: '75%',
+		maxWidth: "75%",
 		padding: Spacing.sm,
 		borderRadius: BorderRadius.lg,
 	},
@@ -472,9 +501,9 @@ const styles = StyleSheet.create({
 		color: Colors.text,
 	},
 	messageFooter: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'flex-end',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "flex-end",
 		marginTop: 4,
 	},
 	messageTime: {
@@ -482,7 +511,7 @@ const styles = StyleSheet.create({
 		fontFamily: Fonts.regular,
 	},
 	messageTimeMe: {
-		color: 'rgba(255,255,255,0.7)',
+		color: "rgba(255,255,255,0.7)",
 	},
 	messageTimeOther: {
 		color: Colors.textTertiary,
@@ -495,7 +524,7 @@ const styles = StyleSheet.create({
 	attachmentContainer: {
 		marginBottom: Spacing.xs,
 		borderRadius: BorderRadius.md,
-		overflow: 'hidden',
+		overflow: "hidden",
 	},
 	attachmentImage: {
 		width: 200,
@@ -505,8 +534,8 @@ const styles = StyleSheet.create({
 
 	// Typing Indicator
 	typingIndicator: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 		paddingHorizontal: Spacing.xs,
 		paddingVertical: Spacing.xs,
@@ -540,21 +569,21 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.md,
 	},
 	removeImageButton: {
-		position: 'absolute',
+		position: "absolute",
 		top: Spacing.sm,
 		left: Spacing.md + 80,
 		width: 24,
 		height: 24,
 		borderRadius: 12,
 		backgroundColor: Colors.error,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 
 	// Input
 	inputContainer: {
-		flexDirection: 'row',
-		alignItems: 'flex-end',
+		flexDirection: "row",
+		alignItems: "flex-end",
 		paddingHorizontal: Spacing.md,
 		paddingTop: Spacing.sm,
 		backgroundColor: Colors.background,
@@ -566,13 +595,13 @@ const styles = StyleSheet.create({
 	},
 	inputWrapper: {
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'flex-end',
+		flexDirection: "row",
+		alignItems: "flex-end",
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.lg,
 		marginHorizontal: Spacing.sm,
 		paddingHorizontal: Spacing.md,
-		paddingVertical: Platform.OS === 'ios' ? Spacing.sm : 0,
+		paddingVertical: Platform.OS === "ios" ? Spacing.sm : 0,
 		minHeight: 44,
 		maxHeight: 100,
 	},
@@ -581,21 +610,21 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontFamily: Fonts.regular,
 		color: Colors.text,
-		paddingVertical: Platform.OS === 'android' ? Spacing.sm : 0,
+		paddingVertical: Platform.OS === "android" ? Spacing.sm : 0,
 	},
 	emojiButton: {
 		paddingLeft: Spacing.sm,
-		paddingBottom: Platform.OS === 'ios' ? 0 : Spacing.sm,
+		paddingBottom: Platform.OS === "ios" ? 0 : Spacing.sm,
 	},
 	sendButton: {
 		width: 44,
 		height: 44,
 		borderRadius: 22,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	sendButtonActive: {
 		backgroundColor: Colors.primary,
 	},
-})
+});

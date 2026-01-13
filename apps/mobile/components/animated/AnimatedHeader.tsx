@@ -1,29 +1,35 @@
-import { Colors, Fonts, Spacing } from '@/constants/theme'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { ReactNode } from 'react'
-import { Dimensions, Pressable, StyleSheet, View, ViewStyle } from 'react-native'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import type { ReactNode } from "react";
+import {
+	Dimensions,
+	Pressable,
+	StyleSheet,
+	View,
+	type ViewStyle,
+} from "react-native";
 import Animated, {
-    Extrapolation,
-    SharedValue,
-    interpolate,
-    useAnimatedStyle,
-} from 'react-native-reanimated'
+	Extrapolation,
+	interpolate,
+	type SharedValue,
+	useAnimatedStyle,
+} from "react-native-reanimated";
+import { Colors, Fonts, Spacing } from "@/constants/theme";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface AnimatedHeaderProps {
-	scrollY: SharedValue<number>
-	headerHeight?: number
-	minHeaderHeight?: number
-	title?: string
-	showBackButton?: boolean
-	rightActions?: ReactNode
-	headerImage?: ReactNode
-	headerContent?: ReactNode
-	stickyContent?: ReactNode
-	stickyOffset?: number
-	style?: ViewStyle
+	scrollY: SharedValue<number>;
+	headerHeight?: number;
+	minHeaderHeight?: number;
+	title?: string;
+	showBackButton?: boolean;
+	rightActions?: ReactNode;
+	headerImage?: ReactNode;
+	headerContent?: ReactNode;
+	stickyContent?: ReactNode;
+	stickyOffset?: number;
+	style?: ViewStyle;
 }
 
 export default function AnimatedHeader({
@@ -39,7 +45,7 @@ export default function AnimatedHeader({
 	stickyOffset = 0,
 	style,
 }: AnimatedHeaderProps) {
-	const scrollDistance = headerHeight - minHeaderHeight
+	const scrollDistance = headerHeight - minHeaderHeight;
 
 	// Animated styles for the main header container
 	const headerAnimatedStyle = useAnimatedStyle(() => {
@@ -47,10 +53,10 @@ export default function AnimatedHeader({
 			scrollY.value,
 			[0, scrollDistance],
 			[headerHeight, minHeaderHeight],
-			Extrapolation.CLAMP
-		)
-		return { height }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { height };
+	});
 
 	// Animated styles for the header image/background
 	const imageAnimatedStyle = useAnimatedStyle(() => {
@@ -58,25 +64,25 @@ export default function AnimatedHeader({
 			scrollY.value,
 			[-100, 0, scrollDistance],
 			[-50, 0, scrollDistance * 0.5],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const scale = interpolate(
 			scrollY.value,
 			[-100, 0],
 			[1.5, 1],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const opacity = interpolate(
 			scrollY.value,
 			[0, scrollDistance * 0.7],
 			[1, 0],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		return {
 			transform: [{ translateY }, { scale }],
 			opacity,
-		}
-	})
+		};
+	});
 
 	// Animated styles for header content (fades out on scroll)
 	const contentAnimatedStyle = useAnimatedStyle(() => {
@@ -84,16 +90,16 @@ export default function AnimatedHeader({
 			scrollY.value,
 			[0, scrollDistance * 0.5],
 			[1, 0],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const translateY = interpolate(
 			scrollY.value,
 			[0, scrollDistance * 0.5],
 			[0, -20],
-			Extrapolation.CLAMP
-		)
-		return { opacity, transform: [{ translateY }] }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity, transform: [{ translateY }] };
+	});
 
 	// Animated styles for the collapsed title
 	const collapsedTitleStyle = useAnimatedStyle(() => {
@@ -101,10 +107,10 @@ export default function AnimatedHeader({
 			scrollY.value,
 			[scrollDistance * 0.7, scrollDistance],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
-		return { opacity }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity };
+	});
 
 	// Animated styles for navigation buttons background
 	const navButtonsBgStyle = useAnimatedStyle(() => {
@@ -112,12 +118,12 @@ export default function AnimatedHeader({
 			scrollY.value,
 			[0, scrollDistance * 0.5],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		return {
 			backgroundColor: `rgba(23, 23, 23, ${backgroundColor})`,
-		}
-	})
+		};
+	});
 
 	return (
 		<Animated.View style={[styles.header, style, headerAnimatedStyle]}>
@@ -135,7 +141,7 @@ export default function AnimatedHeader({
 			<Animated.View style={[styles.navBar, navButtonsBgStyle]}>
 				{showBackButton && (
 					<Pressable style={styles.navButton} onPress={() => router.back()}>
-						<Ionicons name='arrow-back' size={24} color={Colors.text} />
+						<Ionicons name="arrow-back" size={24} color={Colors.text} />
 					</Pressable>
 				)}
 
@@ -165,14 +171,14 @@ export default function AnimatedHeader({
 				</View>
 			)}
 		</Animated.View>
-	)
+	);
 }
 
 interface StickyHeaderProps {
-	scrollY: SharedValue<number>
-	threshold: number
-	children: ReactNode
-	style?: ViewStyle
+	scrollY: SharedValue<number>;
+	threshold: number;
+	children: ReactNode;
+	style?: ViewStyle;
 }
 
 export function StickyHeader({
@@ -186,47 +192,47 @@ export function StickyHeader({
 			scrollY.value,
 			[threshold - 10, threshold],
 			[-60, 0],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const opacity = interpolate(
 			scrollY.value,
 			[threshold - 10, threshold],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		return {
 			transform: [{ translateY }],
 			opacity,
-		}
-	})
+		};
+	});
 
 	return (
 		<Animated.View style={[styles.stickyHeader, style, stickyStyle]}>
 			{children}
 		</Animated.View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	header: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
 		zIndex: 100,
-		overflow: 'hidden',
+		overflow: "hidden",
 	},
 	imageContainer: {
 		...StyleSheet.absoluteFillObject,
 	},
 	gradientOverlay: {
 		...StyleSheet.absoluteFillObject,
-		backgroundColor: 'rgba(0,0,0,0.3)',
+		backgroundColor: "rgba(0,0,0,0.3)",
 	},
 	navBar: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.md,
 		paddingTop: 50,
 		paddingBottom: Spacing.sm,
@@ -235,35 +241,35 @@ const styles = StyleSheet.create({
 		width: 40,
 		height: 40,
 		borderRadius: 20,
-		backgroundColor: 'rgba(0,0,0,0.3)',
-		alignItems: 'center',
-		justifyContent: 'center',
+		backgroundColor: "rgba(0,0,0,0.3)",
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	collapsedTitle: {
 		flex: 1,
 		fontSize: 18,
 		fontFamily: Fonts.semibold,
 		color: Colors.text,
-		textAlign: 'center',
+		textAlign: "center",
 		marginHorizontal: Spacing.sm,
 	},
 	rightActionsContainer: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.xs,
 	},
 	headerContent: {
 		flex: 1,
-		justifyContent: 'flex-end',
+		justifyContent: "flex-end",
 		paddingHorizontal: Spacing.lg,
 		paddingBottom: Spacing.lg,
 	},
 	stickyContainer: {
-		position: 'absolute',
+		position: "absolute",
 		left: 0,
 		right: 0,
 	},
 	stickyHeader: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
@@ -272,4 +278,4 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: Colors.border,
 	},
-})
+});

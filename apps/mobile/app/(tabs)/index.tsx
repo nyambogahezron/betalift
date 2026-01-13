@@ -1,13 +1,6 @@
-import { ProjectCard } from '@/components/project'
-import { Avatar, Button, Card } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { mockConversations } from '@/data/mockData'
-import { Conversation, Project } from '@/interfaces'
-import { useProjects } from '@/queries/projectQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { useCallback, useMemo, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
@@ -16,22 +9,29 @@ import {
 	ScrollView,
 	StyleSheet,
 	Text,
-	TextStyle,
+	type TextStyle,
 	View,
-	ViewStyle,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+	type ViewStyle,
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ProjectCard } from "@/components/project";
+import { Avatar, Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { mockConversations } from "@/data/mockData";
+import type { Conversation, Project } from "@/interfaces";
+import { useProjects } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-type TabType = 'my-projects' | 'joined'
+type TabType = "my-projects" | "joined";
 
 function shortenUsername(username: string) {
-	const name = username.split(' ')[0]
+	const name = username.split(" ")[0];
 
 	if (name.length > 10) {
-		return name.slice(0, 10) + '...'
+		return `${name.slice(0, 10)}...`;
 	}
-	return name
+	return name;
 }
 
 function Budge({
@@ -39,9 +39,9 @@ function Budge({
 	containerStyles,
 	budgeStyles,
 }: {
-	count: number
-	containerStyles?: ViewStyle
-	budgeStyles?: TextStyle
+	count: number;
+	containerStyles?: ViewStyle;
+	budgeStyles?: TextStyle;
 }) {
 	return (
 		<View
@@ -52,8 +52,8 @@ function Budge({
 					paddingHorizontal: 6,
 					paddingVertical: 1,
 					minWidth: 20,
-					alignItems: 'center',
-					position: 'absolute',
+					alignItems: "center",
+					position: "absolute",
 					top: -8,
 					right: -8,
 				},
@@ -73,58 +73,58 @@ function Budge({
 				{count}
 			</Text>
 		</View>
-	)
+	);
 }
 
 export default function Home() {
-	const [activeTab, setActiveTab] = useState<TabType>('my-projects')
-	const [refreshing, setRefreshing] = useState(false)
-	const [conversations] = useState<Conversation[]>(mockConversations)
+	const [activeTab, setActiveTab] = useState<TabType>("my-projects");
+	const [refreshing, setRefreshing] = useState(false);
+	const [conversations] = useState<Conversation[]>(mockConversations);
 
 	const totalUnread = conversations.reduce(
 		(acc, conv) => acc + conv.unreadCount,
-		0
-	)
+		0,
+	);
 
-	const { user } = useAuthStore()
-	const { data: projectsData, isLoading, refetch } = useProjects()
+	const { user } = useAuthStore();
+	const { data: projectsData, isLoading, refetch } = useProjects();
 
 	const allProjects = useMemo(() => {
-		return projectsData?.projects || projectsData || []
-	}, [projectsData])
+		return projectsData?.projects || projectsData || [];
+	}, [projectsData]);
 
 	const myProjects = useMemo(() => {
-		if (!user?.id) return []
+		if (!user?.id) return [];
 		return allProjects.filter(
-			(p: any) => p.owner?._id === user.id || p.ownerId === user.id
-		)
-	}, [allProjects, user?.id])
+			(p: any) => p.owner?._id === user.id || p.ownerId === user.id,
+		);
+	}, [allProjects, user?.id]);
 
 	const joinedProjects = useMemo(() => {
-		if (!user?.id) return []
+		if (!user?.id) return [];
 		return allProjects.filter((p: any) => {
-			const ownerId = p.owner?._id || p.ownerId
+			const ownerId = p.owner?._id || p.ownerId;
 			return (
 				ownerId !== user.id &&
 				p.members?.some(
-					(m: any) => m.user?._id === user.id || m.userId === user.id
+					(m: any) => m.user?._id === user.id || m.userId === user.id,
 				)
-			)
-		})
-	}, [allProjects, user?.id])
+			);
+		});
+	}, [allProjects, user?.id]);
 
 	const pendingInvites = useMemo(() => {
 		// TODO: Implement pending invites when backend is ready
-		return []
-	}, [])
+		return [];
+	}, []);
 
 	const onRefresh = useCallback(async () => {
-		setRefreshing(true)
-		await refetch()
-		setRefreshing(false)
-	}, [refetch])
+		setRefreshing(true);
+		await refetch();
+		setRefreshing(false);
+	}, [refetch]);
 
-	const showMyProjects = user?.role === 'creator' || user?.role === 'both'
+	const showMyProjects = user?.role === "creator" || user?.role === "both";
 
 	return (
 		<SafeAreaView style={[styles.container]}>
@@ -135,44 +135,44 @@ export default function Home() {
 			>
 				<View>
 					<Text style={styles.greeting}>
-						Hello,{' '}
+						Hello,{" "}
 						{user?.displayName
 							? shortenUsername(user.displayName)
 							: user?.username
-							? shortenUsername(user.username)
-							: 'there'}
+								? shortenUsername(user.username)
+								: "there"}
 						! 👋
 					</Text>
 					<Text style={styles.subtitle}>
-						{activeTab === 'my-projects'
-							? 'Manage your beta projects'
-							: 'Projects you are testing'}
+						{activeTab === "my-projects"
+							? "Manage your beta projects"
+							: "Projects you are testing"}
 					</Text>
 				</View>
 				<View style={styles.headerActions}>
 					<Pressable
 						style={styles.headerIconButton}
-						onPress={() => router.push('/messages')}
+						onPress={() => router.push("/messages")}
 					>
 						<Budge
 							count={totalUnread}
 							containerStyles={{
 								marginRight: 10,
-								position: 'absolute',
+								position: "absolute",
 								top: 0,
 								right: -5,
 								zIndex: 10,
 							}}
 						/>
 						<Ionicons
-							name='chatbubbles-outline'
+							name="chatbubbles-outline"
 							size={24}
 							color={Colors.text}
 						/>
 					</Pressable>
 					<Pressable
 						style={styles.profileButton}
-						onPress={() => router.push('/(tabs)/profile')}
+						onPress={() => router.push("/(tabs)/profile")}
 					>
 						<Avatar
 							source={user?.avatar}
@@ -180,10 +180,10 @@ export default function Home() {
 								user?.displayName
 									? shortenUsername(user.displayName)
 									: user?.username
-									? shortenUsername(user.username)
-									: undefined
+										? shortenUsername(user.username)
+										: undefined
 							}
-							size='md'
+							size="md"
 						/>
 					</Pressable>
 				</View>
@@ -198,15 +198,15 @@ export default function Home() {
 					<Pressable
 						style={[
 							styles.tab,
-							activeTab === 'my-projects' && styles.tabActive,
+							activeTab === "my-projects" && styles.tabActive,
 						]}
-						onPress={() => setActiveTab('my-projects')}
+						onPress={() => setActiveTab("my-projects")}
 					>
 						<Ionicons
-							name='rocket'
+							name="rocket"
 							size={18}
 							color={
-								activeTab === 'my-projects'
+								activeTab === "my-projects"
 									? Colors.primary
 									: Colors.textTertiary
 							}
@@ -214,7 +214,7 @@ export default function Home() {
 						<Text
 							style={[
 								styles.tabText,
-								activeTab === 'my-projects' && styles.tabTextActive,
+								activeTab === "my-projects" && styles.tabTextActive,
 							]}
 						>
 							My Projects
@@ -228,13 +228,13 @@ export default function Home() {
 				)}
 
 				<Pressable
-					style={[styles.tab, activeTab === 'joined' && styles.tabActive]}
-					onPress={() => setActiveTab('joined')}
+					style={[styles.tab, activeTab === "joined" && styles.tabActive]}
+					onPress={() => setActiveTab("joined")}
 				>
 					<Text
 						style={[
 							styles.tabText,
-							activeTab === 'joined' && styles.tabTextActive,
+							activeTab === "joined" && styles.tabTextActive,
 						]}
 					>
 						Joined Projects
@@ -264,9 +264,9 @@ export default function Home() {
 			>
 				{isLoading && !refreshing ? (
 					<View style={styles.loadingContainer}>
-						<ActivityIndicator size='large' color={Colors.primary} />
+						<ActivityIndicator size="large" color={Colors.primary} />
 					</View>
-				) : activeTab === 'my-projects' ? (
+				) : activeTab === "my-projects" ? (
 					<MyProjectsTab projects={myProjects} />
 				) : (
 					<JoinedProjectsTab
@@ -277,16 +277,16 @@ export default function Home() {
 			</ScrollView>
 
 			{/* FAB Button - only show on My Projects tab */}
-			{showMyProjects && activeTab === 'my-projects' && (
+			{showMyProjects && activeTab === "my-projects" && (
 				<Pressable
 					style={styles.fab}
-					onPress={() => router.push('/project/create')}
+					onPress={() => router.push("/project/create")}
 				>
-					<Ionicons name='add' size={28} color={Colors.text} />
+					<Ionicons name="add" size={28} color={Colors.text} />
 				</Pressable>
 			)}
 		</SafeAreaView>
-	)
+	);
 }
 
 function MyProjectsTab({ projects }: { projects: Project[] }) {
@@ -310,26 +310,26 @@ function MyProjectsTab({ projects }: { projects: Project[] }) {
 					{/* Quick Stats */}
 					<View style={styles.statsRow}>
 						<Card style={styles.statCard}>
-							<Ionicons name='cube' size={24} color={Colors.primary} />
+							<Ionicons name="cube" size={24} color={Colors.primary} />
 							<Text style={styles.statNumber}>{projects.length}</Text>
 							<Text style={styles.statLabel}>Projects</Text>
 						</Card>
 						<Card style={styles.statCard}>
-							<Ionicons name='people' size={24} color={Colors.success} />
+							<Ionicons name="people" size={24} color={Colors.success} />
 							<Text style={styles.statNumber}>
 								{projects.reduce(
 									(sum: number, p: Project) => sum + p.testerCount,
-									0
+									0,
 								)}
 							</Text>
 							<Text style={styles.statLabel}>Testers</Text>
 						</Card>
 						<Card style={styles.statCard}>
-							<Ionicons name='chatbubbles' size={24} color={Colors.warning} />
+							<Ionicons name="chatbubbles" size={24} color={Colors.warning} />
 							<Text style={styles.statNumber}>
 								{projects.reduce(
 									(sum: number, p: Project) => sum + p.feedbackCount,
-									0
+									0,
 								)}
 							</Text>
 							<Text style={styles.statLabel}>Feedback</Text>
@@ -347,7 +347,7 @@ function MyProjectsTab({ projects }: { projects: Project[] }) {
 				>
 					<View style={styles.emptyIcon}>
 						<Ionicons
-							name='rocket-outline'
+							name="rocket-outline"
 							size={64}
 							color={Colors.textTertiary}
 						/>
@@ -358,23 +358,23 @@ function MyProjectsTab({ projects }: { projects: Project[] }) {
 						beta testers.
 					</Text>
 					<Button
-						title='Create Project'
-						onPress={() => router.push('/project/create')}
-						icon={<Ionicons name='add' size={20} color={Colors.text} />}
+						title="Create Project"
+						onPress={() => router.push("/project/create")}
+						icon={<Ionicons name="add" size={20} color={Colors.text} />}
 						style={styles.emptyButton}
 					/>
 				</Animated.View>
 			)}
 		/>
-	)
+	);
 }
 
 function JoinedProjectsTab({
 	projects,
 	pendingCount,
 }: {
-	projects: Project[]
-	pendingCount: number
+	projects: Project[];
+	pendingCount: number;
 }) {
 	return (
 		<FlatList
@@ -388,7 +388,7 @@ function JoinedProjectsTab({
 						.delay(index * 100)
 						.springify()}
 				>
-					<ProjectCard project={item} variant='compact' />
+					<ProjectCard project={item} variant="compact" />
 				</Animated.View>
 			)}
 			ListHeaderComponent={() => (
@@ -398,12 +398,12 @@ function JoinedProjectsTab({
 						<Card style={styles.pendingCard}>
 							<View style={styles.pendingContent}>
 								<View style={styles.pendingIconContainer}>
-									<Ionicons name='time' size={24} color={Colors.warning} />
+									<Ionicons name="time" size={24} color={Colors.warning} />
 								</View>
 								<View style={styles.pendingTextContainer}>
 									<Text style={styles.pendingTitle}>Pending Requests</Text>
 									<Text style={styles.pendingDescription}>
-										{pendingCount} project{pendingCount > 1 ? 's' : ''} awaiting
+										{pendingCount} project{pendingCount > 1 ? "s" : ""} awaiting
 										approval
 									</Text>
 								</View>
@@ -420,7 +420,7 @@ function JoinedProjectsTab({
 				>
 					<View style={styles.emptyIcon}>
 						<Ionicons
-							name='flask-outline'
+							name="flask-outline"
 							size={64}
 							color={Colors.textTertiary}
 						/>
@@ -431,15 +431,15 @@ function JoinedProjectsTab({
 						feedback.
 					</Text>
 					<Button
-						title='Explore Projects'
-						onPress={() => router.push('/(tabs)/explore')}
-						icon={<Ionicons name='compass' size={20} color={Colors.text} />}
+						title="Explore Projects"
+						onPress={() => router.push("/(tabs)/explore")}
+						icon={<Ionicons name="compass" size={20} color={Colors.text} />}
 						style={styles.emptyButton}
 					/>
 				</Animated.View>
 			)}
 		/>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -448,9 +448,9 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.background,
 	},
 	header: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		paddingHorizontal: Spacing.lg,
 		paddingVertical: Spacing.md,
 	},
@@ -469,29 +469,29 @@ const styles = StyleSheet.create({
 		padding: 2,
 	},
 	headerActions: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 	},
 	headerIconButton: {
-		position: 'relative',
+		position: "relative",
 		width: 44,
 		height: 44,
 		borderRadius: 22,
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	tabContainer: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		paddingHorizontal: Spacing.lg,
 		gap: Spacing.sm,
 		marginBottom: Spacing.md,
 	},
 	tab: {
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: Spacing.xs,
 		paddingVertical: Spacing.sm + 2,
 		backgroundColor: Colors.backgroundSecondary,
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 1,
 		borderRadius: 10,
 		minWidth: 20,
-		alignItems: 'center',
+		alignItems: "center",
 	},
 	tabBadgeText: {
 		fontSize: 11,
@@ -531,14 +531,14 @@ const styles = StyleSheet.create({
 	},
 	loadingContainer: {
 		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 		paddingTop: 100,
 	},
 
 	// Empty state
 	emptyState: {
-		alignItems: 'center',
+		alignItems: "center",
 		paddingTop: 60,
 		paddingHorizontal: Spacing.lg,
 	},
@@ -547,8 +547,8 @@ const styles = StyleSheet.create({
 		height: 120,
 		borderRadius: 60,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginBottom: Spacing.lg,
 	},
 	emptyTitle: {
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		lineHeight: 22,
 		marginBottom: Spacing.lg,
 	},
@@ -571,13 +571,13 @@ const styles = StyleSheet.create({
 
 	// Stats
 	statsRow: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 		marginBottom: Spacing.lg,
 	},
 	statCard: {
 		flex: 1,
-		alignItems: 'center',
+		alignItems: "center",
 		padding: Spacing.md,
 	},
 	statNumber: {
@@ -593,15 +593,15 @@ const styles = StyleSheet.create({
 	},
 
 	fab: {
-		position: 'absolute',
+		position: "absolute",
 		bottom: Spacing.xl,
 		right: Spacing.lg,
 		width: 60,
 		height: 60,
 		borderRadius: 30,
 		backgroundColor: Colors.primary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		elevation: 5,
 		shadowColor: Colors.primary,
 		shadowOffset: { width: 0, height: 2 },
@@ -628,16 +628,16 @@ const styles = StyleSheet.create({
 		borderColor: `${Colors.warning}30`,
 	},
 	pendingContent: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 	},
 	pendingIconContainer: {
 		width: 48,
 		height: 48,
 		borderRadius: 24,
 		backgroundColor: `${Colors.warning}20`,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	pendingTextContainer: {
 		flex: 1,
@@ -656,9 +656,9 @@ const styles = StyleSheet.create({
 
 	// Browse more
 	browseMoreButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: Spacing.sm,
 		paddingVertical: Spacing.md,
 		marginTop: Spacing.md,
@@ -668,4 +668,4 @@ const styles = StyleSheet.create({
 		fontFamily: Fonts.medium,
 		color: Colors.primary,
 	},
-})
+});

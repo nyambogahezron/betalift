@@ -1,29 +1,29 @@
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { Ionicons } from '@expo/vector-icons'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    type TextInputProps,
-    View,
-    type ViewStyle,
-} from 'react-native'
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	type TextInputProps,
+	View,
+	type ViewStyle,
+} from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
-} from 'react-native-reanimated'
+	useAnimatedStyle,
+	useSharedValue,
+	withTiming,
+} from "react-native-reanimated";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
 
 interface InputProps extends TextInputProps {
-	label?: string
-	error?: string
-	hint?: string
-	leftIcon?: keyof typeof Ionicons.glyphMap
-	rightIcon?: keyof typeof Ionicons.glyphMap
-	onRightIconPress?: () => void
-	containerStyle?: ViewStyle
+	label?: string;
+	error?: string;
+	hint?: string;
+	leftIcon?: keyof typeof Ionicons.glyphMap;
+	rightIcon?: keyof typeof Ionicons.glyphMap;
+	onRightIconPress?: () => void;
+	containerStyle?: ViewStyle;
 }
 
 export function Input({
@@ -37,39 +37,38 @@ export function Input({
 	secureTextEntry,
 	...props
 }: InputProps) {
-	const [isFocused, setIsFocused] = useState(false)
-	const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry)
-	const borderColor = useSharedValue(Colors.border)
+	const [isFocused, setIsFocused] = useState(false);
+	const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
+	const borderColor = useSharedValue(Colors.border);
 
 	const animatedBorderStyle = useAnimatedStyle(() => ({
 		borderColor: borderColor.value,
-	}))
+	}));
 
 	const handleFocus = () => {
-		setIsFocused(true)
-		borderColor.value = withTiming(Colors.primary, { duration: 200 })
-		props.onFocus?.({} as any)
-	}
+		setIsFocused(true);
+		borderColor.value = withTiming(Colors.primary, { duration: 200 });
+		props.onFocus?.({} as any);
+	};
 
 	const handleBlur = () => {
-		setIsFocused(false)
-		borderColor.value = withTiming(
-			error ? Colors.error : Colors.border,
-			{ duration: 200 }
-		)
-		props.onBlur?.({} as any)
-	}
+		setIsFocused(false);
+		borderColor.value = withTiming(error ? Colors.error : Colors.border, {
+			duration: 200,
+		});
+		props.onBlur?.({} as any);
+	};
 
 	const togglePasswordVisibility = () => {
-		setIsPasswordVisible(!isPasswordVisible)
-	}
+		setIsPasswordVisible(!isPasswordVisible);
+	};
 
-	const showPasswordToggle = secureTextEntry !== undefined
+	const showPasswordToggle = secureTextEntry !== undefined;
 	const actualRightIcon = showPasswordToggle
 		? isPasswordVisible
-			? 'eye-off-outline'
-			: 'eye-outline'
-		: rightIcon
+			? "eye-off-outline"
+			: "eye-outline"
+		: rightIcon;
 
 	return (
 		<View style={[styles.container, containerStyle]}>
@@ -102,7 +101,9 @@ export function Input({
 
 				{actualRightIcon && (
 					<Pressable
-						onPress={showPasswordToggle ? togglePasswordVisibility : onRightIconPress}
+						onPress={
+							showPasswordToggle ? togglePasswordVisibility : onRightIconPress
+						}
 						style={styles.rightIconButton}
 					>
 						<Ionicons
@@ -117,7 +118,7 @@ export function Input({
 			{error && <Text style={styles.error}>{error}</Text>}
 			{hint && !error && <Text style={styles.hint}>{hint}</Text>}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -131,8 +132,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.xs,
 	},
 	inputContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.md,
 		borderWidth: 1.5,
@@ -171,4 +172,4 @@ const styles = StyleSheet.create({
 		color: Colors.textTertiary,
 		marginTop: Spacing.xs,
 	},
-})
+});

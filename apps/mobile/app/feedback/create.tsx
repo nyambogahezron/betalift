@@ -1,15 +1,9 @@
-import { Button, Card, Input } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { FeedbackPriority, FeedbackType } from '@/interfaces'
-import { useCreateFeedback } from '@/queries/feedbackQueries'
-import { useProject } from '@/queries/projectQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import * as Device from 'expo-device'
-import { Image } from 'expo-image'
-import * as ImagePicker from 'expo-image-picker'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import * as Device from "expo-device";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -19,172 +13,178 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
+} from "react-native";
 import Animated, {
 	FadeInDown,
 	FadeInUp,
 	FadeOut,
-} from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Card, Input } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { FeedbackPriority, FeedbackType } from "@/interfaces";
+import { useCreateFeedback } from "@/queries/feedbackQueries";
+import { useProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 type FeedbackFormData = {
-	title: string
-	description: string
-	type: FeedbackType
-	priority: FeedbackPriority
-	screenshots: string[]
-	stepsToReproduce: string
-}
+	title: string;
+	description: string;
+	type: FeedbackType;
+	priority: FeedbackPriority;
+	screenshots: string[];
+	stepsToReproduce: string;
+};
 
 const FEEDBACK_TYPES: {
-	id: FeedbackType
-	label: string
-	icon: keyof typeof Ionicons.glyphMap
-	color: string
+	id: FeedbackType;
+	label: string;
+	icon: keyof typeof Ionicons.glyphMap;
+	color: string;
 }[] = [
-	{ id: 'bug', label: 'Bug', icon: 'bug', color: Colors.error },
-	{ id: 'feature', label: 'Feature', icon: 'bulb', color: Colors.primary },
+	{ id: "bug", label: "Bug", icon: "bug", color: Colors.error },
+	{ id: "feature", label: "Feature", icon: "bulb", color: Colors.primary },
 	{
-		id: 'improvement',
-		label: 'Improvement',
-		icon: 'trending-up',
+		id: "improvement",
+		label: "Improvement",
+		icon: "trending-up",
 		color: Colors.success,
 	},
 	{
-		id: 'other',
-		label: 'Other',
-		icon: 'ellipsis-horizontal',
+		id: "other",
+		label: "Other",
+		icon: "ellipsis-horizontal",
 		color: Colors.textSecondary,
 	},
-]
+];
 
 const PRIORITIES: { id: FeedbackPriority; label: string; color: string }[] = [
-	{ id: 'low', label: 'Low', color: Colors.textSecondary },
-	{ id: 'medium', label: 'Medium', color: Colors.warning },
-	{ id: 'high', label: 'High', color: Colors.error },
-	{ id: 'critical', label: 'Critical', color: '#FF0000' },
-]
+	{ id: "low", label: "Low", color: Colors.textSecondary },
+	{ id: "medium", label: "Medium", color: Colors.warning },
+	{ id: "high", label: "High", color: Colors.error },
+	{ id: "critical", label: "Critical", color: "#FF0000" },
+];
 
 export default function CreateFeedback() {
-	const { projectId } = useLocalSearchParams<{ projectId: string }>()
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const { projectId } = useLocalSearchParams<{ projectId: string }>();
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [formData, setFormData] = useState<FeedbackFormData>({
-		title: '',
-		description: '',
-		type: 'bug',
-		priority: 'medium',
+		title: "",
+		description: "",
+		type: "bug",
+		priority: "medium",
 		screenshots: [],
-		stepsToReproduce: '',
-	})
+		stepsToReproduce: "",
+	});
 	const [errors, setErrors] = useState<
 		Partial<Record<keyof FeedbackFormData, string>>
-	>({})
+	>({});
 
-	const { user } = useAuthStore()
-	const { data: project } = useProject(projectId || '')
-	const createFeedbackMutation = useCreateFeedback()
+	const { user } = useAuthStore();
+	const { data: project } = useProject(projectId || "");
+	const createFeedbackMutation = useCreateFeedback();
 
 	const updateField = <K extends keyof FeedbackFormData>(
 		field: K,
-		value: FeedbackFormData[K]
+		value: FeedbackFormData[K],
 	) => {
-		setFormData((prev) => ({ ...prev, [field]: value }))
+		setFormData((prev) => ({ ...prev, [field]: value }));
 		if (errors[field]) {
-			setErrors((prev) => ({ ...prev, [field]: undefined }))
+			setErrors((prev) => ({ ...prev, [field]: undefined }));
 		}
-	}
+	};
 
 	const pickImage = async () => {
-		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-		if (status !== 'granted') {
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== "granted") {
 			Alert.alert(
-				'Permission needed',
-				'Please grant camera roll permissions to attach screenshots.'
-			)
-			return
+				"Permission needed",
+				"Please grant camera roll permissions to attach screenshots.",
+			);
+			return;
 		}
 
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ['images'],
+			mediaTypes: ["images"],
 			allowsMultipleSelection: true,
 			quality: 0.8,
 			selectionLimit: 5 - formData.screenshots.length,
-		})
+		});
 
 		if (!result.canceled) {
-			const newImages = result.assets.map((asset) => asset.uri)
+			const newImages = result.assets.map((asset) => asset.uri);
 			updateField(
-				'screenshots',
-				[...formData.screenshots, ...newImages].slice(0, 5)
-			)
+				"screenshots",
+				[...formData.screenshots, ...newImages].slice(0, 5),
+			);
 		}
-	}
+	};
 
 	const takePhoto = async () => {
-		const { status } = await ImagePicker.requestCameraPermissionsAsync()
-		if (status !== 'granted') {
+		const { status } = await ImagePicker.requestCameraPermissionsAsync();
+		if (status !== "granted") {
 			Alert.alert(
-				'Permission needed',
-				'Please grant camera permissions to take screenshots.'
-			)
-			return
+				"Permission needed",
+				"Please grant camera permissions to take screenshots.",
+			);
+			return;
 		}
 
 		const result = await ImagePicker.launchCameraAsync({
 			quality: 0.8,
-		})
+		});
 
 		if (!result.canceled) {
 			updateField(
-				'screenshots',
-				[...formData.screenshots, result.assets[0].uri].slice(0, 5)
-			)
+				"screenshots",
+				[...formData.screenshots, result.assets[0].uri].slice(0, 5),
+			);
 		}
-	}
+	};
 
 	const removeImage = (index: number) => {
 		updateField(
-			'screenshots',
-			formData.screenshots.filter((_, i) => i !== index)
-		)
-	}
+			"screenshots",
+			formData.screenshots.filter((_, i) => i !== index),
+		);
+	};
 
 	const validate = (): boolean => {
-		const newErrors: Partial<Record<keyof FeedbackFormData, string>> = {}
+		const newErrors: Partial<Record<keyof FeedbackFormData, string>> = {};
 
 		if (!formData.title.trim()) {
-			newErrors.title = 'Title is required'
+			newErrors.title = "Title is required";
 		} else if (formData.title.length < 5) {
-			newErrors.title = 'Title must be at least 5 characters'
+			newErrors.title = "Title must be at least 5 characters";
 		}
 
 		if (!formData.description.trim()) {
-			newErrors.description = 'Description is required'
+			newErrors.description = "Description is required";
 		} else if (formData.description.length < 20) {
-			newErrors.description = 'Description must be at least 20 characters'
+			newErrors.description = "Description must be at least 20 characters";
 		}
 
-		if (formData.type === 'bug' && !formData.stepsToReproduce.trim()) {
-			newErrors.stepsToReproduce = 'Steps to reproduce are required for bugs'
+		if (formData.type === "bug" && !formData.stepsToReproduce.trim()) {
+			newErrors.stepsToReproduce = "Steps to reproduce are required for bugs";
 		}
 
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
 	const handleSubmit = async () => {
-		if (!validate() || !user || !projectId) return
+		if (!validate() || !user || !projectId) return;
 
-		setIsSubmitting(true)
+		setIsSubmitting(true);
 
 		try {
 			// Get device info
-			const deviceInfo = {
-				model: Device.modelName || 'Unknown',
+			const _deviceInfo = {
+				model: Device.modelName || "Unknown",
 				os: Platform.OS,
 				osVersion: Platform.Version.toString(),
-				appVersion: '1.0.0',
-			}
+				appVersion: "1.0.0",
+			};
 
 			await createFeedbackMutation.mutateAsync({
 				projectId,
@@ -195,46 +195,46 @@ export default function CreateFeedback() {
 					priority: formData.priority,
 					attachments: formData.screenshots,
 				},
-			})
+			});
 
 			Alert.alert(
-				'Feedback Submitted! 🎉',
-				'Thank you for your feedback. The project owner will review it soon.',
+				"Feedback Submitted! 🎉",
+				"Thank you for your feedback. The project owner will review it soon.",
 				[
 					{
-						text: 'OK',
+						text: "OK",
 						onPress: () => router.back(),
 					},
-				]
-			)
+				],
+			);
 		} catch (error) {
 			Alert.alert(
-				'Error',
+				"Error",
 				error instanceof Error
 					? error.message
-					: 'Failed to submit feedback. Please try again.'
-			)
+					: "Failed to submit feedback. Please try again.",
+			);
 		} finally {
-			setIsSubmitting(false)
+			setIsSubmitting(false);
 		}
-	}
+	};
 
 	if (!project) {
 		return (
 			<SafeAreaView style={styles.container}>
 				<View style={styles.errorContainer}>
 					<Text style={styles.errorText}>Project not found</Text>
-					<Button title='Go Back' onPress={() => router.back()} />
+					<Button title="Go Back" onPress={() => router.back()} />
 				</View>
 			</SafeAreaView>
-		)
+		);
 	}
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
+		<SafeAreaView style={styles.container} edges={["top"]}>
 			<KeyboardAvoidingView
 				style={styles.keyboardView}
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 			>
 				{/* Header */}
 				<Animated.View
@@ -242,7 +242,7 @@ export default function CreateFeedback() {
 					style={styles.header}
 				>
 					<Pressable style={styles.backButton} onPress={() => router.back()}>
-						<Ionicons name='close' size={24} color={Colors.text} />
+						<Ionicons name="close" size={24} color={Colors.text} />
 					</Pressable>
 					<View style={styles.headerTitle}>
 						<Text style={styles.headerText}>Submit Feedback</Text>
@@ -257,7 +257,7 @@ export default function CreateFeedback() {
 					style={styles.scrollView}
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
+					keyboardShouldPersistTaps="handled"
 				>
 					{/* Feedback Type */}
 					<Animated.View
@@ -275,7 +275,7 @@ export default function CreateFeedback() {
 											backgroundColor: `${type.color}15`,
 										},
 									]}
-									onPress={() => updateField('type', type.id)}
+									onPress={() => updateField("type", type.id)}
 								>
 									<Ionicons
 										name={type.icon}
@@ -304,10 +304,10 @@ export default function CreateFeedback() {
 						entering={FadeInUp.duration(600).delay(150).springify()}
 					>
 						<Input
-							label='Title'
-							placeholder='Brief summary of your feedback'
+							label="Title"
+							placeholder="Brief summary of your feedback"
 							value={formData.title}
-							onChangeText={(text) => updateField('title', text)}
+							onChangeText={(text) => updateField("title", text)}
 							error={errors.title}
 							maxLength={100}
 						/>
@@ -318,10 +318,10 @@ export default function CreateFeedback() {
 						entering={FadeInUp.duration(600).delay(200).springify()}
 					>
 						<Input
-							label='Description'
-							placeholder='Describe your feedback in detail...'
+							label="Description"
+							placeholder="Describe your feedback in detail..."
 							value={formData.description}
-							onChangeText={(text) => updateField('description', text)}
+							onChangeText={(text) => updateField("description", text)}
 							error={errors.description}
 							multiline
 							numberOfLines={4}
@@ -330,16 +330,16 @@ export default function CreateFeedback() {
 					</Animated.View>
 
 					{/* Steps to Reproduce (for bugs) */}
-					{formData.type === 'bug' && (
+					{formData.type === "bug" && (
 						<Animated.View
 							entering={FadeInUp.duration(400).springify()}
 							exiting={FadeOut.duration(300)}
 						>
 							<Input
-								label='Steps to Reproduce'
-								placeholder='1. Open the app&#10;2. Navigate to...&#10;3. Click on...'
+								label="Steps to Reproduce"
+								placeholder="1. Open the app&#10;2. Navigate to...&#10;3. Click on..."
 								value={formData.stepsToReproduce}
-								onChangeText={(text) => updateField('stepsToReproduce', text)}
+								onChangeText={(text) => updateField("stepsToReproduce", text)}
 								error={errors.stepsToReproduce}
 								multiline
 								numberOfLines={4}
@@ -364,7 +364,7 @@ export default function CreateFeedback() {
 											backgroundColor: `${priority.color}20`,
 										},
 									]}
-									onPress={() => updateField('priority', priority.id)}
+									onPress={() => updateField("priority", priority.id)}
 								>
 									<View
 										style={[
@@ -392,7 +392,7 @@ export default function CreateFeedback() {
 						entering={FadeInUp.duration(600).delay(300).springify()}
 					>
 						<Text style={styles.sectionLabel}>
-							Screenshots{' '}
+							Screenshots{" "}
 							<Text style={styles.optionalLabel}>(optional, max 5)</Text>
 						</Text>
 						<View style={styles.screenshotsContainer}>
@@ -401,14 +401,14 @@ export default function CreateFeedback() {
 									<Image
 										source={{ uri }}
 										style={styles.screenshotImage}
-										contentFit='cover'
+										contentFit="cover"
 									/>
 									<Pressable
 										style={styles.removeImageButton}
 										onPress={() => removeImage(index)}
 									>
 										<Ionicons
-											name='close-circle'
+											name="close-circle"
 											size={24}
 											color={Colors.error}
 										/>
@@ -419,7 +419,7 @@ export default function CreateFeedback() {
 								<View style={styles.addImageButtons}>
 									<Pressable style={styles.addImageButton} onPress={pickImage}>
 										<Ionicons
-											name='images-outline'
+											name="images-outline"
 											size={24}
 											color={Colors.primary}
 										/>
@@ -427,7 +427,7 @@ export default function CreateFeedback() {
 									</Pressable>
 									<Pressable style={styles.addImageButton} onPress={takePhoto}>
 										<Ionicons
-											name='camera-outline'
+											name="camera-outline"
 											size={24}
 											color={Colors.primary}
 										/>
@@ -444,7 +444,7 @@ export default function CreateFeedback() {
 					>
 						<Card style={styles.infoCard}>
 							<Ionicons
-								name='information-circle'
+								name="information-circle"
 								size={20}
 								color={Colors.primary}
 							/>
@@ -461,7 +461,7 @@ export default function CreateFeedback() {
 						style={styles.submitContainer}
 					>
 						<Button
-							title={isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+							title={isSubmitting ? "Submitting..." : "Submit Feedback"}
 							onPress={handleSubmit}
 							loading={isSubmitting}
 							disabled={isSubmitting}
@@ -470,7 +470,7 @@ export default function CreateFeedback() {
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -483,8 +483,8 @@ const styles = StyleSheet.create({
 	},
 	errorContainer: {
 		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 		padding: Spacing.lg,
 	},
 	errorText: {
@@ -494,8 +494,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.lg,
 	},
 	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		paddingHorizontal: Spacing.lg,
 		paddingVertical: Spacing.sm,
 		borderBottomWidth: 1,
@@ -506,12 +506,12 @@ const styles = StyleSheet.create({
 		height: 40,
 		borderRadius: 20,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		flex: 1,
-		alignItems: 'center',
+		alignItems: "center",
 	},
 	headerText: {
 		fontSize: 18,
@@ -547,19 +547,19 @@ const styles = StyleSheet.create({
 
 	// Type Grid
 	typeGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.sm,
 	},
 	typeCard: {
 		flex: 1,
-		minWidth: '45%',
-		alignItems: 'center',
+		minWidth: "45%",
+		alignItems: "center",
 		padding: Spacing.md,
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.md,
 		borderWidth: 2,
-		borderColor: 'transparent',
+		borderColor: "transparent",
 	},
 	typeLabel: {
 		fontSize: 14,
@@ -570,20 +570,20 @@ const styles = StyleSheet.create({
 
 	// Priority
 	priorityRow: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	priorityChip: {
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: 6,
 		paddingVertical: Spacing.sm,
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.md,
 		borderWidth: 1,
-		borderColor: 'transparent',
+		borderColor: "transparent",
 	},
 	priorityDot: {
 		width: 8,
@@ -599,17 +599,17 @@ const styles = StyleSheet.create({
 	// Multiline Input
 	multilineInput: {
 		height: 100,
-		textAlignVertical: 'top',
+		textAlignVertical: "top",
 	},
 
 	// Screenshots
 	screenshotsContainer: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.sm,
 	},
 	screenshotWrapper: {
-		position: 'relative',
+		position: "relative",
 	},
 	screenshotImage: {
 		width: 100,
@@ -617,14 +617,14 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.md,
 	},
 	removeImageButton: {
-		position: 'absolute',
+		position: "absolute",
 		top: -8,
 		right: -8,
 		backgroundColor: Colors.background,
 		borderRadius: 12,
 	},
 	addImageButtons: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	addImageButton: {
@@ -634,9 +634,9 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.md,
 		borderWidth: 2,
 		borderColor: Colors.border,
-		borderStyle: 'dashed',
-		alignItems: 'center',
-		justifyContent: 'center',
+		borderStyle: "dashed",
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	addImageText: {
 		fontSize: 12,
@@ -647,8 +647,8 @@ const styles = StyleSheet.create({
 
 	// Info Card
 	infoCard: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
+		flexDirection: "row",
+		alignItems: "flex-start",
 		gap: Spacing.sm,
 		backgroundColor: `${Colors.primary}10`,
 		marginTop: Spacing.lg,
@@ -665,4 +665,4 @@ const styles = StyleSheet.create({
 	submitContainer: {
 		marginTop: Spacing.xl,
 	},
-})
+});

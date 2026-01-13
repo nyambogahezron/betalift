@@ -1,11 +1,6 @@
-import { Button, Input } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import type { User } from '@/interfaces'
-import { useRegister } from '@/queries/authQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -15,52 +10,57 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
+} from "react-native";
 import Animated, {
 	FadeInDown,
 	FadeInUp,
 	useAnimatedStyle,
 	useSharedValue,
 	withSpring,
-} from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Input } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { User } from "@/interfaces";
+import { useRegister } from "@/queries/authQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-type UserRole = User['role']
+type UserRole = User["role"];
 
 interface RoleOption {
-	role: UserRole
-	title: string
-	description: string
-	icon: keyof typeof Ionicons.glyphMap
+	role: UserRole;
+	title: string;
+	description: string;
+	icon: keyof typeof Ionicons.glyphMap;
 }
 
 const roleOptions: RoleOption[] = [
 	{
-		role: 'creator',
-		title: 'Creator',
-		description: 'Share your projects and get feedback',
-		icon: 'rocket-outline',
+		role: "creator",
+		title: "Creator",
+		description: "Share your projects and get feedback",
+		icon: "rocket-outline",
 	},
 	{
-		role: 'tester',
-		title: 'Tester',
-		description: 'Test apps and provide valuable feedback',
-		icon: 'bug-outline',
+		role: "tester",
+		title: "Tester",
+		description: "Test apps and provide valuable feedback",
+		icon: "bug-outline",
 	},
 	{
-		role: 'both',
-		title: 'Both',
-		description: 'Create projects and test others',
-		icon: 'people-outline',
+		role: "both",
+		title: "Both",
+		description: "Create projects and test others",
+		icon: "people-outline",
 	},
-]
+];
 
 function RoleSelector({
 	selectedRole,
 	onSelect,
 }: {
-	selectedRole: UserRole
-	onSelect: (role: UserRole) => void
+	selectedRole: UserRole;
+	onSelect: (role: UserRole) => void;
 }) {
 	return (
 		<View style={styles.roleContainer}>
@@ -76,7 +76,7 @@ function RoleSelector({
 				))}
 			</View>
 		</View>
-	)
+	);
 }
 
 function RoleCard({
@@ -84,23 +84,23 @@ function RoleCard({
 	isSelected,
 	onPress,
 }: {
-	option: RoleOption
-	isSelected: boolean
-	onPress: () => void
+	option: RoleOption;
+	isSelected: boolean;
+	onPress: () => void;
 }) {
-	const scale = useSharedValue(1)
+	const scale = useSharedValue(1);
 
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
-	}))
+	}));
 
 	const handlePressIn = () => {
-		scale.value = withSpring(0.95)
-	}
+		scale.value = withSpring(0.95);
+	};
 
 	const handlePressOut = () => {
-		scale.value = withSpring(1)
-	}
+		scale.value = withSpring(1);
+	};
 
 	return (
 		<Animated.View style={animatedStyle}>
@@ -130,72 +130,72 @@ function RoleCard({
 				<Text style={styles.roleDescription}>{option.description}</Text>
 			</Pressable>
 		</Animated.View>
-	)
+	);
 }
 
 export default function Register() {
-	const [step, setStep] = useState(1)
-	const [username, setUsername] = useState('')
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
-	const [confirmPassword, setConfirmPassword] = useState('')
-	const [role, setRole] = useState<UserRole>('both')
-	const [acceptedTerms, setAcceptedTerms] = useState(false)
-	const [errors, setErrors] = useState<Record<string, string>>({})
+	const [step, setStep] = useState(1);
+	const [username, setUsername] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [role, setRole] = useState<UserRole>("both");
+	const [acceptedTerms, setAcceptedTerms] = useState(false);
+	const [errors, setErrors] = useState<Record<string, string>>({});
 
-	const { setUser } = useAuthStore()
-	const registerMutation = useRegister()
+	const { setUser } = useAuthStore();
+	const registerMutation = useRegister();
 
 	const validateStep1 = () => {
-		const newErrors: Record<string, string> = {}
+		const newErrors: Record<string, string> = {};
 
 		if (!username) {
-			newErrors.username = 'Username is required'
+			newErrors.username = "Username is required";
 		} else if (username.length < 3) {
-			newErrors.username = 'Username must be at least 3 characters'
+			newErrors.username = "Username must be at least 3 characters";
 		}
 
 		if (!email) {
-			newErrors.email = 'Email is required'
+			newErrors.email = "Email is required";
 		} else if (!/\S+@\S+\.\S+/.test(email)) {
-			newErrors.email = 'Please enter a valid email'
+			newErrors.email = "Please enter a valid email";
 		}
 
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
 	const validateStep2 = () => {
-		const newErrors: Record<string, string> = {}
+		const newErrors: Record<string, string> = {};
 
 		if (!password) {
-			newErrors.password = 'Password is required'
+			newErrors.password = "Password is required";
 		} else if (password.length < 6) {
-			newErrors.password = 'Password must be at least 6 characters'
+			newErrors.password = "Password must be at least 6 characters";
 		}
 
 		if (!confirmPassword) {
-			newErrors.confirmPassword = 'Please confirm your password'
+			newErrors.confirmPassword = "Please confirm your password";
 		} else if (password !== confirmPassword) {
-			newErrors.confirmPassword = 'Passwords do not match'
+			newErrors.confirmPassword = "Passwords do not match";
 		}
 
 		if (!acceptedTerms) {
-			newErrors.terms = 'You must accept the terms and conditions'
+			newErrors.terms = "You must accept the terms and conditions";
 		}
 
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
 	const handleNext = () => {
 		if (validateStep1()) {
-			setStep(2)
+			setStep(2);
 		}
-	}
+	};
 
 	const handleRegister = async () => {
-		if (!validateStep2()) return
+		if (!validateStep2()) return;
 
 		try {
 			const result = await registerMutation.mutateAsync({
@@ -203,51 +203,51 @@ export default function Register() {
 				password,
 				username: username.trim(),
 				role,
-			})
+			});
 
 			// Store user data in the auth store
 			const userData = {
 				...result.user,
 				id: result.user._id,
 				accessToken: result.accessToken,
-			}
+			};
 
-			setUser(userData as any)
+			setUser(userData as any);
 
 			Alert.alert(
-				'Success',
-				'Account created successfully! Please check your email to verify your account.',
+				"Success",
+				"Account created successfully! Please check your email to verify your account.",
 				[
 					{
-						text: 'OK',
-						onPress: () => router.replace('/(tabs)'),
+						text: "OK",
+						onPress: () => router.replace("/(tabs)"),
 					},
-				]
-			)
+				],
+			);
 		} catch (error) {
 			Alert.alert(
-				'Error',
+				"Error",
 				error instanceof Error
 					? error.message
-					: 'Registration failed. Please try again.'
-			)
+					: "Registration failed. Please try again.",
+			);
 		}
-	}
+	};
 
 	const handleSocialSignup = (provider: string) => {
-		Alert.alert('Coming Soon', `${provider} signup will be available soon!`)
-	}
+		Alert.alert("Coming Soon", `${provider} signup will be available soon!`);
+	};
 
 	return (
 		<SafeAreaView style={styles.container}>
 			<KeyboardAvoidingView
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardView}
 			>
 				<ScrollView
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
+					keyboardShouldPersistTaps="handled"
 				>
 					{/* Header */}
 					<Animated.View
@@ -258,7 +258,7 @@ export default function Register() {
 							style={styles.backButton}
 							onPress={() => (step === 1 ? router.back() : setStep(1))}
 						>
-							<Ionicons name='arrow-back' size={24} color={Colors.text} />
+							<Ionicons name="arrow-back" size={24} color={Colors.text} />
 						</Pressable>
 
 						<View style={styles.progressContainer}>
@@ -278,12 +278,12 @@ export default function Register() {
 						</View>
 
 						<Text style={styles.title}>
-							{step === 1 ? 'Create Account' : 'Almost Done'}
+							{step === 1 ? "Create Account" : "Almost Done"}
 						</Text>
 						<Text style={styles.subtitle}>
 							{step === 1
-								? 'Join BetaLift and start your journey'
-								: 'Set up your password and preferences'}
+								? "Join BetaLift and start your journey"
+								: "Set up your password and preferences"}
 						</Text>
 					</Animated.View>
 
@@ -294,44 +294,44 @@ export default function Register() {
 							style={styles.form}
 						>
 							<Input
-								label='Username'
-								placeholder='Choose a username'
+								label="Username"
+								placeholder="Choose a username"
 								value={username}
 								onChangeText={setUsername}
-								autoCapitalize='none'
+								autoCapitalize="none"
 								autoCorrect={false}
-								leftIcon='person-outline'
+								leftIcon="person-outline"
 								error={errors.username}
 							/>
 
 							<Input
-								label='Email'
-								placeholder='Enter your email'
+								label="Email"
+								placeholder="Enter your email"
 								value={email}
 								onChangeText={setEmail}
-								keyboardType='email-address'
-								autoCapitalize='none'
+								keyboardType="email-address"
+								autoCapitalize="none"
 								autoCorrect={false}
-								leftIcon='mail-outline'
+								leftIcon="mail-outline"
 								error={errors.email}
 							/>
 
 							<RoleSelector selectedRole={role} onSelect={setRole} />
 
 							<Button
-								title='Continue'
+								title="Continue"
 								onPress={handleNext}
 								fullWidth
-								size='lg'
+								size="lg"
 								style={styles.continueButton}
 								icon={
 									<Ionicons
-										name='arrow-forward'
+										name="arrow-forward"
 										size={20}
 										color={Colors.text}
 									/>
 								}
-								iconPosition='right'
+								iconPosition="right"
 							/>
 
 							{/* Divider */}
@@ -345,23 +345,23 @@ export default function Register() {
 							<View style={styles.socialContainer}>
 								<Pressable
 									style={styles.socialButton}
-									onPress={() => handleSocialSignup('Google')}
+									onPress={() => handleSocialSignup("Google")}
 								>
-									<Ionicons name='logo-google' size={24} color={Colors.text} />
+									<Ionicons name="logo-google" size={24} color={Colors.text} />
 								</Pressable>
 
 								<Pressable
 									style={styles.socialButton}
-									onPress={() => handleSocialSignup('Apple')}
+									onPress={() => handleSocialSignup("Apple")}
 								>
-									<Ionicons name='logo-apple' size={24} color={Colors.text} />
+									<Ionicons name="logo-apple" size={24} color={Colors.text} />
 								</Pressable>
 
 								<Pressable
 									style={styles.socialButton}
-									onPress={() => handleSocialSignup('GitHub')}
+									onPress={() => handleSocialSignup("GitHub")}
 								>
-									<Ionicons name='logo-github' size={24} color={Colors.text} />
+									<Ionicons name="logo-github" size={24} color={Colors.text} />
 								</Pressable>
 							</View>
 						</Animated.View>
@@ -374,23 +374,23 @@ export default function Register() {
 							style={styles.form}
 						>
 							<Input
-								label='Password'
-								placeholder='Create a password'
+								label="Password"
+								placeholder="Create a password"
 								value={password}
 								onChangeText={setPassword}
 								secureTextEntry
-								leftIcon='lock-closed-outline'
+								leftIcon="lock-closed-outline"
 								error={errors.password}
-								hint='At least 6 characters'
+								hint="At least 6 characters"
 							/>
 
 							<Input
-								label='Confirm Password'
-								placeholder='Confirm your password'
+								label="Confirm Password"
+								placeholder="Confirm your password"
 								value={confirmPassword}
 								onChangeText={setConfirmPassword}
 								secureTextEntry
-								leftIcon='lock-closed-outline'
+								leftIcon="lock-closed-outline"
 								error={errors.confirmPassword}
 							/>
 
@@ -406,12 +406,12 @@ export default function Register() {
 									]}
 								>
 									{acceptedTerms && (
-										<Ionicons name='checkmark' size={16} color={Colors.text} />
+										<Ionicons name="checkmark" size={16} color={Colors.text} />
 									)}
 								</View>
 								<Text style={styles.termsText}>
-									I agree to the{' '}
-									<Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+									I agree to the{" "}
+									<Text style={styles.termsLink}>Terms of Service</Text> and{" "}
 									<Text style={styles.termsLink}>Privacy Policy</Text>
 								</Text>
 							</Pressable>
@@ -420,11 +420,11 @@ export default function Register() {
 							)}
 
 							<Button
-								title='Create Account'
+								title="Create Account"
 								onPress={handleRegister}
 								loading={registerMutation.isPending}
 								fullWidth
-								size='lg'
+								size="lg"
 								style={styles.continueButton}
 							/>
 						</Animated.View>
@@ -436,14 +436,14 @@ export default function Register() {
 						style={styles.footer}
 					>
 						<Text style={styles.footerText}>Already have an account? </Text>
-						<Pressable onPress={() => router.push('/(auth)/login')}>
+						<Pressable onPress={() => router.push("/(auth)/login")}>
 							<Text style={styles.footerLink}>Sign In</Text>
 						</Pressable>
 					</Animated.View>
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -459,18 +459,18 @@ const styles = StyleSheet.create({
 		padding: Spacing.lg,
 	},
 	header: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginBottom: Spacing.xl,
 	},
 	backButton: {
-		position: 'absolute',
+		position: "absolute",
 		left: 0,
 		top: 0,
 		padding: Spacing.sm,
 	},
 	progressContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginBottom: Spacing.lg,
 	},
 	progressDot: {
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	form: {
 		marginBottom: Spacing.lg,
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	roleOptions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	roleCard: {
@@ -522,8 +522,8 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.lg,
 		borderWidth: 2,
-		borderColor: 'transparent',
-		alignItems: 'center',
+		borderColor: "transparent",
+		alignItems: "center",
 	},
 	roleCardSelected: {
 		borderColor: Colors.primary,
@@ -534,8 +534,8 @@ const styles = StyleSheet.create({
 		height: 48,
 		borderRadius: 24,
 		backgroundColor: Colors.backgroundTertiary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginBottom: Spacing.sm,
 	},
 	roleIconContainerSelected: {
@@ -554,14 +554,14 @@ const styles = StyleSheet.create({
 		fontSize: 11,
 		fontFamily: Fonts.regular,
 		color: Colors.textTertiary,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	continueButton: {
 		marginTop: Spacing.md,
 	},
 	dividerContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginVertical: Spacing.lg,
 	},
 	dividerLine: {
@@ -576,8 +576,8 @@ const styles = StyleSheet.create({
 		marginHorizontal: Spacing.md,
 	},
 	socialContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
+		flexDirection: "row",
+		justifyContent: "center",
 		gap: Spacing.md,
 	},
 	socialButton: {
@@ -585,14 +585,14 @@ const styles = StyleSheet.create({
 		height: 56,
 		borderRadius: 28,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		borderWidth: 1,
 		borderColor: Colors.border,
 	},
 	termsContainer: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
+		flexDirection: "row",
+		alignItems: "flex-start",
 		marginBottom: Spacing.sm,
 	},
 	checkbox: {
@@ -601,8 +601,8 @@ const styles = StyleSheet.create({
 		borderRadius: 6,
 		borderWidth: 2,
 		borderColor: Colors.border,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginRight: Spacing.sm,
 	},
 	checkboxChecked: {
@@ -628,9 +628,9 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	footer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		marginTop: 'auto',
+		flexDirection: "row",
+		justifyContent: "center",
+		marginTop: "auto",
 	},
 	footerText: {
 		fontSize: 16,
@@ -642,4 +642,4 @@ const styles = StyleSheet.create({
 		fontFamily: Fonts.semibold,
 		color: Colors.primary,
 	},
-})
+});

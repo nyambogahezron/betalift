@@ -1,64 +1,75 @@
-import { BorderRadius, Colors, Fonts, Shadows, Spacing } from '@/constants/theme'
-import React from 'react'
+import type React from "react";
 import {
-    ActivityIndicator,
-    Pressable,
-    StyleSheet,
-    Text,
-    type TextStyle,
-    type ViewStyle,
-} from 'react-native'
+	ActivityIndicator,
+	Pressable,
+	StyleSheet,
+	Text,
+	type TextStyle,
+	type ViewStyle,
+} from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-} from 'react-native-reanimated'
+	useAnimatedStyle,
+	useSharedValue,
+	withSpring,
+} from "react-native-reanimated";
+import {
+	BorderRadius,
+	Colors,
+	Fonts,
+	Shadows,
+	Spacing,
+} from "@/constants/theme";
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
-export type ButtonSize = 'sm' | 'md' | 'lg'
+export type ButtonVariant =
+	| "primary"
+	| "secondary"
+	| "outline"
+	| "ghost"
+	| "danger";
+export type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps {
-	title: string
-	onPress: () => void
-	variant?: ButtonVariant
-	size?: ButtonSize
-	disabled?: boolean
-	loading?: boolean
-	icon?: React.ReactNode
-	iconPosition?: 'left' | 'right'
-	fullWidth?: boolean
-	style?: ViewStyle
-	textStyle?: TextStyle
+	title: string;
+	onPress: () => void;
+	variant?: ButtonVariant;
+	size?: ButtonSize;
+	disabled?: boolean;
+	loading?: boolean;
+	icon?: React.ReactNode;
+	iconPosition?: "left" | "right";
+	fullWidth?: boolean;
+	style?: ViewStyle;
+	textStyle?: TextStyle;
 }
 
 export function Button({
 	title,
 	onPress,
-	variant = 'primary',
-	size = 'md',
+	variant = "primary",
+	size = "md",
 	disabled = false,
 	loading = false,
 	icon,
-	iconPosition = 'left',
+	iconPosition = "left",
 	fullWidth = false,
 	style,
 	textStyle,
 }: ButtonProps) {
-	const scale = useSharedValue(1)
+	const scale = useSharedValue(1);
 
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
-	}))
+	}));
 
 	const handlePressIn = () => {
-		scale.value = withSpring(0.96)
-	}
+		scale.value = withSpring(0.96);
+	};
 
 	const handlePressOut = () => {
-		scale.value = withSpring(1)
-	}
+		scale.value = withSpring(1);
+	};
 
 	const buttonStyles = [
 		styles.button,
@@ -67,7 +78,7 @@ export function Button({
 		fullWidth && styles.fullWidth,
 		disabled && styles.disabled,
 		style,
-	]
+	];
 
 	const textStyles = [
 		styles.text,
@@ -75,7 +86,7 @@ export function Button({
 		styles[`text_${size}`],
 		disabled && styles.textDisabled,
 		textStyle,
-	]
+	];
 
 	return (
 		<AnimatedPressable
@@ -87,31 +98,35 @@ export function Button({
 		>
 			{loading ? (
 				<ActivityIndicator
-					color={variant === 'outline' || variant === 'ghost' ? Colors.primary : Colors.text}
-					size='small'
+					color={
+						variant === "outline" || variant === "ghost"
+							? Colors.primary
+							: Colors.text
+					}
+					size="small"
 				/>
 			) : (
 				<>
-					{icon && iconPosition === 'left' && icon}
+					{icon && iconPosition === "left" && icon}
 					<Text style={textStyles}>{title}</Text>
-					{icon && iconPosition === 'right' && icon}
+					{icon && iconPosition === "right" && icon}
 				</>
 			)}
 		</AnimatedPressable>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	button: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: Spacing.sm,
 		borderRadius: BorderRadius.lg,
 		...Shadows.sm,
 	},
 	fullWidth: {
-		width: '100%',
+		width: "100%",
 	},
 	disabled: {
 		opacity: 0.5,
@@ -125,12 +140,12 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.backgroundTertiary,
 	},
 	button_outline: {
-		backgroundColor: 'transparent',
+		backgroundColor: "transparent",
 		borderWidth: 1.5,
 		borderColor: Colors.primary,
 	},
 	button_ghost: {
-		backgroundColor: 'transparent',
+		backgroundColor: "transparent",
 	},
 	button_danger: {
 		backgroundColor: Colors.error,
@@ -184,4 +199,4 @@ const styles = StyleSheet.create({
 	text_lg: {
 		fontSize: 18,
 	},
-})
+});

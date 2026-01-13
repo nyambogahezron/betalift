@@ -1,22 +1,16 @@
-import { ProjectCard } from '@/components/project'
-import { Button } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { Project } from '@/interfaces'
-import { useProjects } from '@/queries/projectQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import React, { useCallback, useMemo, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { useCallback, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
-	LayoutChangeEvent,
+	type LayoutChangeEvent,
 	Pressable,
 	RefreshControl,
 	StyleSheet,
 	Text,
 	TextInput,
 	View,
-} from 'react-native'
+} from "react-native";
 import Animated, {
 	FadeInDown,
 	FadeInUp,
@@ -24,128 +18,137 @@ import Animated, {
 	useAnimatedScrollHandler,
 	useAnimatedStyle,
 	useSharedValue,
-} from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ProjectCard } from "@/components/project";
+import { Button } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Project } from "@/interfaces";
+import { useProjects } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-type FilterCategory = 'all' | 'web' | 'mobile' | 'desktop' | 'api'
-type SortOption = 'newest' | 'popular' | 'trending'
+type FilterCategory = "all" | "web" | "mobile" | "desktop" | "api";
+type SortOption = "newest" | "popular" | "trending";
 
 const CATEGORIES: {
-	id: FilterCategory
-	label: string
-	icon: keyof typeof Ionicons.glyphMap
+	id: FilterCategory;
+	label: string;
+	icon: keyof typeof Ionicons.glyphMap;
 }[] = [
-	{ id: 'all', label: 'All', icon: 'apps' },
-	{ id: 'mobile', label: 'Mobile', icon: 'phone-portrait' },
-	{ id: 'web', label: 'Web', icon: 'globe' },
-	{ id: 'desktop', label: 'Desktop', icon: 'desktop' },
-	{ id: 'api', label: 'API', icon: 'code-slash' },
-]
+	{ id: "all", label: "All", icon: "apps" },
+	{ id: "mobile", label: "Mobile", icon: "phone-portrait" },
+	{ id: "web", label: "Web", icon: "globe" },
+	{ id: "desktop", label: "Desktop", icon: "desktop" },
+	{ id: "api", label: "API", icon: "code-slash" },
+];
 
 export default function Explore() {
-	const [searchQuery, setSearchQuery] = useState('')
+	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedCategory, setSelectedCategory] =
-		useState<FilterCategory>('all')
-	const [sortBy, setSortBy] = useState<SortOption>('newest')
-	const [refreshing, setRefreshing] = useState(false)
-	const [headerHeight, setHeaderHeight] = useState(0)
+		useState<FilterCategory>("all");
+	const [sortBy, setSortBy] = useState<SortOption>("newest");
+	const [refreshing, setRefreshing] = useState(false);
+	const [headerHeight, setHeaderHeight] = useState(0);
 
-	const { user } = useAuthStore()
-	const insets = useSafeAreaInsets()
-	const scrollY = useSharedValue(0)
+	const { user } = useAuthStore();
+	const insets = useSafeAreaInsets();
+	const scrollY = useSharedValue(0);
 
-	const { data: projects = [] as Project[], isLoading, refetch } = useProjects()
+	const {
+		data: projects = [] as Project[],
+		isLoading,
+		refetch,
+	} = useProjects();
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y
+			scrollY.value = event.contentOffset.y;
 		},
-	})
+	});
 
 	// Animated style for sticky categories - only show when scrolled past header
 	const stickyStyle = useAnimatedStyle(() => {
-		const shouldShow = scrollY.value > headerHeight + 60
+		const shouldShow = scrollY.value > headerHeight + 60;
 		return {
 			opacity: shouldShow ? 1 : 0,
 			transform: [{ translateY: shouldShow ? 0 : -60 }],
-		}
-	})
+		};
+	});
 
 	const onHeaderLayout = (event: LayoutChangeEvent) => {
-		setHeaderHeight(event.nativeEvent.layout.height)
-	}
+		setHeaderHeight(event.nativeEvent.layout.height);
+	};
 
 	const onRefresh = useCallback(async () => {
-		setRefreshing(true)
-		await refetch()
-		setRefreshing(false)
-	}, [refetch])
+		setRefreshing(true);
+		await refetch();
+		setRefreshing(false);
+	}, [refetch]);
 
 	// Filter projects that are open for testing and user hasn't created
 	const availableProjects = useMemo(() => {
 		let filtered = projects.filter(
-			(p) => p.status === 'active' && p.ownerId !== user?.id
-		)
+			(p) => p.status === "active" && p.ownerId !== user?.id,
+		);
 
 		// Apply search
 		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase()
+			const query = searchQuery.toLowerCase();
 			filtered = filtered.filter(
 				(p) =>
 					p.name.toLowerCase().includes(query) ||
 					p.description.toLowerCase().includes(query) ||
-					p.techStack.some((t) => t.toLowerCase().includes(query))
-			)
+					p.techStack.some((t) => t.toLowerCase().includes(query)),
+			);
 		}
 
 		// Apply category filter
-		if (selectedCategory !== 'all') {
+		if (selectedCategory !== "all") {
 			filtered = filtered.filter((p) => {
-				const stack = p.techStack.map((t) => t.toLowerCase())
+				const stack = p.techStack.map((t) => t.toLowerCase());
 				switch (selectedCategory) {
-					case 'mobile':
+					case "mobile":
 						return stack.some((t) =>
 							[
-								'react native',
-								'flutter',
-								'swift',
-								'kotlin',
-								'ios',
-								'android',
-							].includes(t)
-						)
-					case 'web':
+								"react native",
+								"flutter",
+								"swift",
+								"kotlin",
+								"ios",
+								"android",
+							].includes(t),
+						);
+					case "web":
 						return stack.some((t) =>
-							['react', 'vue', 'angular', 'nextjs', 'web'].includes(t)
-						)
-					case 'desktop':
+							["react", "vue", "angular", "nextjs", "web"].includes(t),
+						);
+					case "desktop":
 						return stack.some((t) =>
-							['electron', 'tauri', 'qt', 'desktop'].includes(t)
-						)
-					case 'api':
+							["electron", "tauri", "qt", "desktop"].includes(t),
+						);
+					case "api":
 						return stack.some((t) =>
-							['nodejs', 'python', 'go', 'rust', 'api', 'backend'].includes(t)
-						)
+							["nodejs", "python", "go", "rust", "api", "backend"].includes(t),
+						);
 					default:
-						return true
+						return true;
 				}
-			})
+			});
 		}
 
 		// Apply sorting
 		switch (sortBy) {
-			case 'popular':
-				return filtered.sort((a, b) => b.testerCount - a.testerCount)
-			case 'trending':
-				return filtered.sort((a, b) => b.feedbackCount - a.feedbackCount)
-			case 'newest':
+			case "popular":
+				return filtered.sort((a, b) => b.testerCount - a.testerCount);
+			case "trending":
+				return filtered.sort((a, b) => b.feedbackCount - a.feedbackCount);
 			default:
 				return filtered.sort(
 					(a, b) =>
-						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-				)
+						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+				);
 		}
-	}, [projects, searchQuery, selectedCategory, sortBy, user?.id])
+	}, [projects, searchQuery, selectedCategory, sortBy, user?.id]);
 
 	return (
 		<View style={[styles.container, { paddingTop: insets.top }]}>
@@ -195,7 +198,7 @@ export default function Explore() {
 
 			{isLoading && !refreshing ? (
 				<View style={styles.loadingContainer}>
-					<ActivityIndicator size='large' color={Colors.primary} />
+					<ActivityIndicator size="large" color={Colors.primary} />
 				</View>
 			) : (
 				<Animated.FlatList
@@ -224,114 +227,109 @@ export default function Explore() {
 									Discover beta projects to test
 								</Text>
 							</Animated.View>
-							(
-							<>
-								{/* Search Bar */}
-								<Animated.View
-									entering={FadeInDown.duration(600).springify()}
-									style={styles.searchContainer}
-								>
-									<Ionicons
-										name='search'
-										size={20}
-										color={Colors.textTertiary}
-										style={styles.searchIcon}
-									/>
-									<TextInput
-										style={styles.searchInput}
-										placeholder='Search projects, tags...'
-										placeholderTextColor={Colors.textTertiary}
-										value={searchQuery}
-										onChangeText={setSearchQuery}
-									/>
-									{searchQuery.length > 0 && (
-										<Pressable onPress={() => setSearchQuery('')}>
+							({/* Search Bar */}
+							<Animated.View
+								entering={FadeInDown.duration(600).springify()}
+								style={styles.searchContainer}
+							>
+								<Ionicons
+									name="search"
+									size={20}
+									color={Colors.textTertiary}
+									style={styles.searchIcon}
+								/>
+								<TextInput
+									style={styles.searchInput}
+									placeholder="Search projects, tags..."
+									placeholderTextColor={Colors.textTertiary}
+									value={searchQuery}
+									onChangeText={setSearchQuery}
+								/>
+								{searchQuery.length > 0 && (
+									<Pressable onPress={() => setSearchQuery("")}>
+										<Ionicons
+											name="close-circle"
+											size={20}
+											color={Colors.textTertiary}
+										/>
+									</Pressable>
+								)}
+							</Animated.View>
+							{/* Categories - shown in list, will be replaced by sticky when scrolled */}
+							<Animated.View
+								entering={FadeInUp.duration(600).delay(100).springify()}
+								style={styles.categoriesWrapper}
+							>
+								<FlatList
+									horizontal
+									data={CATEGORIES}
+									keyExtractor={(item) => item.id}
+									showsHorizontalScrollIndicator={false}
+									contentContainerStyle={styles.categoriesContainer}
+									renderItem={({ item }) => (
+										<Pressable
+											style={[
+												styles.categoryChip,
+												selectedCategory === item.id &&
+													styles.categoryChipActive,
+											]}
+											onPress={() => setSelectedCategory(item.id)}
+										>
 											<Ionicons
-												name='close-circle'
-												size={20}
-												color={Colors.textTertiary}
+												name={item.icon}
+												size={16}
+												color={
+													selectedCategory === item.id
+														? Colors.text
+														: Colors.textSecondary
+												}
 											/>
+											<Text
+												style={[
+													styles.categoryText,
+													selectedCategory === item.id &&
+														styles.categoryTextActive,
+												]}
+											>
+												{item.label}
+											</Text>
 										</Pressable>
 									)}
-								</Animated.View>
-
-								{/* Categories - shown in list, will be replaced by sticky when scrolled */}
-								<Animated.View
-									entering={FadeInUp.duration(600).delay(100).springify()}
-									style={styles.categoriesWrapper}
-								>
-									<FlatList
-										horizontal
-										data={CATEGORIES}
-										keyExtractor={(item) => item.id}
-										showsHorizontalScrollIndicator={false}
-										contentContainerStyle={styles.categoriesContainer}
-										renderItem={({ item }) => (
+								/>
+							</Animated.View>
+							{/* Sort Options */}
+							<Animated.View
+								entering={FadeInUp.duration(600).delay(200).springify()}
+								style={styles.sortContainer}
+							>
+								<Text style={styles.resultsCount}>
+									{availableProjects.length} project
+									{availableProjects.length !== 1 ? "s" : ""} found
+								</Text>
+								<View style={styles.sortOptions}>
+									{(["newest", "popular", "trending"] as SortOption[]).map(
+										(option) => (
 											<Pressable
+												key={option}
 												style={[
-													styles.categoryChip,
-													selectedCategory === item.id &&
-														styles.categoryChipActive,
+													styles.sortOption,
+													sortBy === option && styles.sortOptionActive,
 												]}
-												onPress={() => setSelectedCategory(item.id)}
+												onPress={() => setSortBy(option)}
 											>
-												<Ionicons
-													name={item.icon}
-													size={16}
-													color={
-														selectedCategory === item.id
-															? Colors.text
-															: Colors.textSecondary
-													}
-												/>
 												<Text
 													style={[
-														styles.categoryText,
-														selectedCategory === item.id &&
-															styles.categoryTextActive,
+														styles.sortOptionText,
+														sortBy === option && styles.sortOptionTextActive,
 													]}
 												>
-													{item.label}
+													{option.charAt(0).toUpperCase() + option.slice(1)}
 												</Text>
 											</Pressable>
-										)}
-									/>
-								</Animated.View>
-
-								{/* Sort Options */}
-								<Animated.View
-									entering={FadeInUp.duration(600).delay(200).springify()}
-									style={styles.sortContainer}
-								>
-									<Text style={styles.resultsCount}>
-										{availableProjects.length} project
-										{availableProjects.length !== 1 ? 's' : ''} found
-									</Text>
-									<View style={styles.sortOptions}>
-										{(['newest', 'popular', 'trending'] as SortOption[]).map(
-											(option) => (
-												<Pressable
-													key={option}
-													style={[
-														styles.sortOption,
-														sortBy === option && styles.sortOptionActive,
-													]}
-													onPress={() => setSortBy(option)}
-												>
-													<Text
-														style={[
-															styles.sortOptionText,
-															sortBy === option && styles.sortOptionTextActive,
-														]}
-													>
-														{option.charAt(0).toUpperCase() + option.slice(1)}
-													</Text>
-												</Pressable>
-											)
-										)}
-									</View>
-								</Animated.View>
-							</>
+										),
+									)}
+								</View>
+							</Animated.View>
 							)
 						</>
 					}
@@ -343,7 +341,7 @@ export default function Explore() {
 						>
 							<View style={styles.emptyIcon}>
 								<Ionicons
-									name='telescope-outline'
+									name="telescope-outline"
 									size={64}
 									color={Colors.textTertiary}
 								/>
@@ -352,13 +350,13 @@ export default function Explore() {
 							<Text style={styles.emptyDescription}>
 								{searchQuery
 									? `No projects match "${searchQuery}". Try different keywords.`
-									: 'Check back later for new beta projects to test.'}
+									: "Check back later for new beta projects to test."}
 							</Text>
 							{searchQuery && (
 								<Button
-									title='Clear Search'
-									variant='outline'
-									onPress={() => setSearchQuery('')}
+									title="Clear Search"
+									variant="outline"
+									onPress={() => setSearchQuery("")}
 									style={styles.emptyButton}
 								/>
 							)}
@@ -376,7 +374,7 @@ export default function Explore() {
 				/>
 			)}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -385,14 +383,14 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.background,
 	},
 	stickyHeader: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
 		zIndex: 100,
 		backgroundColor: Colors.background,
 		paddingBottom: Spacing.sm,
-		shadowColor: '#000',
+		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowRadius: 4,
 		elevation: 4,
@@ -418,8 +416,8 @@ const styles = StyleSheet.create({
 	},
 	loadingContainer: {
 		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	listContainer: {
 		paddingHorizontal: Spacing.lg,
@@ -428,8 +426,8 @@ const styles = StyleSheet.create({
 
 	// Search
 	searchContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.md,
 		paddingHorizontal: Spacing.md,
@@ -454,8 +452,8 @@ const styles = StyleSheet.create({
 		gap: Spacing.sm,
 	},
 	categoryChip: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 6,
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.sm,
@@ -476,9 +474,9 @@ const styles = StyleSheet.create({
 
 	// Sort
 	sortContainer: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		marginBottom: Spacing.md,
 	},
 	resultsCount: {
@@ -487,7 +485,7 @@ const styles = StyleSheet.create({
 		color: Colors.textSecondary,
 	},
 	sortOptions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.xs,
 	},
 	sortOption: {
@@ -509,7 +507,7 @@ const styles = StyleSheet.create({
 
 	// Empty
 	emptyContainer: {
-		alignItems: 'center',
+		alignItems: "center",
 		paddingTop: 60,
 		paddingHorizontal: Spacing.lg,
 	},
@@ -518,8 +516,8 @@ const styles = StyleSheet.create({
 		height: 120,
 		borderRadius: 60,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginBottom: Spacing.lg,
 	},
 	emptyTitle: {
@@ -532,11 +530,11 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		lineHeight: 22,
 		marginBottom: Spacing.lg,
 	},
 	emptyButton: {
 		minWidth: 150,
 	},
-})
+});
