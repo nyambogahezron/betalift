@@ -5,6 +5,9 @@ import type { IProject } from "../models/project.js";
 import type { IUser } from "../models/user.js";
 
 export const seedFeedback = async (users: IUser[], projects: IProject[]) => {
+	// Find super user
+	const superUser = users.find((u) => u.email === "admin@betalift.com");
+
 	const feedbackItems = [
 		{
 			projectId: projects[0]?._id,
@@ -22,7 +25,7 @@ export const seedFeedback = async (users: IUser[], projects: IProject[]) => {
 				appVersion: "1.0.0",
 				deviceModel: "iPhone 13 Pro",
 			},
-			screenshots: ["https://example.com/screenshot1.jpg"],
+			screenshots: ["https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=400&q=80"],
 		},
 		{
 			projectId: projects[0]?._id,
@@ -39,6 +42,22 @@ export const seedFeedback = async (users: IUser[], projects: IProject[]) => {
 				osVersion: "14",
 				appVersion: "1.0.0",
 				deviceModel: "Google Pixel 7",
+			},
+		},
+		{
+			projectId: projects[0]?._id,
+			userId: superUser?._id, // Super user feedback
+			title: "Typo in the settings menu",
+			description: "The word 'notification' is spelled wrong in the settings > alerts section.",
+			type: "bug",
+			category: "ui-ux",
+			status: "resolved",
+			priority: "low",
+			deviceInfo: {
+				os: "iOS",
+				osVersion: "17.4",
+				appVersion: "1.0.2",
+				deviceModel: "iPhone 15 Pro",
 			},
 		},
 		{
@@ -91,6 +110,37 @@ export const seedFeedback = async (users: IUser[], projects: IProject[]) => {
 				deviceModel: "Samsung Galaxy S23",
 			},
 		},
+		{
+			projectId: projects[3]?._id, // CryptoTracker
+			userId: superUser?._id,
+			title: "Add support for Solana",
+			description: "Please add support for tracking Solana wallets.",
+			type: "feature",
+			category: "functionality",
+			status: "open",
+			priority: "medium",
+			deviceInfo: {
+				os: "Web",
+				browser: "Firefox",
+				browserVersion: "121.0",
+			}
+		},
+		{
+			projectId: projects[2]?._id, // PhotoShare
+			userId: users[2]?._id,
+			title: "Filters not applying correctly",
+			description: "When I apply the 'Vintage' filter, it just turns the image black.",
+			type: "bug",
+			category: "functionality",
+			status: "open",
+			priority: "medium",
+			deviceInfo: {
+				os: "iOS",
+				osVersion: "16.5",
+				appVersion: "1.0.1",
+				deviceModel: "iPad Air",
+			}
+		}
 	];
 
 	const createdFeedback = [];

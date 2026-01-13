@@ -13,7 +13,12 @@ import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import { apiLimiter } from "./middleware/rateLimiter";
 import apiRoutes from "./routes";
+import path from "path";
 import { logger } from "./utils/logger";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app: Application = express();
 
@@ -33,6 +38,7 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 // Health check route
 app.get("/", (_req: Request, res: Response) => {
