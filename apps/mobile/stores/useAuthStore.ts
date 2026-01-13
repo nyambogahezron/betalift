@@ -1,18 +1,18 @@
-import type { User } from '@/interfaces'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import type { User } from "@/interfaces";
 
 interface AuthState {
-	user: (User & { accessToken?: string }) | null
-	isAuthenticated: boolean
-	hasSeenOnboarding: boolean
+	user: (User & { accessToken?: string }) | null;
+	isAuthenticated: boolean;
+	hasSeenOnboarding: boolean;
 
-	setUser: (user: (User & { accessToken?: string }) | null) => void
-	setAuthenticated: (isAuthenticated: boolean) => void
-	clearAuth: () => void
-	updateProfile: (updates: Partial<User>) => void
-	setHasSeenOnboarding: (seen: boolean) => void
+	setUser: (user: (User & { accessToken?: string }) | null) => void;
+	setAuthenticated: (isAuthenticated: boolean) => void;
+	clearAuth: () => void;
+	updateProfile: (updates: Partial<User>) => void;
+	setHasSeenOnboarding: (seen: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -26,41 +26,41 @@ export const useAuthStore = create<AuthState>()(
 				set({
 					user,
 					isAuthenticated: !!user,
-				})
+				});
 			},
 
 			setAuthenticated: (isAuthenticated: boolean) => {
-				set({ isAuthenticated })
+				set({ isAuthenticated });
 			},
 
 			clearAuth: () => {
 				set({
 					user: null,
 					isAuthenticated: false,
-				})
+				});
 			},
 
 			updateProfile: (updates: Partial<User>) => {
-				const currentUser = get().user
+				const currentUser = get().user;
 				if (currentUser) {
 					set({
 						user: { ...currentUser, ...updates },
-					})
+					});
 				}
 			},
 
 			setHasSeenOnboarding: (seen: boolean) => {
-				set({ hasSeenOnboarding: seen })
+				set({ hasSeenOnboarding: seen });
 			},
 		}),
 		{
-			name: 'auth-storage',
+			name: "auth-storage",
 			storage: createJSONStorage(() => AsyncStorage),
 			partialize: (state) => ({
 				user: state.user,
 				isAuthenticated: state.isAuthenticated,
 				hasSeenOnboarding: state.hasSeenOnboarding,
 			}),
-		}
-	)
-)
+		},
+	),
+);

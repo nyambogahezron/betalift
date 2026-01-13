@@ -1,40 +1,39 @@
-import { Colors } from '@/constants/theme'
-import { Image } from 'expo-image'
-import React from 'react'
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native'
+import { Image } from "expo-image";
+import { StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { Colors } from "@/constants/theme";
 
 interface AvatarProps {
-	source?: string | null
-	name?: string
-	size?: 'sm' | 'md' | 'lg' | 'xl'
-	style?: ViewStyle
+	source?: string | null;
+	name?: string;
+	size?: "sm" | "md" | "lg" | "xl";
+	style?: ViewStyle;
 }
 
-export function Avatar({ source, name, size = 'md', style }: AvatarProps) {
+export function Avatar({ source, name, size = "md", style }: AvatarProps) {
 	const dimensions = {
 		sm: 32,
 		md: 40,
 		lg: 56,
 		xl: 80,
-	}
+	};
 
 	const fontSize = {
 		sm: 12,
 		md: 16,
 		lg: 22,
 		xl: 32,
-	}
+	};
 
-	const dimension = dimensions[size]
+	const dimension = dimensions[size];
 
 	const getInitials = (name?: string) => {
-		if (!name) return '?'
-		const parts = name.split(' ')
+		if (!name) return "?";
+		const parts = name.split(" ");
 		if (parts.length >= 2) {
-			return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+			return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 		}
-		return name.substring(0, 2).toUpperCase()
-	}
+		return name.substring(0, 2).toUpperCase();
+	};
 
 	if (source) {
 		return (
@@ -43,12 +42,16 @@ export function Avatar({ source, name, size = 'md', style }: AvatarProps) {
 					source={{ uri: source }}
 					style={[
 						styles.avatar,
-						{ width: dimension, height: dimension, borderRadius: dimension / 2 },
+						{
+							width: dimension,
+							height: dimension,
+							borderRadius: dimension / 2,
+						},
 					]}
-					contentFit='cover'
+					contentFit="cover"
 				/>
 			</View>
-		)
+		);
 	}
 
 	return (
@@ -63,7 +66,7 @@ export function Avatar({ source, name, size = 'md', style }: AvatarProps) {
 				{getInitials(name)}
 			</Text>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -72,11 +75,11 @@ const styles = StyleSheet.create({
 	},
 	placeholder: {
 		backgroundColor: Colors.primary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	initials: {
 		color: Colors.text,
-		fontWeight: '600',
+		fontWeight: "600",
 	},
-})
+});

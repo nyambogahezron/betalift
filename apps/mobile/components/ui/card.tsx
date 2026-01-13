@@ -1,53 +1,53 @@
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme'
-import React from 'react'
-import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native'
+import type React from "react";
+import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-} from 'react-native-reanimated'
+	useAnimatedStyle,
+	useSharedValue,
+	withSpring,
+} from "react-native-reanimated";
+import { BorderRadius, Colors, Shadows, Spacing } from "@/constants/theme";
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface CardProps {
-	children: React.ReactNode
-	onPress?: () => void
-	style?: ViewStyle
-	variant?: 'default' | 'elevated' | 'outline'
-	padding?: 'none' | 'sm' | 'md' | 'lg'
+	children: React.ReactNode;
+	onPress?: () => void;
+	style?: ViewStyle;
+	variant?: "default" | "elevated" | "outline";
+	padding?: "none" | "sm" | "md" | "lg";
 }
 
 export function Card({
 	children,
 	onPress,
 	style,
-	variant = 'default',
-	padding = 'md',
+	variant = "default",
+	padding = "md",
 }: CardProps) {
-	const scale = useSharedValue(1)
+	const scale = useSharedValue(1);
 
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
-	}))
+	}));
 
 	const handlePressIn = () => {
 		if (onPress) {
-			scale.value = withSpring(0.98)
+			scale.value = withSpring(0.98);
 		}
-	}
+	};
 
 	const handlePressOut = () => {
 		if (onPress) {
-			scale.value = withSpring(1)
+			scale.value = withSpring(1);
 		}
-	}
+	};
 
 	const cardStyles = [
 		styles.card,
 		styles[`card_${variant}`],
 		styles[`padding_${padding}`],
 		style,
-	]
+	];
 
 	if (onPress) {
 		return (
@@ -59,16 +59,16 @@ export function Card({
 			>
 				{children}
 			</AnimatedPressable>
-		)
+		);
 	}
 
-	return <View style={cardStyles}>{children}</View>
+	return <View style={cardStyles}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
 	card: {
 		borderRadius: BorderRadius.lg,
-		overflow: 'hidden',
+		overflow: "hidden",
 	},
 
 	// Variants
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		...Shadows.md,
 	},
 	card_outline: {
-		backgroundColor: 'transparent',
+		backgroundColor: "transparent",
 		borderWidth: 1,
 		borderColor: Colors.border,
 	},
@@ -98,4 +98,4 @@ const styles = StyleSheet.create({
 	padding_lg: {
 		padding: Spacing.lg,
 	},
-})
+});

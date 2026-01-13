@@ -1,10 +1,6 @@
-import { Button, Input } from '@/components/ui'
-import { Colors, Fonts, Spacing } from '@/constants/theme'
-import { useLogin } from '@/queries/authQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -14,79 +10,83 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Input } from "@/components/ui";
+import { Colors, Fonts, Spacing } from "@/constants/theme";
+import { useLogin } from "@/queries/authQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function Login() {
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 	const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-		{}
-	)
+		{},
+	);
 
-	const { setUser } = useAuthStore()
-	const loginMutation = useLogin()
+	const { setUser } = useAuthStore();
+	const loginMutation = useLogin();
 
 	const validate = () => {
-		const newErrors: { email?: string; password?: string } = {}
+		const newErrors: { email?: string; password?: string } = {};
 
 		if (!email) {
-			newErrors.email = 'Email is required'
+			newErrors.email = "Email is required";
 		} else if (!/\S+@\S+\.\S+/.test(email)) {
-			newErrors.email = 'Please enter a valid email'
+			newErrors.email = "Please enter a valid email";
 		}
 
 		if (!password) {
-			newErrors.password = 'Password is required'
+			newErrors.password = "Password is required";
 		} else if (password.length < 6) {
-			newErrors.password = 'Password must be at least 6 characters'
+			newErrors.password = "Password must be at least 6 characters";
 		}
 
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
 	const handleLogin = async () => {
-		if (!validate()) return
+		if (!validate()) return;
 
 		try {
 			const result = await loginMutation.mutateAsync({
 				email: email.trim(),
 				password,
-			})
+			});
 
 			const userData = {
 				...result.user,
 				id: result.user._id,
 				accessToken: result.accessToken,
-			}
-			setUser(userData as any)
-			router.replace('/(tabs)')
+			};
+			setUser(userData as any);
+			router.replace("/(tabs)");
 		} catch (error) {
 			Alert.alert(
-				'Error',
+				"Error",
 				error instanceof Error
 					? error.message
-					: 'Invalid credentials. Please try again.'
-			)
+					: "Invalid credentials. Please try again.",
+			);
 		}
-	}
+	};
 
 	const handleSocialLogin = (provider: string) => {
-		Alert.alert('Coming Soon', `${provider} login will be available soon!`)
-	}
+		Alert.alert("Coming Soon", `${provider} login will be available soon!`);
+	};
 
 	return (
 		<SafeAreaView style={styles.container}>
 			<KeyboardAvoidingView
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardView}
 			>
 				<ScrollView
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
+					keyboardShouldPersistTaps="handled"
 				>
 					{/* Header */}
 					<Animated.View
@@ -94,11 +94,11 @@ export default function Login() {
 						style={styles.header}
 					>
 						<Pressable style={styles.backButton} onPress={() => router.back()}>
-							<Ionicons name='arrow-back' size={24} color={Colors.text} />
+							<Ionicons name="arrow-back" size={24} color={Colors.text} />
 						</Pressable>
 
 						<View style={styles.logoContainer}>
-							<Ionicons name='rocket' size={48} color={Colors.primary} />
+							<Ionicons name="rocket" size={48} color={Colors.primary} />
 						</View>
 
 						<Text style={styles.title}>Welcome Back</Text>
@@ -111,40 +111,40 @@ export default function Login() {
 						style={styles.form}
 					>
 						<Input
-							label='Email'
-							placeholder='Enter your email'
+							label="Email"
+							placeholder="Enter your email"
 							value={email}
 							onChangeText={setEmail}
-							keyboardType='email-address'
-							autoCapitalize='none'
+							keyboardType="email-address"
+							autoCapitalize="none"
 							autoCorrect={false}
-							leftIcon='mail-outline'
+							leftIcon="mail-outline"
 							error={errors.email}
 						/>
 
 						<Input
-							label='Password'
-							placeholder='Enter your password'
+							label="Password"
+							placeholder="Enter your password"
 							value={password}
 							onChangeText={setPassword}
 							secureTextEntry
-							leftIcon='lock-closed-outline'
+							leftIcon="lock-closed-outline"
 							error={errors.password}
 						/>
 
 						<Pressable
 							style={styles.forgotPassword}
-							onPress={() => router.push('/(auth)/forgot-password')}
+							onPress={() => router.push("/(auth)/forgot-password")}
 						>
 							<Text style={styles.forgotPasswordText}>Forgot Password?</Text>
 						</Pressable>
 
 						<Button
-							title='Sign In'
+							title="Sign In"
 							onPress={handleLogin}
 							loading={loginMutation.isPending}
 							fullWidth
-							size='lg'
+							size="lg"
 							style={styles.loginButton}
 						/>
 					</Animated.View>
@@ -166,23 +166,23 @@ export default function Login() {
 					>
 						<Pressable
 							style={styles.socialButton}
-							onPress={() => handleSocialLogin('Google')}
+							onPress={() => handleSocialLogin("Google")}
 						>
-							<Ionicons name='logo-google' size={24} color={Colors.text} />
+							<Ionicons name="logo-google" size={24} color={Colors.text} />
 						</Pressable>
 
 						<Pressable
 							style={styles.socialButton}
-							onPress={() => handleSocialLogin('Apple')}
+							onPress={() => handleSocialLogin("Apple")}
 						>
-							<Ionicons name='logo-apple' size={24} color={Colors.text} />
+							<Ionicons name="logo-apple" size={24} color={Colors.text} />
 						</Pressable>
 
 						<Pressable
 							style={styles.socialButton}
-							onPress={() => handleSocialLogin('GitHub')}
+							onPress={() => handleSocialLogin("GitHub")}
 						>
-							<Ionicons name='logo-github' size={24} color={Colors.text} />
+							<Ionicons name="logo-github" size={24} color={Colors.text} />
 						</Pressable>
 					</Animated.View>
 
@@ -192,14 +192,14 @@ export default function Login() {
 						style={styles.footer}
 					>
 						<Text style={styles.footerText}>Don&apos;t have an account? </Text>
-						<Pressable onPress={() => router.push('/(auth)/register')}>
+						<Pressable onPress={() => router.push("/(auth)/register")}>
 							<Text style={styles.footerLink}>Sign Up</Text>
 						</Pressable>
 					</Animated.View>
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -215,11 +215,11 @@ const styles = StyleSheet.create({
 		padding: Spacing.lg,
 	},
 	header: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginBottom: Spacing.xl,
 	},
 	backButton: {
-		position: 'absolute',
+		position: "absolute",
 		left: 0,
 		top: 0,
 		padding: Spacing.sm,
@@ -229,8 +229,8 @@ const styles = StyleSheet.create({
 		height: 80,
 		borderRadius: 40,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginBottom: Spacing.md,
 	},
 	title: {
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.lg,
 	},
 	forgotPassword: {
-		alignSelf: 'flex-end',
+		alignSelf: "flex-end",
 		marginBottom: Spacing.lg,
 	},
 	forgotPasswordText: {
@@ -260,8 +260,8 @@ const styles = StyleSheet.create({
 		marginTop: Spacing.sm,
 	},
 	dividerContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginBottom: Spacing.lg,
 	},
 	dividerLine: {
@@ -276,8 +276,8 @@ const styles = StyleSheet.create({
 		marginHorizontal: Spacing.md,
 	},
 	socialContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
+		flexDirection: "row",
+		justifyContent: "center",
 		gap: Spacing.md,
 		marginBottom: Spacing.xl,
 	},
@@ -286,22 +286,22 @@ const styles = StyleSheet.create({
 		height: 56,
 		borderRadius: 28,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		borderWidth: 1,
 		borderColor: Colors.border,
 	},
 	demoButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: Spacing.sm,
 		paddingVertical: Spacing.md,
 		paddingHorizontal: Spacing.lg,
 		borderRadius: 12,
 		borderWidth: 1,
 		borderColor: Colors.primary,
-		borderStyle: 'dashed',
+		borderStyle: "dashed",
 		marginBottom: Spacing.lg,
 	},
 	demoButtonText: {
@@ -310,9 +310,9 @@ const styles = StyleSheet.create({
 		color: Colors.primary,
 	},
 	footer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		marginTop: 'auto',
+		flexDirection: "row",
+		justifyContent: "center",
+		marginTop: "auto",
 	},
 	footerText: {
 		fontSize: 16,
@@ -324,4 +324,4 @@ const styles = StyleSheet.create({
 		fontFamily: Fonts.semibold,
 		color: Colors.primary,
 	},
-})
+});

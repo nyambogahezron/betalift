@@ -1,19 +1,9 @@
-import { Avatar, Card } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import type { Feedback } from '@/interfaces'
-import {
-	useFeedback,
-	useFeedbackComments,
-	useCreateComment,
-	useVoteFeedback,
-} from '@/queries/feedbackQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
-import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useMemo, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import {
 	ActivityIndicator,
 	Dimensions,
@@ -24,48 +14,58 @@ import {
 	Text,
 	TextInput,
 	View,
-} from 'react-native'
+} from "react-native";
 import Animated, {
 	Extrapolation,
 	FadeInUp,
-	SlideInUp,
 	interpolate,
+	SlideInUp,
 	useAnimatedScrollHandler,
 	useAnimatedStyle,
 	useSharedValue,
-} from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Feedback } from "@/interfaces";
+import {
+	useCreateComment,
+	useFeedback,
+	useFeedbackComments,
+	useVoteFeedback,
+} from "@/queries/feedbackQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const HEADER_MAX_HEIGHT = 120
-const HEADER_MIN_HEIGHT = 80
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const HEADER_MAX_HEIGHT = 120;
+const HEADER_MIN_HEIGHT = 80;
 
 export default function FeedbackDetailScreen() {
-	const { id } = useLocalSearchParams<{ id: string }>()
-	const insets = useSafeAreaInsets()
-	const scrollY = useSharedValue(0)
-	const [commentText, setCommentText] = useState('')
-	const [imageModalVisible, setImageModalVisible] = useState(false)
-	const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const insets = useSafeAreaInsets();
+	const scrollY = useSharedValue(0);
+	const [commentText, setCommentText] = useState("");
+	const [imageModalVisible, setImageModalVisible] = useState(false);
+	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-	const { user } = useAuthStore()
-	const { data: feedback, isLoading } = useFeedback(id || '')
-	const { data: commentsData } = useFeedbackComments(id || '')
-	const createCommentMutation = useCreateComment()
-	const voteFeedbackMutation = useVoteFeedback()
+	const { user } = useAuthStore();
+	const { data: feedback, isLoading } = useFeedback(id || "");
+	const { data: commentsData } = useFeedbackComments(id || "");
+	const createCommentMutation = useCreateComment();
+	const voteFeedbackMutation = useVoteFeedback();
 
 	const comments = useMemo(() => {
-		return commentsData?.comments || commentsData || []
-	}, [commentsData])
+		return commentsData?.comments || commentsData || [];
+	}, [commentsData]);
 
 	const feedbackUser = useMemo(() => {
 		return (
 			feedback?.user || {
-				id: 'unknown',
-				username: 'unknown',
-				displayName: 'Unknown User',
-				email: 'unknown@example.com',
-				role: 'tester' as const,
+				id: "unknown",
+				username: "unknown",
+				displayName: "Unknown User",
+				email: "unknown@example.com",
+				role: "tester" as const,
 				stats: {
 					projectsCreated: 0,
 					projectsTested: 0,
@@ -74,144 +74,144 @@ export default function FeedbackDetailScreen() {
 				},
 				createdAt: new Date(),
 			}
-		)
-	}, [feedback])
+		);
+	}, [feedback]);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y
+			scrollY.value = event.contentOffset.y;
 		},
-	})
+	});
 
 	const headerAnimatedStyle = useAnimatedStyle(() => {
 		const height = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-			Extrapolation.CLAMP
-		)
-		return { height }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { height };
+	});
 
 	const headerTitleStyle = useAnimatedStyle(() => {
 		const opacity = interpolate(
 			scrollY.value,
 			[20, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
-		return { opacity }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity };
+	});
 
-	const getTypeIcon = (type: Feedback['type']) => {
+	const getTypeIcon = (type: Feedback["type"]) => {
 		switch (type) {
-			case 'bug':
-				return 'bug'
-			case 'feature':
-				return 'bulb'
-			case 'improvement':
-				return 'trending-up'
-			case 'praise':
-				return 'heart'
+			case "bug":
+				return "bug";
+			case "feature":
+				return "bulb";
+			case "improvement":
+				return "trending-up";
+			case "praise":
+				return "heart";
 			default:
-				return 'chatbubble'
+				return "chatbubble";
 		}
-	}
+	};
 
-	const getTypeColor = (type: Feedback['type']) => {
+	const getTypeColor = (type: Feedback["type"]) => {
 		switch (type) {
-			case 'bug':
-				return Colors.error
-			case 'feature':
-				return Colors.primary
-			case 'improvement':
-				return Colors.warning
-			case 'praise':
-				return Colors.success
+			case "bug":
+				return Colors.error;
+			case "feature":
+				return Colors.primary;
+			case "improvement":
+				return Colors.warning;
+			case "praise":
+				return Colors.success;
 			default:
-				return Colors.textSecondary
+				return Colors.textSecondary;
 		}
-	}
+	};
 
-	const getStatusColor = (status: Feedback['status']) => {
+	const getStatusColor = (status: Feedback["status"]) => {
 		switch (status) {
-			case 'open':
-			case 'pending':
-				return Colors.textSecondary
-			case 'in-progress':
-				return Colors.warning
-			case 'resolved':
-				return Colors.success
-			case 'closed':
-				return Colors.error
+			case "open":
+			case "pending":
+				return Colors.textSecondary;
+			case "in-progress":
+				return Colors.warning;
+			case "resolved":
+				return Colors.success;
+			case "closed":
+				return Colors.error;
 			default:
-				return Colors.textSecondary
+				return Colors.textSecondary;
 		}
-	}
+	};
 
 	const getPriorityColor = (priority?: string) => {
 		switch (priority) {
-			case 'critical':
-				return Colors.error
-			case 'high':
-				return Colors.warning
-			case 'medium':
-				return Colors.primary
-			case 'low':
-				return Colors.textTertiary
+			case "critical":
+				return Colors.error;
+			case "high":
+				return Colors.warning;
+			case "medium":
+				return Colors.primary;
+			case "low":
+				return Colors.textTertiary;
 			default:
-				return Colors.textSecondary
+				return Colors.textSecondary;
 		}
-	}
+	};
 
-	const handleVote = async (voteType: 'up' | 'down') => {
-		if (!user?.id || !feedback) return
-		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+	const handleVote = async (voteType: "up" | "down") => {
+		if (!user?.id || !feedback) return;
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 		try {
 			await voteFeedbackMutation.mutateAsync({
 				feedbackId: feedback.id,
 				voteType,
-			})
+			});
 		} catch (error) {
-			console.error('Error voting:', error)
+			console.error("Error voting:", error);
 		}
-	}
+	};
 
 	const handleAddComment = async () => {
-		if (!commentText.trim() || !feedback) return
-		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+		if (!commentText.trim() || !feedback) return;
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 		try {
 			await createCommentMutation.mutateAsync({
 				feedbackId: feedback.id,
 				content: commentText.trim(),
-			})
-			setCommentText('')
+			});
+			setCommentText("");
 		} catch (error) {
-			console.error('Error adding comment:', error)
+			console.error("Error adding comment:", error);
 		}
-	}
+	};
 
 	const openImageModal = (index: number) => {
-		setSelectedImageIndex(index)
-		setImageModalVisible(true)
-	}
+		setSelectedImageIndex(index);
+		setImageModalVisible(true);
+	};
 
 	const formatDate = (date: Date) => {
-		return new Date(date).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-			hour: 'numeric',
-			minute: '2-digit',
-		})
-	}
+		return new Date(date).toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+			hour: "numeric",
+			minute: "2-digit",
+		});
+	};
 
 	if (isLoading) {
 		return (
 			<View style={[styles.container, styles.centerContent]}>
-				<ActivityIndicator size='large' color={Colors.primary} />
+				<ActivityIndicator size="large" color={Colors.primary} />
 			</View>
-		)
+		);
 	}
 
 	if (!feedback) {
@@ -219,11 +219,11 @@ export default function FeedbackDetailScreen() {
 			<View style={[styles.container, styles.centerContent]}>
 				<Text style={styles.errorText}>Feedback not found</Text>
 			</View>
-		)
+		);
 	}
 
-	const typeColor = getTypeColor(feedback.type)
-	const statusColor = getStatusColor(feedback.status)
+	const typeColor = getTypeColor(feedback.type);
+	const statusColor = getStatusColor(feedback.status);
 
 	return (
 		<View style={styles.container}>
@@ -235,7 +235,7 @@ export default function FeedbackDetailScreen() {
 				/>
 				<View style={[styles.navBar, { paddingTop: insets.top }]}>
 					<Pressable style={styles.navButton} onPress={() => router.back()}>
-						<Ionicons name='arrow-back' size={24} color={Colors.text} />
+						<Ionicons name="arrow-back" size={24} color={Colors.text} />
 					</Pressable>
 					<Animated.Text
 						style={[styles.headerTitle, headerTitleStyle]}
@@ -245,7 +245,7 @@ export default function FeedbackDetailScreen() {
 					</Animated.Text>
 					<Pressable style={styles.navButton}>
 						<Ionicons
-							name='ellipsis-horizontal'
+							name="ellipsis-horizontal"
 							size={22}
 							color={Colors.text}
 						/>
@@ -290,7 +290,7 @@ export default function FeedbackDetailScreen() {
 							style={[styles.statusDot, { backgroundColor: statusColor }]}
 						/>
 						<Text style={[styles.statusBadgeText, { color: statusColor }]}>
-							{(feedback.status || 'pending').replace('-', ' ')}
+							{(feedback.status || "pending").replace("-", " ")}
 						</Text>
 					</View>
 					{feedback.priority && (
@@ -301,7 +301,7 @@ export default function FeedbackDetailScreen() {
 							]}
 						>
 							<Ionicons
-								name='flag'
+								name="flag"
 								size={14}
 								color={getPriorityColor(feedback.priority)}
 							/>
@@ -334,7 +334,7 @@ export default function FeedbackDetailScreen() {
 						<Avatar
 							source={feedbackUser.avatar}
 							name={feedbackUser.displayName || feedbackUser.username}
-							size='md'
+							size="md"
 						/>
 						<View style={styles.authorDetails}>
 							<Text style={styles.authorName}>
@@ -368,7 +368,7 @@ export default function FeedbackDetailScreen() {
 									<Image
 										source={{ uri }}
 										style={styles.screenshot}
-										contentFit='cover'
+										contentFit="cover"
 									/>
 								</Pressable>
 							))}
@@ -382,7 +382,7 @@ export default function FeedbackDetailScreen() {
 						<Card style={styles.deviceCard}>
 							<View style={styles.deviceHeader}>
 								<Ionicons
-									name='phone-portrait'
+									name="phone-portrait"
 									size={20}
 									color={Colors.primary}
 								/>
@@ -392,7 +392,7 @@ export default function FeedbackDetailScreen() {
 								<View style={styles.deviceItem}>
 									<Text style={styles.deviceLabel}>Platform</Text>
 									<Text style={styles.deviceValue}>
-										{feedback.deviceInfo.platform === 'ios' ? 'iOS' : 'Android'}
+										{feedback.deviceInfo.platform === "ios" ? "iOS" : "Android"}
 									</Text>
 								</View>
 								<View style={styles.deviceItem}>
@@ -424,9 +424,9 @@ export default function FeedbackDetailScreen() {
 						<View style={styles.votesRow}>
 							<Pressable
 								style={styles.voteButton}
-								onPress={() => handleVote('up')}
+								onPress={() => handleVote("up")}
 							>
-								<Ionicons name='arrow-up' size={24} color={Colors.success} />
+								<Ionicons name="arrow-up" size={24} color={Colors.success} />
 								<Text style={[styles.voteCount, { color: Colors.success }]}>
 									{feedback.upvotes || 0}
 								</Text>
@@ -434,9 +434,9 @@ export default function FeedbackDetailScreen() {
 							<View style={styles.voteDivider} />
 							<Pressable
 								style={styles.voteButton}
-								onPress={() => handleVote('down')}
+								onPress={() => handleVote("down")}
 							>
-								<Ionicons name='arrow-down' size={24} color={Colors.error} />
+								<Ionicons name="arrow-down" size={24} color={Colors.error} />
 								<Text style={[styles.voteCount, { color: Colors.error }]}>
 									{feedback.downvotes || 0}
 								</Text>
@@ -448,13 +448,13 @@ export default function FeedbackDetailScreen() {
 				{/* Comments Section */}
 				<Animated.View entering={FadeInUp.duration(300).delay(450)}>
 					<View style={styles.commentsHeader}>
-						<Ionicons name='chatbubbles' size={20} color={Colors.primary} />
+						<Ionicons name="chatbubbles" size={20} color={Colors.primary} />
 						<Text style={styles.commentsTitle}>
 							Comments ({comments.length})
 						</Text>
 					</View>
 
-					{comments.map((comment: any, index: number) => (
+					{comments.map((comment: any, _index: number) => (
 						<Card key={comment.id} style={styles.commentCard}>
 							<View style={styles.commentHeader}>
 								<Pressable
@@ -464,12 +464,12 @@ export default function FeedbackDetailScreen() {
 									<Avatar
 										source={comment.user.avatar}
 										name={comment.user.displayName || comment.user.username}
-										size='sm'
+										size="sm"
 									/>
 									<View>
 										<Text style={styles.commentAuthorName}>
-											{comment.user.id === 'demo'
-												? 'You'
+											{comment.user.id === "demo"
+												? "You"
 												: comment.user.displayName || comment.user.username}
 										</Text>
 										<Text style={styles.commentDate}>
@@ -497,7 +497,7 @@ export default function FeedbackDetailScreen() {
 			>
 				<TextInput
 					style={styles.commentInput}
-					placeholder='Add a comment...'
+					placeholder="Add a comment..."
 					placeholderTextColor={Colors.textTertiary}
 					value={commentText}
 					onChangeText={setCommentText}
@@ -512,7 +512,7 @@ export default function FeedbackDetailScreen() {
 					disabled={!commentText.trim()}
 				>
 					<Ionicons
-						name='send'
+						name="send"
 						size={20}
 						color={commentText.trim() ? Colors.text : Colors.textTertiary}
 					/>
@@ -523,7 +523,7 @@ export default function FeedbackDetailScreen() {
 			<Modal
 				visible={imageModalVisible}
 				transparent
-				animationType='fade'
+				animationType="fade"
 				onRequestClose={() => setImageModalVisible(false)}
 			>
 				<View style={styles.imageModalContainer}>
@@ -531,19 +531,19 @@ export default function FeedbackDetailScreen() {
 						style={styles.imageModalClose}
 						onPress={() => setImageModalVisible(false)}
 					>
-						<Ionicons name='close' size={28} color={Colors.text} />
+						<Ionicons name="close" size={28} color={Colors.text} />
 					</Pressable>
 					{feedback.screenshots && (
 						<Image
 							source={{ uri: feedback.screenshots[selectedImageIndex] }}
 							style={styles.fullScreenImage}
-							contentFit='contain'
+							contentFit="contain"
 						/>
 					)}
 				</View>
 			</Modal>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -552,8 +552,8 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.background,
 	},
 	centerContent: {
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	errorText: {
 		fontSize: 16,
@@ -561,37 +561,37 @@ const styles = StyleSheet.create({
 		color: Colors.textSecondary,
 	},
 	header: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
 		zIndex: 100,
-		overflow: 'hidden',
+		overflow: "hidden",
 	},
 	headerGradient: {
 		...StyleSheet.absoluteFillObject,
 	},
 	navBar: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.md,
-		height: '100%',
+		height: "100%",
 	},
 	navButton: {
 		width: 40,
 		height: 40,
 		borderRadius: 20,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		flex: 1,
 		fontSize: 16,
 		fontFamily: Fonts.semibold,
 		color: Colors.text,
-		textAlign: 'center',
+		textAlign: "center",
 		marginHorizontal: Spacing.sm,
 	},
 	scrollView: {
@@ -602,14 +602,14 @@ const styles = StyleSheet.create({
 		paddingBottom: Spacing.xxl,
 	},
 	badges: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.sm,
 		marginBottom: Spacing.md,
 	},
 	typeBadge: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 6,
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.xs,
@@ -618,11 +618,11 @@ const styles = StyleSheet.create({
 	typeBadgeText: {
 		fontSize: 13,
 		fontFamily: Fonts.semibold,
-		textTransform: 'capitalize',
+		textTransform: "capitalize",
 	},
 	statusBadge: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 6,
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.xs,
@@ -636,11 +636,11 @@ const styles = StyleSheet.create({
 	statusBadgeText: {
 		fontSize: 13,
 		fontFamily: Fonts.medium,
-		textTransform: 'capitalize',
+		textTransform: "capitalize",
 	},
 	priorityBadge: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.xs,
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
 	priorityText: {
 		fontSize: 13,
 		fontFamily: Fonts.medium,
-		textTransform: 'capitalize',
+		textTransform: "capitalize",
 	},
 	title: {
 		fontSize: 24,
@@ -661,8 +661,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.lg,
 	},
 	authorInfo: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.md,
 	},
 	authorDetails: {
@@ -706,8 +706,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.lg,
 	},
 	deviceHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 		marginBottom: Spacing.md,
 	},
@@ -717,12 +717,12 @@ const styles = StyleSheet.create({
 		color: Colors.text,
 	},
 	deviceGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.md,
 	},
 	deviceItem: {
-		width: '45%',
+		width: "45%",
 	},
 	deviceLabel: {
 		fontSize: 12,
@@ -739,15 +739,15 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.lg,
 	},
 	votesRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	voteButton: {
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: Spacing.sm,
 		paddingVertical: Spacing.sm,
 	},
@@ -761,8 +761,8 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.border,
 	},
 	commentsHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 		marginBottom: Spacing.md,
 	},
@@ -778,8 +778,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	commentAuthor: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 	},
 	commentAuthorName: {
@@ -799,12 +799,12 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 	},
 	commentInputContainer: {
-		position: 'absolute',
+		position: "absolute",
 		bottom: 0,
 		left: 0,
 		right: 0,
-		flexDirection: 'row',
-		alignItems: 'flex-end',
+		flexDirection: "row",
+		alignItems: "flex-end",
 		gap: Spacing.sm,
 		paddingHorizontal: Spacing.lg,
 		paddingTop: Spacing.sm,
@@ -829,32 +829,32 @@ const styles = StyleSheet.create({
 		height: 44,
 		borderRadius: 22,
 		backgroundColor: Colors.primary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	sendButtonDisabled: {
 		backgroundColor: Colors.backgroundSecondary,
 	},
 	imageModalContainer: {
 		flex: 1,
-		backgroundColor: 'rgba(0,0,0,0.95)',
-		justifyContent: 'center',
-		alignItems: 'center',
+		backgroundColor: "rgba(0,0,0,0.95)",
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	imageModalClose: {
-		position: 'absolute',
+		position: "absolute",
 		top: 60,
 		right: 20,
 		width: 44,
 		height: 44,
 		borderRadius: 22,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		zIndex: 10,
 	},
 	fullScreenImage: {
 		width: SCREEN_WIDTH,
 		height: SCREEN_WIDTH * 1.5,
 	},
-})
+});

@@ -1,69 +1,69 @@
-import { Avatar } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { mockConversations } from '@/data/mockData'
-import type { Conversation } from '@/interfaces'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
-    FlatList,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+	FlatList,
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	View,
+} from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { mockConversations } from "@/data/mockData";
+import type { Conversation } from "@/interfaces";
 
 export default function MessagesScreen() {
-	const insets = useSafeAreaInsets()
-	const [searchQuery, setSearchQuery] = useState('')
-	const [conversations] = useState<Conversation[]>(mockConversations)
+	const insets = useSafeAreaInsets();
+	const [searchQuery, setSearchQuery] = useState("");
+	const [conversations] = useState<Conversation[]>(mockConversations);
 
 	const filteredConversations = conversations.filter((conv) => {
-		const otherUser = conv.participants[0]
-		const searchLower = searchQuery.toLowerCase()
+		const otherUser = conv.participants[0];
+		const searchLower = searchQuery.toLowerCase();
 		return (
 			otherUser.displayName?.toLowerCase().includes(searchLower) ||
 			otherUser.username.toLowerCase().includes(searchLower) ||
 			conv.lastMessage?.content.toLowerCase().includes(searchLower)
-		)
-	})
+		);
+	});
 
 	const formatTime = (date: Date) => {
-		const now = new Date()
-		const diff = now.getTime() - date.getTime()
-		const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+		const now = new Date();
+		const diff = now.getTime() - date.getTime();
+		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
 		if (days === 0) {
-			return date.toLocaleTimeString('en-US', {
-				hour: 'numeric',
-				minute: '2-digit',
+			return date.toLocaleTimeString("en-US", {
+				hour: "numeric",
+				minute: "2-digit",
 				hour12: true,
-			})
+			});
 		} else if (days === 1) {
-			return 'Yesterday'
+			return "Yesterday";
 		} else if (days < 7) {
-			return date.toLocaleDateString('en-US', { weekday: 'short' })
+			return date.toLocaleDateString("en-US", { weekday: "short" });
 		} else {
-			return date.toLocaleDateString('en-US', {
-				month: 'short',
-				day: 'numeric',
-			})
+			return date.toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+			});
 		}
-	}
+	};
 
 	const renderConversation = ({
 		item,
 		index,
 	}: {
-		item: Conversation
-		index: number
+		item: Conversation;
+		index: number;
 	}) => {
-		const otherUser = item.participants[0]
-		const isUnread = item.unreadCount > 0
-		const isSentByMe = item.lastMessage?.senderId === 'me'
+		const otherUser = item.participants[0];
+		const isUnread = item.unreadCount > 0;
+		const isSentByMe = item.lastMessage?.senderId === "me";
 
 		return (
 			<Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
@@ -128,13 +128,13 @@ export default function MessagesScreen() {
 					</View>
 				</Pressable>
 			</Animated.View>
-		)
-	}
+		);
+	};
 
-	 const totalUnread = conversations.reduce(
-			(acc, conv) => acc + conv.unreadCount,
-			0
-		)
+	const totalUnread = conversations.reduce(
+		(acc, conv) => acc + conv.unreadCount,
+		0,
+	);
 
 	return (
 		<View style={styles.container}>
@@ -163,8 +163,12 @@ export default function MessagesScreen() {
 						onChangeText={setSearchQuery}
 					/>
 					{searchQuery.length > 0 && (
-						<Pressable onPress={() => setSearchQuery('')}>
-							<Ionicons name="close-circle" size={20} color={Colors.textTertiary} />
+						<Pressable onPress={() => setSearchQuery("")}>
+							<Ionicons
+								name="close-circle"
+								size={20}
+								color={Colors.textTertiary}
+							/>
 						</Pressable>
 					)}
 				</View>
@@ -178,12 +182,12 @@ export default function MessagesScreen() {
 						color={Colors.textTertiary}
 					/>
 					<Text style={styles.emptyTitle}>
-						{searchQuery ? 'No results found' : 'No messages yet'}
+						{searchQuery ? "No results found" : "No messages yet"}
 					</Text>
 					<Text style={styles.emptySubtitle}>
 						{searchQuery
-							? 'Try a different search term'
-							: 'Start a conversation by visiting a user profile'}
+							? "Try a different search term"
+							: "Start a conversation by visiting a user profile"}
 					</Text>
 				</View>
 			) : (
@@ -197,7 +201,7 @@ export default function MessagesScreen() {
 				/>
 			)}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -215,8 +219,8 @@ const styles = StyleSheet.create({
 		borderBottomColor: Colors.border,
 	},
 	headerTop: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginBottom: Spacing.md,
 	},
 	title: {
@@ -237,8 +241,8 @@ const styles = StyleSheet.create({
 		color: Colors.text,
 	},
 	searchContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.md,
 		paddingHorizontal: Spacing.md,
@@ -266,15 +270,15 @@ const styles = StyleSheet.create({
 
 	// Conversation Item
 	conversationItem: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		paddingVertical: Spacing.sm,
 	},
 	avatarContainer: {
-		position: 'relative',
+		position: "relative",
 		marginRight: Spacing.md,
 	},
 	onlineIndicator: {
-		position: 'absolute',
+		position: "absolute",
 		bottom: 2,
 		right: 2,
 		width: 14,
@@ -289,12 +293,12 @@ const styles = StyleSheet.create({
 	},
 	conversationContent: {
 		flex: 1,
-		justifyContent: 'center',
+		justifyContent: "center",
 	},
 	conversationHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		marginBottom: 4,
 	},
 	conversationName: {
@@ -317,8 +321,8 @@ const styles = StyleSheet.create({
 		fontFamily: Fonts.medium,
 	},
 	messagePreviewRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 	},
 	sentIcon: {
 		marginRight: 4,
@@ -339,8 +343,8 @@ const styles = StyleSheet.create({
 		minWidth: 20,
 		height: 20,
 		borderRadius: 10,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingHorizontal: 6,
 		marginLeft: Spacing.sm,
 	},
@@ -353,8 +357,8 @@ const styles = StyleSheet.create({
 	// Empty State
 	emptyContainer: {
 		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingHorizontal: Spacing.xl,
 	},
 	emptyTitle: {
@@ -367,7 +371,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		marginTop: Spacing.xs,
 	},
-})
+});

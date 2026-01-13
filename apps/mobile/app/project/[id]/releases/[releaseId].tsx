@@ -1,218 +1,218 @@
-import { Button, Card } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { getReleasesForProject } from '@/data/mockData'
-import type { Release } from '@/interfaces'
-import { Ionicons } from '@expo/vector-icons'
-import * as Clipboard from 'expo-clipboard'
-import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useMemo, useState } from 'react'
-import {
-    Pressable,
-    Share,
-    StyleSheet,
-    Text,
-    View
-} from 'react-native'
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import type React from "react";
+import { useMemo, useState } from "react";
+import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 import Animated, {
-    Extrapolation,
-    FadeInUp,
-    interpolate,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
-} from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+	Extrapolation,
+	FadeInUp,
+	interpolate,
+	useAnimatedScrollHandler,
+	useAnimatedStyle,
+	useSharedValue,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { getReleasesForProject } from "@/data/mockData";
+import type { Release } from "@/interfaces";
 
-const HEADER_MAX_HEIGHT = 200
-const HEADER_MIN_HEIGHT = 100
+const HEADER_MAX_HEIGHT = 200;
+const HEADER_MIN_HEIGHT = 100;
 
 // Simple Markdown renderer
 function renderMarkdown(text: string) {
-	const lines = text.split('\n')
-	const elements: React.ReactNode[] = []
+	const lines = text.split("\n");
+	const elements: React.ReactNode[] = [];
 
 	lines.forEach((line, index) => {
-		const key = `line-${index}`
+		const key = `line-${index}`;
 
 		// Headers
-		if (line.startsWith('## ')) {
+		if (line.startsWith("## ")) {
 			elements.push(
 				<Text key={key} style={styles.markdownH2}>
-					{line.replace('## ', '')}
-				</Text>
-			)
-		} else if (line.startsWith('### ')) {
+					{line.replace("## ", "")}
+				</Text>,
+			);
+		} else if (line.startsWith("### ")) {
 			elements.push(
 				<Text key={key} style={styles.markdownH3}>
-					{line.replace('### ', '')}
-				</Text>
-			)
+					{line.replace("### ", "")}
+				</Text>,
+			);
 		}
 		// Horizontal rule
-		else if (line.startsWith('---')) {
-			elements.push(<View key={key} style={styles.markdownHr} />)
+		else if (line.startsWith("---")) {
+			elements.push(<View key={key} style={styles.markdownHr} />);
 		}
 		// List items
-		else if (line.startsWith('- ')) {
-			const content = line.replace('- ', '')
+		else if (line.startsWith("- ")) {
+			const content = line.replace("- ", "");
 			// Check for bold text
-			const boldRegex = /\*\*(.*?)\*\*/g
-			const parts = content.split(boldRegex)
-			
+			const boldRegex = /\*\*(.*?)\*\*/g;
+			const parts = content.split(boldRegex);
+
 			elements.push(
 				<View key={key} style={styles.markdownListItem}>
 					<Text style={styles.markdownBullet}>•</Text>
 					<Text style={styles.markdownListText}>
-						{parts.map((part, i) => 
+						{parts.map((part, i) =>
 							i % 2 === 1 ? (
-								<Text key={i} style={styles.markdownBold}>{part}</Text>
+								<Text key={i} style={styles.markdownBold}>
+									{part}
+								</Text>
 							) : (
 								part
-							)
+							),
 						)}
 					</Text>
-				</View>
-			)
+				</View>,
+			);
 		}
 		// Numbered list
 		else if (/^\d+\.\s/.test(line)) {
-			const number = line.match(/^(\d+)\./)?.[1]
-			const content = line.replace(/^\d+\.\s/, '')
+			const number = line.match(/^(\d+)\./)?.[1];
+			const content = line.replace(/^\d+\.\s/, "");
 			elements.push(
 				<View key={key} style={styles.markdownListItem}>
 					<Text style={styles.markdownNumber}>{number}.</Text>
 					<Text style={styles.markdownListText}>{content}</Text>
-				</View>
-			)
+				</View>,
+			);
 		}
 		// Regular paragraph
-		else if (line.trim() !== '') {
+		else if (line.trim() !== "") {
 			elements.push(
 				<Text key={key} style={styles.markdownParagraph}>
 					{line}
-				</Text>
-			)
+				</Text>,
+			);
 		}
 		// Empty line (spacer)
 		else {
-			elements.push(<View key={key} style={styles.markdownSpacer} />)
+			elements.push(<View key={key} style={styles.markdownSpacer} />);
 		}
-	})
+	});
 
-	return elements
+	return elements;
 }
 
 export default function ReleaseDetailScreen() {
 	const { id: projectId, releaseId } = useLocalSearchParams<{
-		id: string
-		releaseId: string
-	}>()
-	const insets = useSafeAreaInsets()
-	const scrollY = useSharedValue(0)
-	const [copiedLink, setCopiedLink] = useState(false)
+		id: string;
+		releaseId: string;
+	}>();
+	const insets = useSafeAreaInsets();
+	const scrollY = useSharedValue(0);
+	const [copiedLink, setCopiedLink] = useState(false);
 
 	// Get release from centralized mock data
 	const release = useMemo(() => {
-		const releases = getReleasesForProject(projectId || '1')
-		return releases.find(r => r.id === releaseId) || releases[0] || {
-			id: releaseId || 'unknown',
-			projectId: projectId || '1',
-			version: '0.0.0',
-			title: 'Unknown Release',
-			createdAt: new Date(),
-		}
-	}, [projectId, releaseId])
+		const releases = getReleasesForProject(projectId || "1");
+		return (
+			releases.find((r) => r.id === releaseId) ||
+			releases[0] || {
+				id: releaseId || "unknown",
+				projectId: projectId || "1",
+				version: "0.0.0",
+				title: "Unknown Release",
+				createdAt: new Date(),
+			}
+		);
+	}, [projectId, releaseId]);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y
+			scrollY.value = event.contentOffset.y;
 		},
-	})
+	});
 
 	const headerAnimatedStyle = useAnimatedStyle(() => {
 		const height = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-			Extrapolation.CLAMP
-		)
-		return { height }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { height };
+	});
 
 	const titleAnimatedStyle = useAnimatedStyle(() => {
 		const opacity = interpolate(
 			scrollY.value,
 			[0, 40, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[1, 0.5, 0],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const scale = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[1, 0.8],
-			Extrapolation.CLAMP
-		)
-		return { opacity, transform: [{ scale }] }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity, transform: [{ scale }] };
+	});
 
 	const headerTitleStyle = useAnimatedStyle(() => {
 		const opacity = interpolate(
 			scrollY.value,
 			[40, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
-		return { opacity }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity };
+	});
 
-	const getStatusColor = (status: Release['status']) => {
+	const getStatusColor = (status: Release["status"]) => {
 		switch (status) {
-			case 'published':
-				return Colors.success
-			case 'beta':
-				return Colors.warning
-			case 'draft':
-				return Colors.textTertiary
-			case 'archived':
-				return Colors.error
+			case "published":
+				return Colors.success;
+			case "beta":
+				return Colors.warning;
+			case "draft":
+				return Colors.textTertiary;
+			case "archived":
+				return Colors.error;
 			default:
-				return Colors.textSecondary
+				return Colors.textSecondary;
 		}
-	}
+	};
 
 	const formatFileSize = (bytes?: number) => {
-		if (!bytes) return 'N/A'
-		const mb = bytes / (1024 * 1024)
-		return `${mb.toFixed(1)} MB`
-	}
+		if (!bytes) return "N/A";
+		const mb = bytes / (1024 * 1024);
+		return `${mb.toFixed(1)} MB`;
+	};
 
 	const handleCopyLink = async () => {
 		if (release.downloadUrl) {
-			await Clipboard.setStringAsync(release.downloadUrl)
-			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-			setCopiedLink(true)
-			setTimeout(() => setCopiedLink(false), 2000)
+			await Clipboard.setStringAsync(release.downloadUrl);
+			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+			setCopiedLink(true);
+			setTimeout(() => setCopiedLink(false), 2000);
 		}
-	}
+	};
 
 	const handleShare = async () => {
 		try {
 			await Share.share({
 				message: `Check out ${release.title} (v${release.version})!\n\nDownload: ${release.downloadUrl}`,
-			})
+			});
 		} catch (error) {
-			console.error(error)
+			console.error(error);
 		}
-	}
+	};
 
 	const handleDownload = () => {
-		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 		// In a real app, this would trigger the download
-	}
+	};
 
-	const statusColor = getStatusColor(release.status)
+	const statusColor = getStatusColor(release.status);
 
 	return (
 		<View style={styles.container}>
@@ -243,21 +243,25 @@ export default function ReleaseDetailScreen() {
 					</View>
 					<Text style={styles.releaseTitle}>{release.title}</Text>
 					<View
-						style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}
+						style={[
+							styles.statusBadge,
+							{ backgroundColor: `${statusColor}20` },
+						]}
 					>
 						<Ionicons
 							name={
-								release.status === 'published'
-									? 'checkmark-circle'
-									: release.status === 'beta'
-									? 'flask'
-									: 'create'
+								release.status === "published"
+									? "checkmark-circle"
+									: release.status === "beta"
+										? "flask"
+										: "create"
 							}
 							size={14}
 							color={statusColor}
 						/>
 						<Text style={[styles.statusText, { color: statusColor }]}>
-							{(release.status || 'draft').charAt(0).toUpperCase() + (release.status || 'draft').slice(1)}
+							{(release.status || "draft").charAt(0).toUpperCase() +
+								(release.status || "draft").slice(1)}
 						</Text>
 					</View>
 				</Animated.View>
@@ -285,11 +289,11 @@ export default function ReleaseDetailScreen() {
 								/>
 								<Text style={styles.infoLabel}>Released</Text>
 								<Text style={styles.infoValue}>
-									{release.publishedAt?.toLocaleDateString('en-US', {
-										month: 'short',
-										day: 'numeric',
-										year: 'numeric',
-									}) || 'Not yet'}
+									{release.publishedAt?.toLocaleDateString("en-US", {
+										month: "short",
+										day: "numeric",
+										year: "numeric",
+									}) || "Not yet"}
 								</Text>
 							</View>
 							<View style={styles.infoItem}>
@@ -311,7 +315,7 @@ export default function ReleaseDetailScreen() {
 								/>
 								<Text style={styles.infoLabel}>Build</Text>
 								<Text style={styles.infoValue}>
-									{release.buildNumber || 'N/A'}
+									{release.buildNumber || "N/A"}
 								</Text>
 							</View>
 							<View style={styles.infoItem}>
@@ -322,7 +326,7 @@ export default function ReleaseDetailScreen() {
 								/>
 								<Text style={styles.infoLabel}>Min OS</Text>
 								<Text style={styles.infoValue}>
-									{release.minOsVersion || 'N/A'}
+									{release.minOsVersion || "N/A"}
 								</Text>
 							</View>
 						</View>
@@ -339,20 +343,13 @@ export default function ReleaseDetailScreen() {
 									title="Download"
 									onPress={handleDownload}
 									icon={
-										<Ionicons
-											name="download"
-											size={18}
-											color={Colors.text}
-										/>
+										<Ionicons name="download" size={18} color={Colors.text} />
 									}
 									style={styles.downloadButton}
 								/>
-								<Pressable
-									style={styles.copyButton}
-									onPress={handleCopyLink}
-								>
+								<Pressable style={styles.copyButton} onPress={handleCopyLink}>
 									<Ionicons
-										name={copiedLink ? 'checkmark' : 'copy-outline'}
+										name={copiedLink ? "checkmark" : "copy-outline"}
 										size={20}
 										color={copiedLink ? Colors.success : Colors.text}
 									/>
@@ -369,47 +366,43 @@ export default function ReleaseDetailScreen() {
 				<Animated.View entering={FadeInUp.duration(300).delay(200)}>
 					<Card style={styles.notesCard}>
 						<View style={styles.notesHeader}>
-							<Ionicons
-								name="document-text"
-								size={20}
-								color={Colors.primary}
-							/>
+							<Ionicons name="document-text" size={20} color={Colors.primary} />
 							<Text style={styles.notesTitle}>Release Notes</Text>
 						</View>
 						<View style={styles.notesContent}>
-							{renderMarkdown(release.releaseNotes || '')}
+							{renderMarkdown(release.releaseNotes || "")}
 						</View>
 					</Card>
 				</Animated.View>
 
 				{/* Changelog Quick View */}
-				{release.changelog && Array.isArray(release.changelog) && release.changelog.length > 0 && (
-					<Animated.View entering={FadeInUp.duration(300).delay(300)}>
-						<Card style={styles.changelogCard}>
-							<View style={styles.changelogHeader}>
-								<Ionicons
-									name="list"
-									size={20}
-									color={Colors.success}
-								/>
-								<Text style={styles.changelogTitle}>Quick Changelog</Text>
-							</View>
-							{(release.changelog as string[]).map((item: string, index: number) => (
-								<View key={index} style={styles.changelogItem}>
-									<Ionicons
-										name="checkmark-circle"
-										size={16}
-										color={Colors.success}
-									/>
-									<Text style={styles.changelogText}>{item}</Text>
+				{release.changelog &&
+					Array.isArray(release.changelog) &&
+					release.changelog.length > 0 && (
+						<Animated.View entering={FadeInUp.duration(300).delay(300)}>
+							<Card style={styles.changelogCard}>
+								<View style={styles.changelogHeader}>
+									<Ionicons name="list" size={20} color={Colors.success} />
+									<Text style={styles.changelogTitle}>Quick Changelog</Text>
 								</View>
-							))}
-						</Card>
-					</Animated.View>
-				)}
+								{(release.changelog as string[]).map(
+									(item: string, index: number) => (
+										<View key={index} style={styles.changelogItem}>
+											<Ionicons
+												name="checkmark-circle"
+												size={16}
+												color={Colors.success}
+											/>
+											<Text style={styles.changelogText}>{item}</Text>
+										</View>
+									),
+								)}
+							</Card>
+						</Animated.View>
+					)}
 			</Animated.ScrollView>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -427,20 +420,20 @@ const styles = StyleSheet.create({
 
 	// Header
 	header: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
 		zIndex: 100,
-		overflow: 'hidden',
+		overflow: "hidden",
 	},
 	headerGradient: {
 		...StyleSheet.absoluteFillObject,
 	},
 	navBar: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.md,
 		paddingBottom: Spacing.sm,
 	},
@@ -448,9 +441,9 @@ const styles = StyleSheet.create({
 		width: 40,
 		height: 40,
 		borderRadius: 20,
-		backgroundColor: 'rgba(0,0,0,0.2)',
-		alignItems: 'center',
-		justifyContent: 'center',
+		backgroundColor: "rgba(0,0,0,0.2)",
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		fontSize: 18,
@@ -459,12 +452,12 @@ const styles = StyleSheet.create({
 	},
 	headerContent: {
 		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingBottom: Spacing.md,
 	},
 	versionBadge: {
-		backgroundColor: 'rgba(255,255,255,0.2)',
+		backgroundColor: "rgba(255,255,255,0.2)",
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.xs,
 		borderRadius: BorderRadius.full,
@@ -479,12 +472,12 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		fontFamily: Fonts.bold,
 		color: Colors.text,
-		textAlign: 'center',
+		textAlign: "center",
 		marginBottom: Spacing.sm,
 	},
 	statusBadge: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 		paddingHorizontal: Spacing.sm,
 		paddingVertical: 4,
@@ -500,12 +493,12 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 	},
 	infoGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 	},
 	infoItem: {
-		width: '50%',
-		alignItems: 'center',
+		width: "50%",
+		alignItems: "center",
 		paddingVertical: Spacing.sm,
 	},
 	infoLabel: {
@@ -532,7 +525,7 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 	},
 	downloadActions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	downloadButton: {
@@ -543,14 +536,14 @@ const styles = StyleSheet.create({
 		height: 48,
 		borderRadius: BorderRadius.md,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	copiedText: {
 		fontSize: 12,
 		fontFamily: Fonts.medium,
 		color: Colors.success,
-		textAlign: 'center',
+		textAlign: "center",
 		marginTop: Spacing.sm,
 	},
 
@@ -559,8 +552,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 	},
 	notesHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 		marginBottom: Spacing.md,
 		paddingBottom: Spacing.md,
@@ -597,7 +590,7 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.xs,
 	},
 	markdownListItem: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		marginBottom: Spacing.xs,
 		paddingLeft: Spacing.sm,
 	},
@@ -638,8 +631,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 	},
 	changelogHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 		marginBottom: Spacing.md,
 	},
@@ -649,8 +642,8 @@ const styles = StyleSheet.create({
 		color: Colors.text,
 	},
 	changelogItem: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
+		flexDirection: "row",
+		alignItems: "flex-start",
 		gap: Spacing.sm,
 		marginBottom: Spacing.sm,
 	},
@@ -661,4 +654,4 @@ const styles = StyleSheet.create({
 		color: Colors.textSecondary,
 		lineHeight: 20,
 	},
-})
+});

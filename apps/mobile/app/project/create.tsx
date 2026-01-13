@@ -1,13 +1,8 @@
-import { Button, Input } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { ProjectStatus } from '@/interfaces'
-import { useCreateProject } from '@/queries/projectQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { Image } from 'expo-image'
-import * as ImagePicker from 'expo-image-picker'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -17,190 +12,195 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Input } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { ProjectStatus } from "@/interfaces";
+import { useCreateProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 type ProjectFormData = {
-	name: string
-	description: string
-	icon: string
-	screenshots: string[]
-	techStack: string[]
-	status: ProjectStatus
+	name: string;
+	description: string;
+	icon: string;
+	screenshots: string[];
+	techStack: string[];
+	status: ProjectStatus;
 	links: {
-		website?: string
-		github?: string
-		appStore?: string
-		playStore?: string
-		testFlight?: string
-	}
-}
+		website?: string;
+		github?: string;
+		appStore?: string;
+		playStore?: string;
+		testFlight?: string;
+	};
+};
 
 const STATUS_OPTIONS: {
-	id: ProjectStatus
-	label: string
-	description: string
+	id: ProjectStatus;
+	label: string;
+	description: string;
 }[] = [
-	{ id: 'active', label: 'Active', description: 'Open for testers' },
-	{ id: 'beta', label: 'Beta', description: 'In beta testing' },
-	{ id: 'paused', label: 'Paused', description: 'Not accepting testers' },
-]
+	{ id: "active", label: "Active", description: "Open for testers" },
+	{ id: "beta", label: "Beta", description: "In beta testing" },
+	{ id: "paused", label: "Paused", description: "Not accepting testers" },
+];
 
 const SUGGESTED_TECH = [
-	'React Native',
-	'Flutter',
-	'Swift',
-	'Kotlin',
-	'React',
-	'Vue',
-	'Angular',
-	'Next.js',
-	'Node.js',
-	'Python',
-	'Go',
-	'Rust',
-	'TypeScript',
-	'Firebase',
-	'AWS',
-	'Docker',
-]
+	"React Native",
+	"Flutter",
+	"Swift",
+	"Kotlin",
+	"React",
+	"Vue",
+	"Angular",
+	"Next.js",
+	"Node.js",
+	"Python",
+	"Go",
+	"Rust",
+	"TypeScript",
+	"Firebase",
+	"AWS",
+	"Docker",
+];
 
 export default function CreateProject() {
-	const [currentStep, setCurrentStep] = useState(0)
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [newTech, setNewTech] = useState('')
+	const [currentStep, setCurrentStep] = useState(0);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [newTech, setNewTech] = useState("");
 	const [formData, setFormData] = useState<ProjectFormData>({
-		name: '',
-		description: '',
-		icon: '',
+		name: "",
+		description: "",
+		icon: "",
 		screenshots: [],
 		techStack: [],
-		status: 'active',
+		status: "active",
 		links: {},
-	})
+	});
 	const [errors, setErrors] = useState<
 		Partial<Record<keyof ProjectFormData, string>>
-	>({})
+	>({});
 
-	const { user } = useAuthStore()
-	const createProjectMutation = useCreateProject()
+	const { user } = useAuthStore();
+	const _createProjectMutation = useCreateProject();
 
 	const updateField = <K extends keyof ProjectFormData>(
 		field: K,
-		value: ProjectFormData[K]
+		value: ProjectFormData[K],
 	) => {
-		setFormData((prev) => ({ ...prev, [field]: value }))
+		setFormData((prev) => ({ ...prev, [field]: value }));
 		if (errors[field]) {
-			setErrors((prev) => ({ ...prev, [field]: undefined }))
+			setErrors((prev) => ({ ...prev, [field]: undefined }));
 		}
-	}
+	};
 
 	const pickIcon = async () => {
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ['images'],
+			mediaTypes: ["images"],
 			allowsEditing: true,
 			aspect: [1, 1],
 			quality: 0.8,
-		})
+		});
 
 		if (!result.canceled) {
-			updateField('icon', result.assets[0].uri)
+			updateField("icon", result.assets[0].uri);
 		}
-	}
+	};
 
 	const pickScreenshots = async () => {
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ['images'],
+			mediaTypes: ["images"],
 			allowsMultipleSelection: true,
 			quality: 0.8,
 			selectionLimit: 5 - formData.screenshots.length,
-		})
+		});
 
 		if (!result.canceled) {
-			const newImages = result.assets.map((asset) => asset.uri)
+			const newImages = result.assets.map((asset) => asset.uri);
 			updateField(
-				'screenshots',
-				[...formData.screenshots, ...newImages].slice(0, 5)
-			)
+				"screenshots",
+				[...formData.screenshots, ...newImages].slice(0, 5),
+			);
 		}
-	}
+	};
 
 	const removeScreenshot = (index: number) => {
 		updateField(
-			'screenshots',
-			formData.screenshots.filter((_, i) => i !== index)
-		)
-	}
+			"screenshots",
+			formData.screenshots.filter((_, i) => i !== index),
+		);
+	};
 
 	const toggleTech = (tech: string) => {
 		if (formData.techStack.includes(tech)) {
 			updateField(
-				'techStack',
-				formData.techStack.filter((t) => t !== tech)
-			)
+				"techStack",
+				formData.techStack.filter((t) => t !== tech),
+			);
 		} else if (formData.techStack.length < 8) {
-			updateField('techStack', [...formData.techStack, tech])
+			updateField("techStack", [...formData.techStack, tech]);
 		}
-	}
+	};
 
 	const addCustomTech = () => {
-		const trimmed = newTech.trim()
+		const trimmed = newTech.trim();
 		if (
 			trimmed &&
 			!formData.techStack.includes(trimmed) &&
 			formData.techStack.length < 8
 		) {
-			updateField('techStack', [...formData.techStack, trimmed])
-			setNewTech('')
+			updateField("techStack", [...formData.techStack, trimmed]);
+			setNewTech("");
 		}
-	}
+	};
 
 	const validateStep = (step: number): boolean => {
-		const newErrors: Partial<Record<keyof ProjectFormData, string>> = {}
+		const newErrors: Partial<Record<keyof ProjectFormData, string>> = {};
 
 		if (step === 0) {
 			if (!formData.name.trim()) {
-				newErrors.name = 'Project name is required'
+				newErrors.name = "Project name is required";
 			} else if (formData.name.length < 3) {
-				newErrors.name = 'Name must be at least 3 characters'
+				newErrors.name = "Name must be at least 3 characters";
 			}
 
 			if (!formData.description.trim()) {
-				newErrors.description = 'Description is required'
+				newErrors.description = "Description is required";
 			} else if (formData.description.length < 20) {
-				newErrors.description = 'Description must be at least 20 characters'
+				newErrors.description = "Description must be at least 20 characters";
 			}
 
 			if (!formData.icon) {
-				newErrors.icon = 'Project icon is required'
+				newErrors.icon = "Project icon is required";
 			}
 		}
 
 		if (step === 1) {
 			if (formData.techStack.length === 0) {
-				newErrors.techStack = 'Select at least one technology'
+				newErrors.techStack = "Select at least one technology";
 			}
 		}
 
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
 	const nextStep = () => {
 		if (validateStep(currentStep)) {
-			setCurrentStep((prev) => Math.min(prev + 1, 2))
+			setCurrentStep((prev) => Math.min(prev + 1, 2));
 		}
-	}
+	};
 
 	const prevStep = () => {
-		setCurrentStep((prev) => Math.max(prev - 1, 0))
-	}
+		setCurrentStep((prev) => Math.max(prev - 1, 0));
+	};
 
 	const handleSubmit = async () => {
-		if (!validateStep(currentStep) || !user) return
+		if (!validateStep(currentStep) || !user) return;
 
-		setIsSubmitting(true)
+		setIsSubmitting(true);
 
 		try {
 			const result = await projectQueries.createProject({
@@ -212,45 +212,45 @@ export default function CreateProject() {
 				status: formData.status,
 				links: formData.links,
 				isPublic: true,
-			})
+			});
 
 			if (result.success && result.data) {
-				addProject(result.data)
+				addProject(result.data);
 				Alert.alert(
-					'Project Created! 🚀',
-					'Your project is now live and ready to receive testers.',
+					"Project Created! 🚀",
+					"Your project is now live and ready to receive testers.",
 					[
 						{
-							text: 'View Project',
-							onPress: () => router.replace('/(tabs)'),
+							text: "View Project",
+							onPress: () => router.replace("/(tabs)"),
 						},
-					]
-				)
+					],
+				);
 			} else {
 				Alert.alert(
-					'Error',
-					result.error || 'Failed to create project. Please try again.'
-				)
+					"Error",
+					result.error || "Failed to create project. Please try again.",
+				);
 			}
 		} catch {
-			Alert.alert('Error', 'Failed to create project. Please try again.')
+			Alert.alert("Error", "Failed to create project. Please try again.");
 		} finally {
-			setIsSubmitting(false)
+			setIsSubmitting(false);
 		}
-	}
+	};
 
 	const renderStep = () => {
 		switch (currentStep) {
 			case 0:
-				return <BasicInfoStep />
+				return <BasicInfoStep />;
 			case 1:
-				return <TechStackStep />
+				return <TechStackStep />;
 			case 2:
-				return <LinksStep />
+				return <LinksStep />;
 			default:
-				return null
+				return null;
 		}
-	}
+	};
 
 	const BasicInfoStep = () => (
 		<Animated.View entering={FadeInUp.duration(600).springify()}>
@@ -262,12 +262,12 @@ export default function CreateProject() {
 						<Image
 							source={{ uri: formData.icon }}
 							style={styles.iconPreview}
-							contentFit='cover'
+							contentFit="cover"
 						/>
 					) : (
 						<>
 							<Ionicons
-								name='image-outline'
+								name="image-outline"
 								size={32}
 								color={Colors.textTertiary}
 							/>
@@ -280,20 +280,20 @@ export default function CreateProject() {
 
 			{/* Project Name */}
 			<Input
-				label='Project Name'
-				placeholder='My Awesome App'
+				label="Project Name"
+				placeholder="My Awesome App"
 				value={formData.name}
-				onChangeText={(text) => updateField('name', text)}
+				onChangeText={(text) => updateField("name", text)}
 				error={errors.name}
 				maxLength={50}
 			/>
 
 			{/* Description */}
 			<Input
-				label='Description'
-				placeholder='Describe what your project does and what kind of feedback you need...'
+				label="Description"
+				placeholder="Describe what your project does and what kind of feedback you need..."
 				value={formData.description}
-				onChangeText={(text) => updateField('description', text)}
+				onChangeText={(text) => updateField("description", text)}
 				error={errors.description}
 				multiline
 				numberOfLines={4}
@@ -304,7 +304,7 @@ export default function CreateProject() {
 			{/* Screenshots */}
 			<View style={styles.screenshotsSection}>
 				<Text style={styles.sectionLabel}>
-					Screenshots{' '}
+					Screenshots{" "}
 					<Text style={styles.optionalLabel}>(optional, max 5)</Text>
 				</Text>
 				<ScrollView
@@ -317,13 +317,13 @@ export default function CreateProject() {
 							<Image
 								source={{ uri }}
 								style={styles.screenshotImage}
-								contentFit='cover'
+								contentFit="cover"
 							/>
 							<Pressable
 								style={styles.removeButton}
 								onPress={() => removeScreenshot(index)}
 							>
-								<Ionicons name='close-circle' size={24} color={Colors.error} />
+								<Ionicons name="close-circle" size={24} color={Colors.error} />
 							</Pressable>
 						</View>
 					))}
@@ -332,13 +332,13 @@ export default function CreateProject() {
 							style={styles.addScreenshotButton}
 							onPress={pickScreenshots}
 						>
-							<Ionicons name='add' size={32} color={Colors.primary} />
+							<Ionicons name="add" size={32} color={Colors.primary} />
 						</Pressable>
 					)}
 				</ScrollView>
 			</View>
 		</Animated.View>
-	)
+	);
 
 	const TechStackStep = () => (
 		<Animated.View entering={FadeInUp.duration(600).springify()}>
@@ -377,15 +377,15 @@ export default function CreateProject() {
 			{/* Custom Tech */}
 			<View style={styles.customTechRow}>
 				<Input
-					placeholder='Add custom technology'
+					placeholder="Add custom technology"
 					value={newTech}
 					onChangeText={setNewTech}
 					style={styles.customTechInput}
 					onSubmitEditing={addCustomTech}
 				/>
 				<Button
-					title='Add'
-					variant='outline'
+					title="Add"
+					variant="outline"
 					onPress={addCustomTech}
 					style={styles.addTechButton}
 				/>
@@ -402,7 +402,7 @@ export default function CreateProject() {
 							<View key={tech} style={styles.selectedChip}>
 								<Text style={styles.selectedChipText}>{tech}</Text>
 								<Pressable onPress={() => toggleTech(tech)}>
-									<Ionicons name='close' size={16} color={Colors.text} />
+									<Ionicons name="close" size={16} color={Colors.text} />
 								</Pressable>
 							</View>
 						))}
@@ -422,7 +422,7 @@ export default function CreateProject() {
 							styles.statusOption,
 							formData.status === option.id && styles.statusOptionSelected,
 						]}
-						onPress={() => updateField('status', option.id)}
+						onPress={() => updateField("status", option.id)}
 					>
 						<View style={styles.statusRadio}>
 							{formData.status === option.id && (
@@ -444,7 +444,7 @@ export default function CreateProject() {
 				))}
 			</View>
 		</Animated.View>
-	)
+	);
 
 	const LinksStep = () => (
 		<Animated.View entering={FadeInUp.duration(600).springify()}>
@@ -454,67 +454,67 @@ export default function CreateProject() {
 			</Text>
 
 			<Input
-				label='Website'
-				placeholder='https://myapp.com'
-				value={formData.links.website || ''}
+				label="Website"
+				placeholder="https://myapp.com"
+				value={formData.links.website || ""}
 				onChangeText={(text) =>
-					updateField('links', { ...formData.links, website: text })
+					updateField("links", { ...formData.links, website: text })
 				}
-				keyboardType='url'
-				leftIcon='globe-outline'
+				keyboardType="url"
+				leftIcon="globe-outline"
 			/>
 
 			<Input
-				label='GitHub Repository'
-				placeholder='https://github.com/user/repo'
-				value={formData.links.github || ''}
+				label="GitHub Repository"
+				placeholder="https://github.com/user/repo"
+				value={formData.links.github || ""}
 				onChangeText={(text) =>
-					updateField('links', { ...formData.links, github: text })
+					updateField("links", { ...formData.links, github: text })
 				}
-				keyboardType='url'
-				leftIcon='logo-github'
+				keyboardType="url"
+				leftIcon="logo-github"
 			/>
 
 			<Input
-				label='TestFlight (iOS)'
-				placeholder='https://testflight.apple.com/...'
-				value={formData.links.testFlight || ''}
+				label="TestFlight (iOS)"
+				placeholder="https://testflight.apple.com/..."
+				value={formData.links.testFlight || ""}
 				onChangeText={(text) =>
-					updateField('links', { ...formData.links, testFlight: text })
+					updateField("links", { ...formData.links, testFlight: text })
 				}
-				keyboardType='url'
-				leftIcon='paper-plane-outline'
+				keyboardType="url"
+				leftIcon="paper-plane-outline"
 			/>
 
 			<Input
-				label='Play Store (Android)'
-				placeholder='https://play.google.com/store/apps/...'
-				value={formData.links.playStore || ''}
+				label="Play Store (Android)"
+				placeholder="https://play.google.com/store/apps/..."
+				value={formData.links.playStore || ""}
 				onChangeText={(text) =>
-					updateField('links', { ...formData.links, playStore: text })
+					updateField("links", { ...formData.links, playStore: text })
 				}
-				keyboardType='url'
-				leftIcon='logo-google-playstore'
+				keyboardType="url"
+				leftIcon="logo-google-playstore"
 			/>
 
 			<Input
-				label='App Store (iOS)'
-				placeholder='https://apps.apple.com/...'
-				value={formData.links.appStore || ''}
+				label="App Store (iOS)"
+				placeholder="https://apps.apple.com/..."
+				value={formData.links.appStore || ""}
 				onChangeText={(text) =>
-					updateField('links', { ...formData.links, appStore: text })
+					updateField("links", { ...formData.links, appStore: text })
 				}
-				keyboardType='url'
-				leftIcon='logo-apple-appstore'
+				keyboardType="url"
+				leftIcon="logo-apple-appstore"
 			/>
 		</Animated.View>
-	)
+	);
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
+		<SafeAreaView style={styles.container} edges={["top"]}>
 			<KeyboardAvoidingView
 				style={styles.keyboardView}
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 			>
 				{/* Header */}
 				<Animated.View
@@ -522,7 +522,7 @@ export default function CreateProject() {
 					style={styles.header}
 				>
 					<Pressable style={styles.backButton} onPress={() => router.back()}>
-						<Ionicons name='close' size={24} color={Colors.text} />
+						<Ionicons name="close" size={24} color={Colors.text} />
 					</Pressable>
 					<Text style={styles.headerTitle}>Create Project</Text>
 					<View style={{ width: 40 }} />
@@ -551,10 +551,10 @@ export default function CreateProject() {
 				>
 					<Text style={styles.stepTitle}>
 						{currentStep === 0
-							? 'Basic Info'
+							? "Basic Info"
 							: currentStep === 1
-							? 'Tech & Status'
-							: 'Links'}
+								? "Tech & Status"
+								: "Links"}
 					</Text>
 					<Text style={styles.stepSubtitle}>Step {currentStep + 1} of 3</Text>
 				</Animated.View>
@@ -564,7 +564,7 @@ export default function CreateProject() {
 					style={styles.scrollView}
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
+					keyboardShouldPersistTaps="handled"
 				>
 					{renderStep()}
 				</ScrollView>
@@ -576,8 +576,8 @@ export default function CreateProject() {
 				>
 					{currentStep > 0 && (
 						<Button
-							title='Back'
-							variant='outline'
+							title="Back"
+							variant="outline"
 							onPress={prevStep}
 							style={styles.navButton}
 						/>
@@ -586,9 +586,9 @@ export default function CreateProject() {
 						title={
 							currentStep === 2
 								? isSubmitting
-									? 'Creating...'
-									: 'Create Project'
-								: 'Continue'
+									? "Creating..."
+									: "Create Project"
+								: "Continue"
 						}
 						onPress={currentStep === 2 ? handleSubmit : nextStep}
 						loading={isSubmitting}
@@ -601,7 +601,7 @@ export default function CreateProject() {
 				</Animated.View>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -613,9 +613,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.lg,
 		paddingVertical: Spacing.sm,
 	},
@@ -624,8 +624,8 @@ const styles = StyleSheet.create({
 		height: 40,
 		borderRadius: 20,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		fontSize: 18,
@@ -635,8 +635,8 @@ const styles = StyleSheet.create({
 
 	// Progress
 	progressContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
+		flexDirection: "row",
+		justifyContent: "center",
 		gap: Spacing.sm,
 		paddingVertical: Spacing.sm,
 	},
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
 
 	// Icon
 	iconSection: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginBottom: Spacing.lg,
 	},
 	iconPicker: {
@@ -714,14 +714,14 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.backgroundSecondary,
 		borderWidth: 2,
 		borderColor: Colors.border,
-		borderStyle: 'dashed',
-		alignItems: 'center',
-		justifyContent: 'center',
-		overflow: 'hidden',
+		borderStyle: "dashed",
+		alignItems: "center",
+		justifyContent: "center",
+		overflow: "hidden",
 	},
 	iconPreview: {
-		width: '100%',
-		height: '100%',
+		width: "100%",
+		height: "100%",
 	},
 	iconPickerText: {
 		fontSize: 12,
@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
 		gap: Spacing.sm,
 	},
 	screenshotWrapper: {
-		position: 'relative',
+		position: "relative",
 	},
 	screenshotImage: {
 		width: 120,
@@ -747,7 +747,7 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.md,
 	},
 	removeButton: {
-		position: 'absolute',
+		position: "absolute",
 		top: -8,
 		right: -8,
 		backgroundColor: Colors.background,
@@ -760,21 +760,21 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.backgroundSecondary,
 		borderWidth: 2,
 		borderColor: Colors.border,
-		borderStyle: 'dashed',
-		alignItems: 'center',
-		justifyContent: 'center',
+		borderStyle: "dashed",
+		alignItems: "center",
+		justifyContent: "center",
 	},
 
 	// Multiline
 	multilineInput: {
 		height: 100,
-		textAlignVertical: 'top',
+		textAlignVertical: "top",
 	},
 
 	// Tech Grid
 	techGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.sm,
 	},
 	techChip: {
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.full,
 		borderWidth: 1,
-		borderColor: 'transparent',
+		borderColor: "transparent",
 	},
 	techChipSelected: {
 		backgroundColor: `${Colors.primary}20`,
@@ -800,10 +800,10 @@ const styles = StyleSheet.create({
 
 	// Custom Tech
 	customTechRow: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 		marginTop: Spacing.md,
-		alignItems: 'flex-end',
+		alignItems: "flex-end",
 	},
 	customTechInput: {
 		flex: 1,
@@ -823,13 +823,13 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	selectedChips: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.xs,
 	},
 	selectedChip: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 		paddingHorizontal: Spacing.sm,
 		paddingVertical: 4,
@@ -847,14 +847,14 @@ const styles = StyleSheet.create({
 		gap: Spacing.sm,
 	},
 	statusOption: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.md,
 		padding: Spacing.md,
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.md,
 		borderWidth: 2,
-		borderColor: 'transparent',
+		borderColor: "transparent",
 	},
 	statusOptionSelected: {
 		borderColor: Colors.primary,
@@ -866,8 +866,8 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		borderWidth: 2,
 		borderColor: Colors.textTertiary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	statusRadioInner: {
 		width: 10,
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
 
 	// Nav Buttons
 	navButtons: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 		paddingHorizontal: Spacing.lg,
 		paddingTop: Spacing.md,
@@ -902,4 +902,4 @@ const styles = StyleSheet.create({
 	navButton: {
 		flex: 1,
 	},
-})
+});

@@ -1,97 +1,105 @@
-import { Avatar, Button, Card } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { mockUsers } from '@/data/mockData'
-import type { User } from '@/interfaces'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { useCallback, useMemo, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
-    FlatList,
-    Pressable,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native'
-import Animated, {
-    FadeInDown,
-    FadeInUp,
-} from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+	FlatList,
+	Pressable,
+	RefreshControl,
+	StyleSheet,
+	Text,
+	TextInput,
+	View,
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar, Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { mockUsers } from "@/data/mockData";
+import type { User } from "@/interfaces";
 
-type FilterRole = 'all' | 'creator' | 'tester' | 'both'
-type SortOption = 'name' | 'feedback' | 'projects' | 'recent'
+type FilterRole = "all" | "creator" | "tester" | "both";
+type SortOption = "name" | "feedback" | "projects" | "recent";
 
 export default function UsersScreen() {
-	const insets = useSafeAreaInsets()
-	const [searchQuery, setSearchQuery] = useState('')
-	const [filterRole, setFilterRole] = useState<FilterRole>('all')
-	const [sortBy, setSortBy] = useState<SortOption>('feedback')
-	const [refreshing, setRefreshing] = useState(false)
+	const insets = useSafeAreaInsets();
+	const [searchQuery, setSearchQuery] = useState("");
+	const [filterRole, setFilterRole] = useState<FilterRole>("all");
+	const [sortBy, setSortBy] = useState<SortOption>("feedback");
+	const [refreshing, setRefreshing] = useState(false);
 
 	const onRefresh = useCallback(async () => {
-		setRefreshing(true)
-		await new Promise((resolve) => setTimeout(resolve, 1000))
-		setRefreshing(false)
-	}, [])
+		setRefreshing(true);
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+		setRefreshing(false);
+	}, []);
 
 	const filteredUsers = useMemo(() => {
-		let filtered = [...mockUsers]
+		let filtered = [...mockUsers];
 
 		// Apply search
 		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase()
+			const query = searchQuery.toLowerCase();
 			filtered = filtered.filter(
 				(u) =>
 					u.displayName?.toLowerCase().includes(query) ||
 					u.username.toLowerCase().includes(query) ||
-					u.bio?.toLowerCase().includes(query)
-			)
+					u.bio?.toLowerCase().includes(query),
+			);
 		}
 
 		// Apply role filter
-		if (filterRole !== 'all') {
-			filtered = filtered.filter((u) => u.role === filterRole)
+		if (filterRole !== "all") {
+			filtered = filtered.filter((u) => u.role === filterRole);
 		}
 
 		// Apply sorting
 		switch (sortBy) {
-			case 'name':
+			case "name":
 				return filtered.sort((a, b) =>
-					(a.displayName || a.username).localeCompare(b.displayName || b.username)
-				)
-			case 'feedback':
-				return filtered.sort((a, b) => b.stats.feedbackGiven - a.stats.feedbackGiven)
-			case 'projects':
-				return filtered.sort((a, b) => b.stats.projectsTested - a.stats.projectsTested)
-			case 'recent':
+					(a.displayName || a.username).localeCompare(
+						b.displayName || b.username,
+					),
+				);
+			case "feedback":
 				return filtered.sort(
-					(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-				)
+					(a, b) => b.stats.feedbackGiven - a.stats.feedbackGiven,
+				);
+			case "projects":
+				return filtered.sort(
+					(a, b) => b.stats.projectsTested - a.stats.projectsTested,
+				);
+			case "recent":
+				return filtered.sort(
+					(a, b) =>
+						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+				);
 			default:
-				return filtered
+				return filtered;
 		}
-	}, [searchQuery, filterRole, sortBy])
+	}, [searchQuery, filterRole, sortBy]);
 
 	const getRoleBadge = (role: string) => {
 		switch (role) {
-			case 'creator':
-				return { label: 'Creator', color: Colors.primary }
-			case 'tester':
-				return { label: 'Tester', color: Colors.success }
-			case 'both':
-				return { label: 'Creator & Tester', color: Colors.warning }
+			case "creator":
+				return { label: "Creator", color: Colors.primary };
+			case "tester":
+				return { label: "Tester", color: Colors.success };
+			case "both":
+				return { label: "Creator & Tester", color: Colors.warning };
 			default:
-				return { label: 'User', color: Colors.textSecondary }
+				return { label: "User", color: Colors.textSecondary };
 		}
-	}
+	};
 
 	const renderUser = ({ item, index }: { item: User; index: number }) => {
-		const roleBadge = getRoleBadge(item.role)
+		const roleBadge = getRoleBadge(item.role);
 
 		return (
-			<Animated.View entering={FadeInDown.duration(400).delay(index * 80).springify()}>
+			<Animated.View
+				entering={FadeInDown.duration(400)
+					.delay(index * 80)
+					.springify()}
+			>
 				<Pressable onPress={() => router.push(`/user/${item.id}`)}>
 					<Card style={styles.userCard}>
 						<View style={styles.userHeader}>
@@ -133,13 +141,17 @@ export default function UsersScreen() {
 						<View style={styles.statsRow}>
 							<View style={styles.statItem}>
 								<Ionicons name="rocket" size={16} color={Colors.primary} />
-								<Text style={styles.statValue}>{item.stats.projectsCreated}</Text>
+								<Text style={styles.statValue}>
+									{item.stats.projectsCreated}
+								</Text>
 								<Text style={styles.statLabel}>Created</Text>
 							</View>
 							<View style={styles.statDivider} />
 							<View style={styles.statItem}>
 								<Ionicons name="flask" size={16} color={Colors.success} />
-								<Text style={styles.statValue}>{item.stats.projectsTested}</Text>
+								<Text style={styles.statValue}>
+									{item.stats.projectsTested}
+								</Text>
 								<Text style={styles.statLabel}>Tested</Text>
 							</View>
 							<View style={styles.statDivider} />
@@ -152,8 +164,8 @@ export default function UsersScreen() {
 					</Card>
 				</Pressable>
 			</Animated.View>
-		)
-	}
+		);
+	};
 
 	const ListHeader = () => (
 		<>
@@ -176,8 +188,12 @@ export default function UsersScreen() {
 					onChangeText={setSearchQuery}
 				/>
 				{searchQuery.length > 0 && (
-					<Pressable onPress={() => setSearchQuery('')}>
-						<Ionicons name="close-circle" size={20} color={Colors.textTertiary} />
+					<Pressable onPress={() => setSearchQuery("")}>
+						<Ionicons
+							name="close-circle"
+							size={20}
+							color={Colors.textTertiary}
+						/>
 					</Pressable>
 				)}
 			</Animated.View>
@@ -187,10 +203,10 @@ export default function UsersScreen() {
 				<FlatList
 					horizontal
 					data={[
-						{ id: 'all', label: 'All' },
-						{ id: 'creator', label: 'Creators' },
-						{ id: 'tester', label: 'Testers' },
-						{ id: 'both', label: 'Both' },
+						{ id: "all", label: "All" },
+						{ id: "creator", label: "Creators" },
+						{ id: "tester", label: "Testers" },
+						{ id: "both", label: "Both" },
 					]}
 					keyExtractor={(item) => item.id}
 					showsHorizontalScrollIndicator={false}
@@ -222,14 +238,14 @@ export default function UsersScreen() {
 				style={styles.sortContainer}
 			>
 				<Text style={styles.resultsCount}>
-					{filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}
+					{filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""}
 				</Text>
 				<View style={styles.sortOptions}>
 					{(
 						[
-							{ id: 'feedback', label: 'Feedback' },
-							{ id: 'projects', label: 'Projects' },
-							{ id: 'name', label: 'Name' },
+							{ id: "feedback", label: "Feedback" },
+							{ id: "projects", label: "Projects" },
+							{ id: "name", label: "Name" },
 						] as { id: SortOption; label: string }[]
 					).map((option) => (
 						<Pressable
@@ -253,7 +269,7 @@ export default function UsersScreen() {
 				</View>
 			</Animated.View>
 		</>
-	)
+	);
 
 	const ListEmpty = () => (
 		<View style={styles.emptyContainer}>
@@ -264,18 +280,18 @@ export default function UsersScreen() {
 			<Text style={styles.emptyDescription}>
 				{searchQuery
 					? `No users match "${searchQuery}". Try different keywords.`
-					: 'No users found with the selected filter.'}
+					: "No users found with the selected filter."}
 			</Text>
 			{searchQuery && (
 				<Button
 					title="Clear Search"
 					variant="outline"
-					onPress={() => setSearchQuery('')}
+					onPress={() => setSearchQuery("")}
 					style={styles.emptyButton}
 				/>
 			)}
 		</View>
-	)
+	);
 
 	return (
 		<View style={[styles.container, { paddingTop: insets.top }]}>
@@ -286,7 +302,9 @@ export default function UsersScreen() {
 			>
 				<View>
 					<Text style={styles.headerTitle}>Community</Text>
-					<Text style={styles.headerSubtitle}>Connect with testers & creators</Text>
+					<Text style={styles.headerSubtitle}>
+						Connect with testers & creators
+					</Text>
 				</View>
 			</Animated.View>
 
@@ -307,7 +325,7 @@ export default function UsersScreen() {
 				}
 			/>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -337,8 +355,8 @@ const styles = StyleSheet.create({
 
 	// Search
 	searchContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.md,
 		paddingHorizontal: Spacing.md,
@@ -380,9 +398,9 @@ const styles = StyleSheet.create({
 
 	// Sort
 	sortContainer: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		marginBottom: Spacing.md,
 	},
 	resultsCount: {
@@ -391,7 +409,7 @@ const styles = StyleSheet.create({
 		color: Colors.textSecondary,
 	},
 	sortOptions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.xs,
 	},
 	sortOption: {
@@ -416,8 +434,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 	},
 	userHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 	},
 	userInfo: {
 		flex: 1,
@@ -435,7 +453,7 @@ const styles = StyleSheet.create({
 		marginTop: 2,
 	},
 	roleBadge: {
-		alignSelf: 'flex-start',
+		alignSelf: "flex-start",
 		paddingHorizontal: Spacing.sm,
 		paddingVertical: 2,
 		borderRadius: BorderRadius.sm,
@@ -450,8 +468,8 @@ const styles = StyleSheet.create({
 		height: 40,
 		borderRadius: 20,
 		backgroundColor: `${Colors.primary}15`,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	userBio: {
 		fontSize: 14,
@@ -461,7 +479,7 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 	},
 	statsRow: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		marginTop: Spacing.md,
 		paddingTop: Spacing.md,
 		borderTopWidth: 1,
@@ -469,9 +487,9 @@ const styles = StyleSheet.create({
 	},
 	statItem: {
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: 4,
 	},
 	statValue: {
@@ -491,7 +509,7 @@ const styles = StyleSheet.create({
 
 	// Empty
 	emptyContainer: {
-		alignItems: 'center',
+		alignItems: "center",
 		paddingTop: 60,
 		paddingHorizontal: Spacing.lg,
 	},
@@ -500,8 +518,8 @@ const styles = StyleSheet.create({
 		height: 120,
 		borderRadius: 60,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginBottom: Spacing.lg,
 	},
 	emptyTitle: {
@@ -514,11 +532,11 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		lineHeight: 22,
 		marginBottom: Spacing.lg,
 	},
 	emptyButton: {
 		minWidth: 150,
 	},
-})
+});

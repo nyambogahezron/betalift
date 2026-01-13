@@ -1,12 +1,7 @@
-import { Avatar, Badge, Button, Card, ProjectStatusBadge } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { useProjectFeedback } from '@/queries/feedbackQueries'
-import { useProject } from '@/queries/projectQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { Image } from 'expo-image'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
@@ -16,7 +11,7 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
+} from "react-native";
 import Animated, {
 	Extrapolation,
 	FadeInUp,
@@ -24,48 +19,59 @@ import Animated, {
 	useAnimatedScrollHandler,
 	useAnimatedStyle,
 	useSharedValue,
-} from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+	Avatar,
+	Badge,
+	Button,
+	Card,
+	ProjectStatusBadge,
+} from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { useProjectFeedback } from "@/queries/feedbackQueries";
+import { useProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const HEADER_MAX_HEIGHT = 280
-const HEADER_MIN_HEIGHT = 100
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const HEADER_MAX_HEIGHT = 280;
+const HEADER_MIN_HEIGHT = 100;
 
 export default function ProjectDetail() {
-	const { id } = useLocalSearchParams<{ id: string }>()
-	const [activeImageIndex, setActiveImageIndex] = useState(0)
-	const [isJoining, setIsJoining] = useState(false)
-	const insets = useSafeAreaInsets()
-	const scrollY = useSharedValue(0)
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const [activeImageIndex, setActiveImageIndex] = useState(0);
+	const [isJoining, setIsJoining] = useState(false);
+	const insets = useSafeAreaInsets();
+	const scrollY = useSharedValue(0);
 
-	const { user } = useAuthStore()
-	const { data: project } = useProject(id || '')
-	const { data: feedbackData } = useProjectFeedback(id || '', {
+	const { user } = useAuthStore();
+	const { data: project } = useProject(id || "");
+	const { data: feedbackData } = useProjectFeedback(id || "", {
 		page: 1,
 		limit: 10,
-	})
+	});
 
 	const projectFeedbacks = useMemo(() => {
-		return feedbackData?.feedback || feedbackData || []
-	}, [feedbackData])
+		return feedbackData?.feedback || feedbackData || [];
+	}, [feedbackData]);
 
-	const isOwner = project?.ownerId === user?.id
+	const isOwner = project?.ownerId === user?.id;
 	const isTester = project?.members?.some(
-		(m: any) => m.user?._id === user?.id || m.userId === user?.id
-	)
+		(m: any) => m.user?._id === user?.id || m.userId === user?.id,
+	);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y
+			scrollY.value = event.contentOffset.y;
 		},
-	})
+	});
 
 	useEffect(() => {
 		if (id) {
-			fetchFeedbacks(id)
+			fetchFeedbacks(id);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [id])
+	}, [id]);
 
 	// Animated styles for header
 	const headerAnimatedStyle = useAnimatedStyle(() => {
@@ -73,32 +79,32 @@ export default function ProjectDetail() {
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-			Extrapolation.CLAMP
-		)
-		return { height }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { height };
+	});
 
 	const imageAnimatedStyle = useAnimatedStyle(() => {
 		const translateY = interpolate(
 			scrollY.value,
 			[-100, 0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[-50, 0, 50],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const scale = interpolate(
 			scrollY.value,
 			[-100, 0],
 			[1.5, 1],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const opacity = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT - 50],
 			[1, 0],
-			Extrapolation.CLAMP
-		)
-		return { transform: [{ translateY }, { scale }], opacity }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { transform: [{ translateY }, { scale }], opacity };
+	});
 
 	const titleAnimatedStyle = useAnimatedStyle(() => {
 		const opacity = interpolate(
@@ -108,76 +114,76 @@ export default function ProjectDetail() {
 				HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT,
 			],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
-		return { opacity }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity };
+	});
 
 	const navBgStyle = useAnimatedStyle(() => {
 		const opacity = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT - 50],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
-		return { backgroundColor: `rgba(23, 23, 23, ${opacity})` }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { backgroundColor: `rgba(23, 23, 23, ${opacity})` };
+	});
 
 	const handleJoinProject = async () => {
-		if (!user?.id || !project) return
+		if (!user?.id || !project) return;
 
-		setIsJoining(true)
+		setIsJoining(true);
 		try {
-			await joinProject(project.id, user.id)
+			await joinProject(project.id, user.id);
 			Alert.alert(
-				'Request Sent!',
-				`Your request to join ${project.name} has been submitted. You'll be notified once approved.`
-			)
+				"Request Sent!",
+				`Your request to join ${project.name} has been submitted. You'll be notified once approved.`,
+			);
 		} catch {
-			Alert.alert('Error', 'Failed to join project. Please try again.')
+			Alert.alert("Error", "Failed to join project. Please try again.");
 		} finally {
-			setIsJoining(false)
+			setIsJoining(false);
 		}
-	}
+	};
 
 	const handleLeaveProject = () => {
-		if (!user?.id || !project) return
+		if (!user?.id || !project) return;
 
 		Alert.alert(
-			'Leave Project',
+			"Leave Project",
 			`Are you sure you want to leave ${project.name}?`,
 			[
-				{ text: 'Cancel', style: 'cancel' },
+				{ text: "Cancel", style: "cancel" },
 				{
-					text: 'Leave',
-					style: 'destructive',
+					text: "Leave",
+					style: "destructive",
 					onPress: async () => {
-						await leaveProject(project.id, user.id)
+						await leaveProject(project.id, user.id);
 					},
 				},
-			]
-		)
-	}
+			],
+		);
+	};
 
 	const openLink = (url: string) => {
 		Linking.openURL(url).catch(() => {
-			Alert.alert('Error', 'Could not open link')
-		})
-	}
+			Alert.alert("Error", "Could not open link");
+		});
+	};
 
 	if (!project) {
 		return (
 			<View style={[styles.container, { paddingTop: insets.top }]}>
 				<View style={styles.loadingContainer}>
-					<ActivityIndicator size='large' color={Colors.primary} />
+					<ActivityIndicator size="large" color={Colors.primary} />
 				</View>
 			</View>
-		)
+		);
 	}
 
 	const images = project.screenshots?.length
 		? project.screenshots
-		: [project.icon]
+		: [project.icon];
 
 	return (
 		<View style={styles.container}>
@@ -191,9 +197,9 @@ export default function ProjectDetail() {
 						showsHorizontalScrollIndicator={false}
 						onScroll={(e) => {
 							const index = Math.round(
-								e.nativeEvent.contentOffset.x / SCREEN_WIDTH
-							)
-							setActiveImageIndex(index)
+								e.nativeEvent.contentOffset.x / SCREEN_WIDTH,
+							);
+							setActiveImageIndex(index);
 						}}
 						scrollEventThrottle={16}
 					>
@@ -202,7 +208,7 @@ export default function ProjectDetail() {
 								key={index}
 								source={{ uri }}
 								style={styles.galleryImage}
-								contentFit='cover'
+								contentFit="cover"
 								transition={300}
 							/>
 						))}
@@ -236,7 +242,7 @@ export default function ProjectDetail() {
 					]}
 				>
 					<Pressable style={styles.navButton} onPress={() => router.back()}>
-						<Ionicons name='arrow-back' size={24} color={Colors.text} />
+						<Ionicons name="arrow-back" size={24} color={Colors.text} />
 					</Pressable>
 
 					<Animated.Text
@@ -248,7 +254,7 @@ export default function ProjectDetail() {
 
 					<View style={styles.headerActions}>
 						<Pressable style={styles.navButton}>
-							<Ionicons name='share-outline' size={22} color={Colors.text} />
+							<Ionicons name="share-outline" size={22} color={Colors.text} />
 						</Pressable>
 						{isOwner && (
 							<Pressable
@@ -256,7 +262,7 @@ export default function ProjectDetail() {
 								onPress={() => router.push(`/project/${id}/edit`)}
 							>
 								<Ionicons
-									name='settings-outline'
+									name="settings-outline"
 									size={22}
 									color={Colors.text}
 								/>
@@ -286,7 +292,7 @@ export default function ProjectDetail() {
 						<Image
 							source={{ uri: project.icon }}
 							style={styles.projectIcon}
-							contentFit='cover'
+							contentFit="cover"
 						/>
 						<View style={styles.projectTitleContainer}>
 							<Text style={styles.projectName}>{project.name}</Text>
@@ -299,7 +305,7 @@ export default function ProjectDetail() {
 					{/* Tech Stack */}
 					<View style={styles.techStack}>
 						{project.techStack.map((tech) => (
-							<Badge key={tech} label={tech} size='sm' />
+							<Badge key={tech} label={tech} size="sm" />
 						))}
 					</View>
 				</Animated.View>
@@ -311,7 +317,7 @@ export default function ProjectDetail() {
 							<Avatar
 								source={project.ownerAvatar}
 								name={project.ownerName}
-								size='md'
+								size="md"
 							/>
 							<View style={styles.ownerDetails}>
 								<Text style={styles.ownerName}>{project.ownerName}</Text>
@@ -321,7 +327,7 @@ export default function ProjectDetail() {
 						{!isOwner && (
 							<Pressable style={styles.messageButton}>
 								<Ionicons
-									name='chatbubble-outline'
+									name="chatbubble-outline"
 									size={20}
 									color={Colors.primary}
 								/>
@@ -336,21 +342,21 @@ export default function ProjectDetail() {
 					style={styles.statsContainer}
 				>
 					<View style={styles.statItem}>
-						<Ionicons name='people' size={22} color={Colors.primary} />
+						<Ionicons name="people" size={22} color={Colors.primary} />
 						<Text style={styles.statValue}>{project.testerCount}</Text>
 						<Text style={styles.statLabel}>Testers</Text>
 					</View>
 					<View style={styles.statDivider} />
 					<View style={styles.statItem}>
-						<Ionicons name='chatbubbles' size={22} color={Colors.success} />
+						<Ionicons name="chatbubbles" size={22} color={Colors.success} />
 						<Text style={styles.statValue}>{project.feedbackCount}</Text>
 						<Text style={styles.statLabel}>Feedback</Text>
 					</View>
 					<View style={styles.statDivider} />
 					<View style={styles.statItem}>
-						<Ionicons name='star' size={22} color={Colors.warning} />
+						<Ionicons name="star" size={22} color={Colors.warning} />
 						<Text style={styles.statValue}>
-							{project.rating?.toFixed(1) || 'N/A'}
+							{project.rating?.toFixed(1) || "N/A"}
 						</Text>
 						<Text style={styles.statLabel}>Rating</Text>
 					</View>
@@ -366,16 +372,16 @@ export default function ProjectDetail() {
 							{project.links.website && (
 								<Pressable
 									style={styles.linkItem}
-									onPress={() => openLink(project.links!.website!)}
+									onPress={() => openLink(project.links?.website!)}
 								>
 									<Ionicons
-										name='globe-outline'
+										name="globe-outline"
 										size={20}
 										color={Colors.primary}
 									/>
 									<Text style={styles.linkText}>Website</Text>
 									<Ionicons
-										name='open-outline'
+										name="open-outline"
 										size={18}
 										color={Colors.textTertiary}
 									/>
@@ -384,12 +390,12 @@ export default function ProjectDetail() {
 							{project.links.github && (
 								<Pressable
 									style={styles.linkItem}
-									onPress={() => openLink(project.links!.github!)}
+									onPress={() => openLink(project.links?.github!)}
 								>
-									<Ionicons name='logo-github' size={20} color={Colors.text} />
+									<Ionicons name="logo-github" size={20} color={Colors.text} />
 									<Text style={styles.linkText}>GitHub</Text>
 									<Ionicons
-										name='open-outline'
+										name="open-outline"
 										size={18}
 										color={Colors.textTertiary}
 									/>
@@ -398,16 +404,16 @@ export default function ProjectDetail() {
 							{project.links.appStore && (
 								<Pressable
 									style={styles.linkItem}
-									onPress={() => openLink(project.links!.appStore!)}
+									onPress={() => openLink(project.links?.appStore!)}
 								>
 									<Ionicons
-										name='logo-apple-appstore'
+										name="logo-apple-appstore"
 										size={20}
 										color={Colors.primary}
 									/>
 									<Text style={styles.linkText}>App Store</Text>
 									<Ionicons
-										name='open-outline'
+										name="open-outline"
 										size={18}
 										color={Colors.textTertiary}
 									/>
@@ -416,16 +422,16 @@ export default function ProjectDetail() {
 							{project.links.playStore && (
 								<Pressable
 									style={styles.linkItem}
-									onPress={() => openLink(project.links!.playStore!)}
+									onPress={() => openLink(project.links?.playStore!)}
 								>
 									<Ionicons
-										name='logo-google-playstore'
+										name="logo-google-playstore"
 										size={20}
 										color={Colors.success}
 									/>
 									<Text style={styles.linkText}>Play Store</Text>
 									<Ionicons
-										name='open-outline'
+										name="open-outline"
 										size={18}
 										color={Colors.textTertiary}
 									/>
@@ -434,16 +440,16 @@ export default function ProjectDetail() {
 							{project.links.testFlight && (
 								<Pressable
 									style={styles.linkItem}
-									onPress={() => openLink(project.links!.testFlight!)}
+									onPress={() => openLink(project.links?.testFlight!)}
 								>
 									<Ionicons
-										name='paper-plane-outline'
+										name="paper-plane-outline"
 										size={20}
 										color={Colors.primary}
 									/>
 									<Text style={styles.linkText}>TestFlight</Text>
 									<Ionicons
-										name='open-outline'
+										name="open-outline"
 										size={18}
 										color={Colors.textTertiary}
 									/>
@@ -456,13 +462,13 @@ export default function ProjectDetail() {
 								onPress={() => router.push(`/project/${id}/releases`)}
 							>
 								<Ionicons
-									name='rocket-outline'
+									name="rocket-outline"
 									size={20}
 									color={Colors.warning}
 								/>
 								<Text style={styles.linkText}>Releases</Text>
 								<Ionicons
-									name='chevron-forward'
+									name="chevron-forward"
 									size={18}
 									color={Colors.textTertiary}
 								/>
@@ -471,10 +477,10 @@ export default function ProjectDetail() {
 								style={styles.linkItem}
 								onPress={() => router.push(`/project/${id}/members`)}
 							>
-								<Ionicons name='people-outline' size={20} color={Colors.info} />
+								<Ionicons name="people-outline" size={20} color={Colors.info} />
 								<Text style={styles.linkText}>Members</Text>
 								<Ionicons
-									name='chevron-forward'
+									name="chevron-forward"
 									size={18}
 									color={Colors.textTertiary}
 								/>
@@ -504,24 +510,24 @@ export default function ProjectDetail() {
 									<Badge
 										label={feedback.type}
 										variant={
-											feedback.type === 'bug'
-												? 'error'
-												: feedback.type === 'feature'
-												? 'purple'
-												: 'default'
+											feedback.type === "bug"
+												? "error"
+												: feedback.type === "feature"
+													? "purple"
+													: "default"
 										}
-										size='sm'
+										size="sm"
 									/>
 									<Badge
 										label={feedback.status}
 										variant={
-											feedback.status === 'resolved'
-												? 'success'
-												: feedback.status === 'in-progress'
-												? 'warning'
-												: 'default'
+											feedback.status === "resolved"
+												? "success"
+												: feedback.status === "in-progress"
+													? "warning"
+													: "default"
 										}
-										size='sm'
+										size="sm"
 									/>
 								</View>
 								<Text style={styles.feedbackTitle} numberOfLines={1}>
@@ -550,12 +556,12 @@ export default function ProjectDetail() {
 				{isOwner ? (
 					<View style={styles.ownerActions}>
 						<Button
-							title='View Feedback'
-							variant='outline'
+							title="View Feedback"
+							variant="outline"
 							onPress={() => router.push(`/feedback/${id}`)}
 							style={styles.ownerButton}
 							icon={
-								<Ionicons name='chatbubbles' size={18} color={Colors.primary} />
+								<Ionicons name="chatbubbles" size={18} color={Colors.primary} />
 							}
 						/>
 						{/* <Button
@@ -565,42 +571,42 @@ export default function ProjectDetail() {
 							icon={<Ionicons name='people' size={18} color={Colors.text} />}
 						/> */}
 						<Button
-							title='Manage Testers'
-							onPress={() => router.push('/users')}
+							title="Manage Testers"
+							onPress={() => router.push("/users")}
 							style={styles.ownerButton}
-							icon={<Ionicons name='people' size={18} color={Colors.text} />}
+							icon={<Ionicons name="people" size={18} color={Colors.text} />}
 						/>
 					</View>
 				) : isTester ? (
 					<View style={styles.testerActions}>
 						<Button
-							title='Leave Project'
-							variant='outline'
+							title="Leave Project"
+							variant="outline"
 							onPress={handleLeaveProject}
 							style={styles.leaveButton}
 						/>
 						<Button
-							title='Submit Feedback'
+							title="Submit Feedback"
 							onPress={() => router.push(`/feedback/create?projectId=${id}`)}
 							style={styles.feedbackButton}
-							icon={<Ionicons name='add' size={20} color={Colors.text} />}
+							icon={<Ionicons name="add" size={20} color={Colors.text} />}
 						/>
 					</View>
 				) : (
 					<Button
-						title={isJoining ? 'Requesting...' : 'Request to Join'}
+						title={isJoining ? "Requesting..." : "Request to Join"}
 						onPress={handleJoinProject}
 						loading={isJoining}
 						icon={
 							!isJoining && (
-								<Ionicons name='enter-outline' size={20} color={Colors.text} />
+								<Ionicons name="enter-outline" size={20} color={Colors.text} />
 							)
 						}
 					/>
 				)}
 			</Animated.View>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -610,8 +616,8 @@ const styles = StyleSheet.create({
 	},
 	loadingContainer: {
 		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	scrollView: {
 		flex: 1,
@@ -622,12 +628,12 @@ const styles = StyleSheet.create({
 
 	// Header
 	header: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
 		zIndex: 100,
-		overflow: 'hidden',
+		overflow: "hidden",
 	},
 	imageGallery: {
 		...StyleSheet.absoluteFillObject,
@@ -637,10 +643,10 @@ const styles = StyleSheet.create({
 		height: HEADER_MAX_HEIGHT,
 	},
 	pagination: {
-		flexDirection: 'row',
-		justifyContent: 'center',
+		flexDirection: "row",
+		justifyContent: "center",
 		gap: 6,
-		position: 'absolute',
+		position: "absolute",
 		bottom: 60,
 		left: 0,
 		right: 0,
@@ -649,7 +655,7 @@ const styles = StyleSheet.create({
 		width: 8,
 		height: 8,
 		borderRadius: 4,
-		backgroundColor: 'rgba(255,255,255,0.5)',
+		backgroundColor: "rgba(255,255,255,0.5)",
 	},
 	paginationDotActive: {
 		backgroundColor: Colors.text,
@@ -657,16 +663,16 @@ const styles = StyleSheet.create({
 	},
 	gradientOverlay: {
 		...StyleSheet.absoluteFillObject,
-		backgroundColor: 'rgba(0,0,0,0.2)',
+		backgroundColor: "rgba(0,0,0,0.2)",
 	},
 	navBar: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.md,
 		paddingBottom: Spacing.sm,
 	},
@@ -674,20 +680,20 @@ const styles = StyleSheet.create({
 		width: 40,
 		height: 40,
 		borderRadius: 20,
-		backgroundColor: 'rgba(0,0,0,0.3)',
-		alignItems: 'center',
-		justifyContent: 'center',
+		backgroundColor: "rgba(0,0,0,0.3)",
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		flex: 1,
 		fontSize: 18,
 		fontFamily: Fonts.semibold,
 		color: Colors.text,
-		textAlign: 'center',
+		textAlign: "center",
 		marginHorizontal: Spacing.sm,
 	},
 	headerActions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.xs,
 	},
 
@@ -696,8 +702,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.lg,
 	},
 	projectHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginBottom: Spacing.md,
 	},
 	projectIcon: {
@@ -722,8 +728,8 @@ const styles = StyleSheet.create({
 		lineHeight: 22,
 	},
 	techStack: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.xs,
 		marginTop: Spacing.md,
 	},
@@ -731,13 +737,13 @@ const styles = StyleSheet.create({
 	// Owner Card
 	ownerCard: {
 		marginBottom: Spacing.lg,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 	},
 	ownerInfo: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 	},
 	ownerDetails: {
 		marginLeft: Spacing.md,
@@ -757,13 +763,13 @@ const styles = StyleSheet.create({
 		height: 44,
 		borderRadius: 22,
 		backgroundColor: `${Colors.primary}15`,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 
 	// Stats
 	statsContainer: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		backgroundColor: Colors.card,
 		marginBottom: Spacing.lg,
 		borderRadius: BorderRadius.md,
@@ -771,7 +777,7 @@ const styles = StyleSheet.create({
 	},
 	statItem: {
 		flex: 1,
-		alignItems: 'center',
+		alignItems: "center",
 	},
 	statValue: {
 		fontSize: 20,
@@ -791,9 +797,9 @@ const styles = StyleSheet.create({
 
 	// Section
 	sectionHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		marginBottom: Spacing.sm,
 	},
 	sectionTitle: {
@@ -814,8 +820,8 @@ const styles = StyleSheet.create({
 		padding: 0,
 	},
 	linkItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		padding: Spacing.md,
 		borderBottomWidth: 1,
 		borderBottomColor: Colors.border,
@@ -838,7 +844,7 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	feedbackHeader: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.xs,
 		marginBottom: Spacing.xs,
 	},
@@ -857,7 +863,7 @@ const styles = StyleSheet.create({
 
 	// Bottom Action
 	bottomAction: {
-		position: 'absolute',
+		position: "absolute",
 		bottom: 0,
 		left: 0,
 		right: 0,
@@ -869,14 +875,14 @@ const styles = StyleSheet.create({
 		paddingBottom: Spacing.xl,
 	},
 	ownerActions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	ownerButton: {
 		flex: 1,
 	},
 	testerActions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	leaveButton: {
@@ -885,4 +891,4 @@ const styles = StyleSheet.create({
 	feedbackButton: {
 		flex: 0.6,
 	},
-})
+});

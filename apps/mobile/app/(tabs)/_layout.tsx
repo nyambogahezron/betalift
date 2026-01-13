@@ -1,10 +1,8 @@
-import { Tabs } from 'expo-router'
-import React from 'react'
-
-import { HapticTab } from '@/components/haptic-tab'
-import { Colors, Fonts } from '@/constants/theme'
-import { Feather, Ionicons } from '@expo/vector-icons'
-import { Platform, StyleSheet } from 'react-native'
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { Platform, StyleSheet } from "react-native";
+import { HapticTab } from "@/components/haptic-tab";
+import { Colors, Fonts } from "@/constants/theme";
 
 export default function TabLayout() {
 	return (
@@ -19,21 +17,21 @@ export default function TabLayout() {
 			}}
 		>
 			<Tabs.Screen
-				name='index'
+				name="index"
 				options={{
-					title: 'Home',
+					title: "Home",
 					tabBarIcon: ({ color, focused }) => (
-						<Feather name={focused ? 'home' : 'home'} size={24} color={color} />
+						<Feather name={focused ? "home" : "home"} size={24} color={color} />
 					),
 				}}
 			/>
 			<Tabs.Screen
-				name='explore'
+				name="explore"
 				options={{
-					title: 'Explore',
+					title: "Explore",
 					tabBarIcon: ({ color, focused }) => (
 						<Ionicons
-							name={focused ? 'compass' : 'compass-outline'}
+							name={focused ? "compass" : "compass-outline"}
 							size={24}
 							color={color}
 						/>
@@ -41,12 +39,12 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name='profile'
+				name="profile"
 				options={{
-					title: 'Profile',
+					title: "Profile",
 					tabBarIcon: ({ color, focused }) => (
 						<Ionicons
-							name={focused ? 'person' : 'person-outline'}
+							name={focused ? "person" : "person-outline"}
 							size={24}
 							color={color}
 						/>
@@ -54,16 +52,16 @@ export default function TabLayout() {
 				}}
 			/>
 		</Tabs>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	tabBar: {
 		backgroundColor: Colors.backgroundSecondary,
-		height: Platform.OS === 'ios' ? 88 : 115,
+		height: Platform.OS === "ios" ? 88 : 115,
 		paddingTop: 8,
-		paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-		borderColor: 'transparent',
+		paddingBottom: Platform.OS === "ios" ? 28 : 8,
+		borderColor: "transparent",
 		borderWidth: 0,
 	},
 	tabBarLabel: {
@@ -71,4 +69,4 @@ const styles = StyleSheet.create({
 		fontSize: 11,
 		marginTop: 2,
 	},
-})
+});

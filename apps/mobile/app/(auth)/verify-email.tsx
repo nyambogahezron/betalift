@@ -1,9 +1,6 @@
-import { Button, Input } from '@/components/ui'
-import { Colors, FontSizes, Spacing } from '@/constants/theme'
-import { useVerifyEmail } from '@/queries/authQueries'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -13,50 +10,53 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Input } from "@/components/ui";
+import { Colors, FontSizes, Spacing } from "@/constants/theme";
+import { useVerifyEmail } from "@/queries/authQueries";
 
 export default function VerifyEmail() {
-	const [token, setToken] = useState('')
-	const [error, setError] = useState('')
-	const verifyEmailMutation = useVerifyEmail()
+	const [token, setToken] = useState("");
+	const [error, setError] = useState("");
+	const verifyEmailMutation = useVerifyEmail();
 
 	const handleVerify = async () => {
 		if (!token.trim()) {
-			setError('Verification code is required')
-			return
+			setError("Verification code is required");
+			return;
 		}
 
-		setError('')
+		setError("");
 
 		try {
-			await verifyEmailMutation.mutateAsync({ token: token.trim() })
+			await verifyEmailMutation.mutateAsync({ token: token.trim() });
 			Alert.alert(
-				'Success',
-				'Email verified successfully! You can now login.',
+				"Success",
+				"Email verified successfully! You can now login.",
 				[
 					{
-						text: 'OK',
-						onPress: () => router.replace('/(auth)/login'),
+						text: "OK",
+						onPress: () => router.replace("/(auth)/login"),
 					},
-				]
-			)
+				],
+			);
 		} catch (error) {
-			setError(error instanceof Error ? error.message : 'Verification failed')
+			setError(error instanceof Error ? error.message : "Verification failed");
 		}
-	}
+	};
 
 	return (
 		<SafeAreaView style={styles.container}>
 			<KeyboardAvoidingView
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardView}
 			>
 				<ScrollView
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
+					keyboardShouldPersistTaps="handled"
 				>
 					{/* Header */}
 					<Animated.View
@@ -64,11 +64,11 @@ export default function VerifyEmail() {
 						style={styles.header}
 					>
 						<Pressable style={styles.backButton} onPress={() => router.back()}>
-							<Ionicons name='arrow-back' size={24} color={Colors.text} />
+							<Ionicons name="arrow-back" size={24} color={Colors.text} />
 						</Pressable>
 
 						<View style={styles.iconContainer}>
-							<Ionicons name='mail-outline' size={64} color={Colors.primary} />
+							<Ionicons name="mail-outline" size={64} color={Colors.primary} />
 						</View>
 
 						<Text style={styles.title}>Verify Your Email</Text>
@@ -83,20 +83,20 @@ export default function VerifyEmail() {
 						style={styles.form}
 					>
 						<Input
-							label='Verification Code'
-							placeholder='Enter verification code'
+							label="Verification Code"
+							placeholder="Enter verification code"
 							value={token}
 							onChangeText={(text) => {
-								setToken(text)
-								setError('')
+								setToken(text);
+								setError("");
 							}}
-							autoCapitalize='none'
+							autoCapitalize="none"
 							error={error}
-							leftIcon='key-outline'
+							leftIcon="key-outline"
 						/>
 
 						<Button
-							title='Verify Email'
+							title="Verify Email"
 							onPress={handleVerify}
 							loading={verifyEmailMutation.isPending}
 							style={styles.button}
@@ -105,7 +105,7 @@ export default function VerifyEmail() {
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -121,11 +121,11 @@ const styles = StyleSheet.create({
 		padding: Spacing.lg,
 	},
 	header: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginBottom: Spacing.xl,
 	},
 	backButton: {
-		alignSelf: 'flex-start',
+		alignSelf: "flex-start",
 		padding: Spacing.sm,
 		marginBottom: Spacing.lg,
 	},
@@ -134,15 +134,15 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: FontSizes.xxl,
-		fontWeight: '700',
+		fontWeight: "700",
 		color: Colors.text,
 		marginBottom: Spacing.sm,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	subtitle: {
 		fontSize: FontSizes.md,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		lineHeight: 22,
 	},
 	form: {
@@ -152,12 +152,12 @@ const styles = StyleSheet.create({
 		marginTop: Spacing.md,
 	},
 	backToLoginButton: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginTop: Spacing.lg,
 	},
 	backToLoginText: {
 		color: Colors.primary,
 		fontSize: FontSizes.md,
-		fontWeight: '600',
+		fontWeight: "600",
 	},
-})
+});

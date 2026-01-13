@@ -1,13 +1,7 @@
-import { Avatar, Badge, Button, Card } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { Feedback, FeedbackStatus, FeedbackType } from '@/interfaces'
-import { useProjectFeedback, useVoteFeedback } from '@/queries/feedbackQueries'
-import { useProject } from '@/queries/projectQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { Image } from 'expo-image'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
@@ -16,100 +10,106 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Avatar, Badge, Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Feedback, FeedbackStatus, FeedbackType } from "@/interfaces";
+import { useProjectFeedback, useVoteFeedback } from "@/queries/feedbackQueries";
+import { useProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-type FilterType = 'all' | FeedbackType
-type FilterStatus = 'all' | FeedbackStatus
+type FilterType = "all" | FeedbackType;
+type FilterStatus = "all" | FeedbackStatus;
 
 const TYPE_FILTERS: { id: FilterType; label: string }[] = [
-	{ id: 'all', label: 'All' },
-	{ id: 'bug', label: 'Bugs' },
-	{ id: 'feature', label: 'Features' },
-	{ id: 'improvement', label: 'Improvements' },
-	{ id: 'other', label: 'Other' },
-]
+	{ id: "all", label: "All" },
+	{ id: "bug", label: "Bugs" },
+	{ id: "feature", label: "Features" },
+	{ id: "improvement", label: "Improvements" },
+	{ id: "other", label: "Other" },
+];
 
 const STATUS_FILTERS: { id: FilterStatus; label: string; color: string }[] = [
-	{ id: 'all', label: 'All', color: Colors.textSecondary },
-	{ id: 'pending', label: 'Pending', color: Colors.textSecondary },
-	{ id: 'in-progress', label: 'In Progress', color: Colors.warning },
-	{ id: 'resolved', label: 'Resolved', color: Colors.success },
-	{ id: 'closed', label: 'Closed', color: Colors.error },
-]
+	{ id: "all", label: "All", color: Colors.textSecondary },
+	{ id: "pending", label: "Pending", color: Colors.textSecondary },
+	{ id: "in-progress", label: "In Progress", color: Colors.warning },
+	{ id: "resolved", label: "Resolved", color: Colors.success },
+	{ id: "closed", label: "Closed", color: Colors.error },
+];
 
 export default function FeedbackList() {
-	const { id } = useLocalSearchParams<{ id: string }>()
-	const [selectedType, setSelectedType] = useState<FilterType>('all')
-	const [selectedStatus, setSelectedStatus] = useState<FilterStatus>('all')
-	const [refreshing, setRefreshing] = useState(false)
-	const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(
-		null
-	)
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const [selectedType, setSelectedType] = useState<FilterType>("all");
+	const [selectedStatus, setSelectedStatus] = useState<FilterStatus>("all");
+	const [refreshing, setRefreshing] = useState(false);
+	const [_selectedFeedback, _setSelectedFeedback] = useState<Feedback | null>(
+		null,
+	);
 
-	const { user } = useAuthStore()
-	const { data: project } = useProject(id || '')
+	const { user } = useAuthStore();
+	const { data: project } = useProject(id || "");
 	const {
 		data: feedbackData,
 		isLoading,
 		refetch,
-	} = useProjectFeedback(id || '', {
+	} = useProjectFeedback(id || "", {
 		page: 1,
 		limit: 50,
-	})
-	const voteFeedbackMutation = useVoteFeedback()
+	});
+	const voteFeedbackMutation = useVoteFeedback();
 
 	const feedbacks = useMemo(() => {
-		return feedbackData?.feedback || feedbackData || []
-	}, [feedbackData])
+		return feedbackData?.feedback || feedbackData || [];
+	}, [feedbackData]);
 
-	const isOwner = project?.ownerId === user?.id
+	const isOwner = project?.ownerId === user?.id;
 
 	const onRefresh = useCallback(async () => {
-		if (!id) return
-		setRefreshing(true)
-		await refetch()
-		setRefreshing(false)
-	}, [id, refetch])
+		if (!id) return;
+		setRefreshing(true);
+		await refetch();
+		setRefreshing(false);
+	}, [id, refetch]);
 
 	const filteredFeedbacks = useMemo(() => {
-		let filtered = feedbacks.filter((f) => f.projectId === id)
+		let filtered = feedbacks.filter((f) => f.projectId === id);
 
-		if (selectedType !== 'all') {
-			filtered = filtered.filter((f) => f.type === selectedType)
+		if (selectedType !== "all") {
+			filtered = filtered.filter((f) => f.type === selectedType);
 		}
 
-		if (selectedStatus !== 'all') {
-			filtered = filtered.filter((f) => f.status === selectedStatus)
+		if (selectedStatus !== "all") {
+			filtered = filtered.filter((f) => f.status === selectedStatus);
 		}
 
 		return filtered.sort(
 			(a, b) =>
-				new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-		)
-	}, [feedbacks, id, selectedType, selectedStatus])
+				new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+		);
+	}, [feedbacks, id, selectedType, selectedStatus]);
 
-	const handleVote = async (feedbackId: string, voteType: 'up' | 'down') => {
-		if (!user?.id) return
+	const handleVote = async (feedbackId: string, voteType: "up" | "down") => {
+		if (!user?.id) return;
 		try {
 			await voteFeedbackMutation.mutateAsync({
 				feedbackId,
 				voteType,
-			})
-		} catch (error) {
+			});
+		} catch (_error) {
 			// Error already handled by mutation
 		}
-	}
+	};
 
 	const renderFeedbackItem = ({
 		item,
 		index,
 	}: {
-		item: Feedback
-		index: number
+		item: Feedback;
+		index: number;
 	}) => {
-		const userVote = item.votes?.find((v) => v.userId === user?.id)?.type
+		const userVote = item.votes?.find((v) => v.userId === user?.id)?.type;
 
 		return (
 			<Animated.View
@@ -126,27 +126,27 @@ export default function FeedbackList() {
 							<Badge
 								label={item.type}
 								variant={
-									item.type === 'bug'
-										? 'error'
-										: item.type === 'feature'
-										? 'purple'
-										: 'info'
+									item.type === "bug"
+										? "error"
+										: item.type === "feature"
+											? "purple"
+											: "info"
 								}
-								size='sm'
+								size="sm"
 							/>
 							<Badge
 								label={item.status}
 								variant={
-									item.status === 'resolved'
-										? 'success'
-										: item.status === 'in-progress'
-										? 'warning'
-										: 'default'
+									item.status === "resolved"
+										? "success"
+										: item.status === "in-progress"
+											? "warning"
+											: "default"
 								}
-								size='sm'
+								size="sm"
 							/>
-							{item.priority === 'critical' && (
-								<Badge label='Critical' variant='error' size='sm' />
+							{item.priority === "critical" && (
+								<Badge label="Critical" variant="error" size="sm" />
 							)}
 						</View>
 					</View>
@@ -164,7 +164,7 @@ export default function FeedbackList() {
 									key={i}
 									source={{ uri }}
 									style={styles.screenshotThumb}
-									contentFit='cover'
+									contentFit="cover"
 								/>
 							))}
 							{item.screenshots.length > 3 && (
@@ -180,7 +180,7 @@ export default function FeedbackList() {
 					{/* Footer */}
 					<View style={styles.feedbackFooter}>
 						<View style={styles.userInfo}>
-							<Avatar source={item.userAvatar} name={item.userName} size='sm' />
+							<Avatar source={item.userAvatar} name={item.userName} size="sm" />
 							<Text style={styles.userName}>{item.userName}</Text>
 							<Text style={styles.timeAgo}>
 								• {formatTimeAgo(item.createdAt.toISOString())}
@@ -192,21 +192,21 @@ export default function FeedbackList() {
 							<Pressable
 								style={[
 									styles.voteButton,
-									userVote === 'up' && styles.voteButtonActive,
+									userVote === "up" && styles.voteButtonActive,
 								]}
-								onPress={() => handleVote(item.id, 'up')}
+								onPress={() => handleVote(item.id, "up")}
 							>
 								<Ionicons
-									name={userVote === 'up' ? 'arrow-up' : 'arrow-up-outline'}
+									name={userVote === "up" ? "arrow-up" : "arrow-up-outline"}
 									size={16}
 									color={
-										userVote === 'up' ? Colors.primary : Colors.textTertiary
+										userVote === "up" ? Colors.primary : Colors.textTertiary
 									}
 								/>
 								<Text
 									style={[
 										styles.voteCount,
-										userVote === 'up' && styles.voteCountActive,
+										userVote === "up" && styles.voteCountActive,
 									]}
 								>
 									{item.upvotes}
@@ -216,23 +216,23 @@ export default function FeedbackList() {
 							<Pressable
 								style={[
 									styles.voteButton,
-									userVote === 'down' && styles.voteButtonActive,
+									userVote === "down" && styles.voteButtonActive,
 								]}
-								onPress={() => handleVote(item.id, 'down')}
+								onPress={() => handleVote(item.id, "down")}
 							>
 								<Ionicons
 									name={
-										userVote === 'down' ? 'arrow-down' : 'arrow-down-outline'
+										userVote === "down" ? "arrow-down" : "arrow-down-outline"
 									}
 									size={16}
 									color={
-										userVote === 'down' ? Colors.error : Colors.textTertiary
+										userVote === "down" ? Colors.error : Colors.textTertiary
 									}
 								/>
 								<Text
 									style={[
 										styles.voteCount,
-										userVote === 'down' && { color: Colors.error },
+										userVote === "down" && { color: Colors.error },
 									]}
 								>
 									{item.downvotes}
@@ -242,7 +242,7 @@ export default function FeedbackList() {
 							{/* Comments */}
 							<Pressable style={styles.commentButton}>
 								<Ionicons
-									name='chatbubble-outline'
+									name="chatbubble-outline"
 									size={16}
 									color={Colors.textTertiary}
 								/>
@@ -252,8 +252,8 @@ export default function FeedbackList() {
 					</View>
 				</Card>
 			</Animated.View>
-		)
-	}
+		);
+	};
 
 	const ListHeader = (
 		<>
@@ -324,10 +324,10 @@ export default function FeedbackList() {
 			{/* Results count */}
 			<Text style={styles.resultsCount}>
 				{filteredFeedbacks.length} feedback
-				{filteredFeedbacks.length !== 1 ? 's' : ''}
+				{filteredFeedbacks.length !== 1 ? "s" : ""}
 			</Text>
 		</>
-	)
+	);
 
 	const ListEmpty = (
 		<Animated.View
@@ -336,7 +336,7 @@ export default function FeedbackList() {
 		>
 			<View style={styles.emptyIcon}>
 				<Ionicons
-					name='chatbubbles-outline'
+					name="chatbubbles-outline"
 					size={64}
 					color={Colors.textTertiary}
 				/>
@@ -345,28 +345,28 @@ export default function FeedbackList() {
 			<Text style={styles.emptyDescription}>
 				{isOwner
 					? "Your testers haven't submitted any feedback yet."
-					: 'Be the first to submit feedback for this project!'}
+					: "Be the first to submit feedback for this project!"}
 			</Text>
 			{!isOwner && (
 				<Button
-					title='Submit Feedback'
+					title="Submit Feedback"
 					onPress={() => router.push(`/feedback/create?projectId=${id}`)}
-					icon={<Ionicons name='add' size={20} color={Colors.text} />}
+					icon={<Ionicons name="add" size={20} color={Colors.text} />}
 					style={styles.emptyButton}
 				/>
 			)}
 		</Animated.View>
-	)
+	);
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
+		<SafeAreaView style={styles.container} edges={["top"]}>
 			{/* Header */}
 			<Animated.View
 				entering={FadeInDown.duration(600).springify()}
 				style={styles.header}
 			>
 				<Pressable style={styles.backButton} onPress={() => router.back()}>
-					<Ionicons name='arrow-back' size={24} color={Colors.text} />
+					<Ionicons name="arrow-back" size={24} color={Colors.text} />
 				</Pressable>
 				<View style={styles.headerTitle}>
 					<Text style={styles.headerText}>Feedback</Text>
@@ -381,14 +381,14 @@ export default function FeedbackList() {
 						style={styles.addButton}
 						onPress={() => router.push(`/feedback/create?projectId=${id}`)}
 					>
-						<Ionicons name='add' size={24} color={Colors.text} />
+						<Ionicons name="add" size={24} color={Colors.text} />
 					</Pressable>
 				)}
 			</Animated.View>
 
 			{isLoading && !refreshing ? (
 				<View style={styles.loadingContainer}>
-					<ActivityIndicator size='large' color={Colors.primary} />
+					<ActivityIndicator size="large" color={Colors.primary} />
 				</View>
 			) : (
 				<FlatList
@@ -411,19 +411,19 @@ export default function FeedbackList() {
 
 			{/* Feedback Detail Modal would go here */}
 		</SafeAreaView>
-	)
+	);
 }
 
 function formatTimeAgo(dateString: string): string {
-	const date = new Date(dateString)
-	const now = new Date()
-	const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+	const date = new Date(dateString);
+	const now = new Date();
+	const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-	if (seconds < 60) return 'just now'
-	if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-	if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-	if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
-	return date.toLocaleDateString()
+	if (seconds < 60) return "just now";
+	if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+	if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+	if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+	return date.toLocaleDateString();
 }
 
 const styles = StyleSheet.create({
@@ -433,12 +433,12 @@ const styles = StyleSheet.create({
 	},
 	loadingContainer: {
 		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		paddingHorizontal: Spacing.lg,
 		paddingVertical: Spacing.sm,
 		gap: Spacing.md,
@@ -448,8 +448,8 @@ const styles = StyleSheet.create({
 		height: 40,
 		borderRadius: 20,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		flex: 1,
@@ -469,8 +469,8 @@ const styles = StyleSheet.create({
 		height: 40,
 		borderRadius: 20,
 		backgroundColor: Colors.primary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	listContainer: {
 		paddingHorizontal: Spacing.lg,
@@ -504,15 +504,15 @@ const styles = StyleSheet.create({
 		gap: Spacing.sm,
 	},
 	statusChip: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 6,
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.sm - 2,
 		backgroundColor: Colors.backgroundSecondary,
 		borderRadius: BorderRadius.full,
 		borderWidth: 1,
-		borderColor: 'transparent',
+		borderColor: "transparent",
 	},
 	statusDot: {
 		width: 8,
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.xs,
 	},
 	badgeRow: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.xs,
 	},
 	feedbackTitle: {
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 	},
 	screenshotsPreview: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		marginTop: Spacing.sm,
 		gap: Spacing.xs,
 	},
@@ -569,8 +569,8 @@ const styles = StyleSheet.create({
 		height: 60,
 		borderRadius: BorderRadius.sm,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	moreText: {
 		fontSize: 14,
@@ -578,17 +578,17 @@ const styles = StyleSheet.create({
 		color: Colors.textSecondary,
 	},
 	feedbackFooter: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		marginTop: Spacing.md,
 		paddingTop: Spacing.sm,
 		borderTopWidth: 1,
 		borderTopColor: Colors.border,
 	},
 	userInfo: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 6,
 	},
 	userName: {
@@ -602,13 +602,13 @@ const styles = StyleSheet.create({
 		color: Colors.textTertiary,
 	},
 	actions: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 	},
 	voteButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 		paddingHorizontal: Spacing.sm,
 		paddingVertical: 4,
@@ -626,8 +626,8 @@ const styles = StyleSheet.create({
 		color: Colors.primary,
 	},
 	commentButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 		paddingHorizontal: Spacing.sm,
 		paddingVertical: 4,
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
 
 	// Empty State
 	emptyContainer: {
-		alignItems: 'center',
+		alignItems: "center",
 		paddingTop: 60,
 		paddingHorizontal: Spacing.lg,
 	},
@@ -649,8 +649,8 @@ const styles = StyleSheet.create({
 		height: 120,
 		borderRadius: 60,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginBottom: Spacing.lg,
 	},
 	emptyTitle: {
@@ -663,11 +663,11 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		lineHeight: 22,
 		marginBottom: Spacing.lg,
 	},
 	emptyButton: {
 		minWidth: 180,
 	},
-})
+});

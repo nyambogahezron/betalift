@@ -55,7 +55,6 @@ export const authKeys = {
 	currentUser: () => [...authKeys.all, 'current'] as const,
 }
 
-
 export const useRegister = () => {
 	return useMutation({
 		mutationFn: async (credentials: RegisterCredentials) => {
@@ -64,7 +63,7 @@ export const useRegister = () => {
 					'/api/v1/auth/register',
 					credentials
 				)
-				
+
 				if (response.data.success && response.data.data) {
 					return response.data.data
 				}

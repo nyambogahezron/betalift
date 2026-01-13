@@ -1,13 +1,8 @@
-import { Button, Input } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { ProjectStatus } from '@/interfaces'
-import { useProject, useUpdateProject } from '@/queries/projectQueries'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { Image } from 'expo-image'
-import * as ImagePicker from 'expo-image-picker'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -17,77 +12,82 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Input } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { ProjectStatus } from "@/interfaces";
+import { useProject, useUpdateProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 type ProjectFormData = {
-	name: string
-	description: string
-	icon: string
-	screenshots: string[]
-	techStack: string[]
-	status: ProjectStatus
+	name: string;
+	description: string;
+	icon: string;
+	screenshots: string[];
+	techStack: string[];
+	status: ProjectStatus;
 	links: {
-		website?: string
-		github?: string
-		appStore?: string
-		playStore?: string
-		testFlight?: string
-	}
-}
+		website?: string;
+		github?: string;
+		appStore?: string;
+		playStore?: string;
+		testFlight?: string;
+	};
+};
 
 const STATUS_OPTIONS: {
-	id: ProjectStatus
-	label: string
-	description: string
+	id: ProjectStatus;
+	label: string;
+	description: string;
 }[] = [
-	{ id: 'active', label: 'Active', description: 'Open for testers' },
-	{ id: 'beta', label: 'Beta', description: 'In beta testing' },
-	{ id: 'paused', label: 'Paused', description: 'Not accepting testers' },
-	{ id: 'closed', label: 'Closed', description: 'Project closed' },
-]
+	{ id: "active", label: "Active", description: "Open for testers" },
+	{ id: "beta", label: "Beta", description: "In beta testing" },
+	{ id: "paused", label: "Paused", description: "Not accepting testers" },
+	{ id: "closed", label: "Closed", description: "Project closed" },
+];
 
 const SUGGESTED_TECH = [
-	'React Native',
-	'Flutter',
-	'Swift',
-	'Kotlin',
-	'React',
-	'Vue',
-	'Angular',
-	'Next.js',
-	'Node.js',
-	'Python',
-	'Go',
-	'Rust',
-	'TypeScript',
-	'Firebase',
-	'AWS',
-	'Docker',
-]
+	"React Native",
+	"Flutter",
+	"Swift",
+	"Kotlin",
+	"React",
+	"Vue",
+	"Angular",
+	"Next.js",
+	"Node.js",
+	"Python",
+	"Go",
+	"Rust",
+	"TypeScript",
+	"Firebase",
+	"AWS",
+	"Docker",
+];
 
 export default function EditProject() {
-	const { id } = useLocalSearchParams<{ id: string }>()
-	const [currentStep, setCurrentStep] = useState(0)
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [newTech, setNewTech] = useState('')
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const [currentStep, setCurrentStep] = useState(0);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [newTech, setNewTech] = useState("");
 	const [formData, setFormData] = useState<ProjectFormData>({
-		name: '',
-		description: '',
-		icon: '',
+		name: "",
+		description: "",
+		icon: "",
 		screenshots: [],
 		techStack: [],
-		status: 'active',
+		status: "active",
 		links: {},
-	})
+	});
 	const [errors, setErrors] = useState<
 		Partial<Record<keyof ProjectFormData, string>>
-	>({})
+	>({});
 
-	const { user } = useAuthStore()
-	const { data: project } = useProject(id || '')
-	const updateProjectMutation = useUpdateProject()
+	const { user } = useAuthStore();
+	const { data: project } = useProject(id || "");
+	const _updateProjectMutation = useUpdateProject();
 
 	// Pre-fill form with project data
 	useEffect(() => {
@@ -95,174 +95,174 @@ export default function EditProject() {
 			setFormData({
 				name: project.name,
 				description: project.description,
-				icon: project.icon || '',
+				icon: project.icon || "",
 				screenshots: project.screenshots || [],
 				techStack: project.techStack || [],
 				status: project.status,
 				links: project.links || {},
-			})
+			});
 		}
-	}, [project])
+	}, [project]);
 
 	const updateField = <K extends keyof ProjectFormData>(
 		field: K,
-		value: ProjectFormData[K]
+		value: ProjectFormData[K],
 	) => {
-		setFormData((prev) => ({ ...prev, [field]: value }))
+		setFormData((prev) => ({ ...prev, [field]: value }));
 		if (errors[field]) {
-			setErrors((prev) => ({ ...prev, [field]: undefined }))
+			setErrors((prev) => ({ ...prev, [field]: undefined }));
 		}
-	}
+	};
 
 	const pickIcon = async () => {
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ['images'],
+			mediaTypes: ["images"],
 			allowsEditing: true,
 			aspect: [1, 1],
 			quality: 0.8,
-		})
+		});
 
 		if (!result.canceled) {
-			updateField('icon', result.assets[0].uri)
+			updateField("icon", result.assets[0].uri);
 		}
-	}
+	};
 
 	const pickScreenshots = async () => {
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ['images'],
+			mediaTypes: ["images"],
 			allowsMultipleSelection: true,
 			quality: 0.8,
 			selectionLimit: 5 - formData.screenshots.length,
-		})
+		});
 
 		if (!result.canceled) {
-			const newImages = result.assets.map((asset) => asset.uri)
+			const newImages = result.assets.map((asset) => asset.uri);
 			updateField(
-				'screenshots',
-				[...formData.screenshots, ...newImages].slice(0, 5)
-			)
+				"screenshots",
+				[...formData.screenshots, ...newImages].slice(0, 5),
+			);
 		}
-	}
+	};
 
 	const removeScreenshot = (index: number) => {
 		updateField(
-			'screenshots',
-			formData.screenshots.filter((_, i) => i !== index)
-		)
-	}
+			"screenshots",
+			formData.screenshots.filter((_, i) => i !== index),
+		);
+	};
 
 	const toggleTech = (tech: string) => {
 		if (formData.techStack.includes(tech)) {
 			updateField(
-				'techStack',
-				formData.techStack.filter((t) => t !== tech)
-			)
+				"techStack",
+				formData.techStack.filter((t) => t !== tech),
+			);
 		} else if (formData.techStack.length < 8) {
-			updateField('techStack', [...formData.techStack, tech])
+			updateField("techStack", [...formData.techStack, tech]);
 		}
-	}
+	};
 
 	const addCustomTech = () => {
-		const trimmed = newTech.trim()
+		const trimmed = newTech.trim();
 		if (
 			trimmed &&
 			!formData.techStack.includes(trimmed) &&
 			formData.techStack.length < 8
 		) {
-			updateField('techStack', [...formData.techStack, trimmed])
-			setNewTech('')
+			updateField("techStack", [...formData.techStack, trimmed]);
+			setNewTech("");
 		}
-	}
+	};
 
 	const validateStep = (step: number): boolean => {
-		const newErrors: Partial<Record<keyof ProjectFormData, string>> = {}
+		const newErrors: Partial<Record<keyof ProjectFormData, string>> = {};
 
 		if (step === 0) {
 			if (!formData.name.trim()) {
-				newErrors.name = 'Project name is required'
+				newErrors.name = "Project name is required";
 			} else if (formData.name.length < 3) {
-				newErrors.name = 'Name must be at least 3 characters'
+				newErrors.name = "Name must be at least 3 characters";
 			}
 
 			if (!formData.description.trim()) {
-				newErrors.description = 'Description is required'
+				newErrors.description = "Description is required";
 			} else if (formData.description.length < 20) {
-				newErrors.description = 'Description must be at least 20 characters'
+				newErrors.description = "Description must be at least 20 characters";
 			}
 
 			if (!formData.icon) {
-				newErrors.icon = 'Project icon is required'
+				newErrors.icon = "Project icon is required";
 			}
 		}
 
 		if (step === 1) {
 			if (formData.techStack.length === 0) {
-				newErrors.techStack = 'Select at least one technology'
+				newErrors.techStack = "Select at least one technology";
 			}
 		}
 
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
 	const nextStep = () => {
 		if (validateStep(currentStep)) {
-			setCurrentStep((prev) => Math.min(prev + 1, 2))
+			setCurrentStep((prev) => Math.min(prev + 1, 2));
 		}
-	}
+	};
 
 	const prevStep = () => {
-		setCurrentStep((prev) => Math.max(prev - 1, 0))
-	}
+		setCurrentStep((prev) => Math.max(prev - 1, 0));
+	};
 
 	const handleSubmit = async () => {
-		if (!validateStep(currentStep) || !user || !project) return
+		if (!validateStep(currentStep) || !user || !project) return;
 
-		setIsSubmitting(true)
+		setIsSubmitting(true);
 
 		try {
 			// In real app, this would call an API to update the project
 			// For now we just show success
-			Alert.alert('Project Updated! ✨', 'Your changes have been saved.', [
+			Alert.alert("Project Updated! ✨", "Your changes have been saved.", [
 				{
-					text: 'View Project',
+					text: "View Project",
 					onPress: () => router.replace(`/project/${id}`),
 				},
-			])
+			]);
 		} catch {
-			Alert.alert('Error', 'Failed to update project. Please try again.')
+			Alert.alert("Error", "Failed to update project. Please try again.");
 		} finally {
-			setIsSubmitting(false)
+			setIsSubmitting(false);
 		}
-	}
+	};
 
 	if (!project) {
 		return (
 			<SafeAreaView style={styles.container}>
 				<View style={styles.errorContainer}>
-					<Ionicons name='alert-circle' size={64} color={Colors.textTertiary} />
+					<Ionicons name="alert-circle" size={64} color={Colors.textTertiary} />
 					<Text style={styles.errorText}>Project not found</Text>
 					<Button
-						title='Go Back'
+						title="Go Back"
 						onPress={() => router.back()}
 						style={{ marginTop: Spacing.lg }}
 					/>
 				</View>
 			</SafeAreaView>
-		)
+		);
 	}
 
-	const steps = ['Basic Info', 'Tech Stack', 'Links & Status']
+	const steps = ["Basic Info", "Tech Stack", "Links & Status"];
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
+		<SafeAreaView style={styles.container} edges={["top"]}>
 			{/* Header */}
 			<Animated.View
 				entering={FadeInDown.duration(500).springify()}
 				style={styles.header}
 			>
 				<Pressable style={styles.closeButton} onPress={() => router.back()}>
-					<Ionicons name='close' size={24} color={Colors.text} />
+					<Ionicons name="close" size={24} color={Colors.text} />
 				</Pressable>
 				<Text style={styles.headerTitle}>Edit Project</Text>
 				<View style={styles.closeButton} />
@@ -286,7 +286,7 @@ export default function EditProject() {
 								]}
 							>
 								{index < currentStep ? (
-									<Ionicons name='checkmark' size={16} color={Colors.text} />
+									<Ionicons name="checkmark" size={16} color={Colors.text} />
 								) : (
 									<Text
 										style={[
@@ -320,14 +320,14 @@ export default function EditProject() {
 			</Animated.View>
 
 			<KeyboardAvoidingView
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardAvoid}
 			>
 				<ScrollView
 					style={styles.content}
 					contentContainerStyle={styles.contentContainer}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
+					keyboardShouldPersistTaps="handled"
 				>
 					{/* Step 1: Basic Info */}
 					{currentStep === 0 && (
@@ -351,12 +351,12 @@ export default function EditProject() {
 										<Image
 											source={{ uri: formData.icon }}
 											style={styles.iconPreview}
-											contentFit='cover'
+											contentFit="cover"
 										/>
 									) : (
 										<View style={styles.iconPlaceholder}>
 											<Ionicons
-												name='camera'
+												name="camera"
 												size={32}
 												color={Colors.textTertiary}
 											/>
@@ -373,20 +373,20 @@ export default function EditProject() {
 
 							{/* Project Name */}
 							<Input
-								label='Project Name'
-								placeholder='Enter project name'
+								label="Project Name"
+								placeholder="Enter project name"
 								value={formData.name}
-								onChangeText={(text) => updateField('name', text)}
+								onChangeText={(text) => updateField("name", text)}
 								error={errors.name}
 								maxLength={50}
 							/>
 
 							{/* Description */}
 							<Input
-								label='Description'
-								placeholder='Describe your project and what testers should focus on...'
+								label="Description"
+								placeholder="Describe your project and what testers should focus on..."
 								value={formData.description}
-								onChangeText={(text) => updateField('description', text)}
+								onChangeText={(text) => updateField("description", text)}
 								error={errors.description}
 								multiline
 								numberOfLines={4}
@@ -409,14 +409,14 @@ export default function EditProject() {
 											<Image
 												source={{ uri }}
 												style={styles.screenshotPreview}
-												contentFit='cover'
+												contentFit="cover"
 											/>
 											<Pressable
 												style={styles.removeScreenshot}
 												onPress={() => removeScreenshot(index)}
 											>
 												<Ionicons
-													name='close-circle'
+													name="close-circle"
 													size={24}
 													color={Colors.error}
 												/>
@@ -429,7 +429,7 @@ export default function EditProject() {
 											onPress={pickScreenshots}
 										>
 											<Ionicons
-												name='add'
+												name="add"
 												size={32}
 												color={Colors.textTertiary}
 											/>
@@ -467,7 +467,7 @@ export default function EditProject() {
 											onPress={() => toggleTech(tech)}
 										>
 											<Text style={styles.selectedTechText}>{tech}</Text>
-											<Ionicons name='close' size={16} color={Colors.text} />
+											<Ionicons name="close" size={16} color={Colors.text} />
 										</Pressable>
 									))}
 								</View>
@@ -477,7 +477,7 @@ export default function EditProject() {
 							<Text style={styles.suggestedLabel}>Suggested</Text>
 							<View style={styles.techGrid}>
 								{SUGGESTED_TECH.filter(
-									(t) => !formData.techStack.includes(t)
+									(t) => !formData.techStack.includes(t),
 								).map((tech) => (
 									<Pressable
 										key={tech}
@@ -492,7 +492,7 @@ export default function EditProject() {
 							{/* Add Custom Tech */}
 							<View style={styles.addTechContainer}>
 								<Input
-									placeholder='Add custom technology'
+									placeholder="Add custom technology"
 									value={newTech}
 									onChangeText={setNewTech}
 									style={styles.addTechInput}
@@ -506,7 +506,7 @@ export default function EditProject() {
 									onPress={addCustomTech}
 									disabled={!newTech.trim()}
 								>
-									<Ionicons name='add' size={20} color={Colors.text} />
+									<Ionicons name="add" size={20} color={Colors.text} />
 								</Pressable>
 							</View>
 						</Animated.View>
@@ -534,7 +534,7 @@ export default function EditProject() {
 											formData.status === option.id &&
 												styles.statusOptionActive,
 										]}
-										onPress={() => updateField('status', option.id)}
+										onPress={() => updateField("status", option.id)}
 									>
 										<View style={styles.statusRadio}>
 											{formData.status === option.id && (
@@ -557,63 +557,63 @@ export default function EditProject() {
 							</Text>
 
 							<Input
-								label='Website'
-								placeholder='https://yourproject.com'
-								value={formData.links.website || ''}
+								label="Website"
+								placeholder="https://yourproject.com"
+								value={formData.links.website || ""}
 								onChangeText={(text) =>
-									updateField('links', { ...formData.links, website: text })
+									updateField("links", { ...formData.links, website: text })
 								}
-								autoCapitalize='none'
-								keyboardType='url'
-								leftIcon='globe-outline'
+								autoCapitalize="none"
+								keyboardType="url"
+								leftIcon="globe-outline"
 							/>
 
 							<Input
-								label='GitHub'
-								placeholder='https://github.com/yourproject'
-								value={formData.links.github || ''}
+								label="GitHub"
+								placeholder="https://github.com/yourproject"
+								value={formData.links.github || ""}
 								onChangeText={(text) =>
-									updateField('links', { ...formData.links, github: text })
+									updateField("links", { ...formData.links, github: text })
 								}
-								autoCapitalize='none'
-								keyboardType='url'
-								leftIcon='logo-github'
+								autoCapitalize="none"
+								keyboardType="url"
+								leftIcon="logo-github"
 							/>
 
 							<Input
-								label='TestFlight'
-								placeholder='https://testflight.apple.com/...'
-								value={formData.links.testFlight || ''}
+								label="TestFlight"
+								placeholder="https://testflight.apple.com/..."
+								value={formData.links.testFlight || ""}
 								onChangeText={(text) =>
-									updateField('links', { ...formData.links, testFlight: text })
+									updateField("links", { ...formData.links, testFlight: text })
 								}
-								autoCapitalize='none'
-								keyboardType='url'
-								leftIcon='paper-plane-outline'
+								autoCapitalize="none"
+								keyboardType="url"
+								leftIcon="paper-plane-outline"
 							/>
 
 							<Input
-								label='App Store'
-								placeholder='https://apps.apple.com/...'
-								value={formData.links.appStore || ''}
+								label="App Store"
+								placeholder="https://apps.apple.com/..."
+								value={formData.links.appStore || ""}
 								onChangeText={(text) =>
-									updateField('links', { ...formData.links, appStore: text })
+									updateField("links", { ...formData.links, appStore: text })
 								}
-								autoCapitalize='none'
-								keyboardType='url'
-								leftIcon='logo-apple-appstore'
+								autoCapitalize="none"
+								keyboardType="url"
+								leftIcon="logo-apple-appstore"
 							/>
 
 							<Input
-								label='Play Store'
-								placeholder='https://play.google.com/store/apps/...'
-								value={formData.links.playStore || ''}
+								label="Play Store"
+								placeholder="https://play.google.com/store/apps/..."
+								value={formData.links.playStore || ""}
 								onChangeText={(text) =>
-									updateField('links', { ...formData.links, playStore: text })
+									updateField("links", { ...formData.links, playStore: text })
 								}
-								autoCapitalize='none'
-								keyboardType='url'
-								leftIcon='logo-google-playstore'
+								autoCapitalize="none"
+								keyboardType="url"
+								leftIcon="logo-google-playstore"
 							/>
 						</Animated.View>
 					)}
@@ -626,21 +626,21 @@ export default function EditProject() {
 				>
 					{currentStep > 0 && (
 						<Button
-							title='Back'
-							variant='outline'
+							title="Back"
+							variant="outline"
 							onPress={prevStep}
 							style={styles.footerButton}
 						/>
 					)}
 					{currentStep < 2 ? (
 						<Button
-							title='Next'
+							title="Next"
 							onPress={nextStep}
 							style={currentStep === 0 ? { flex: 1 } : styles.footerButton}
 						/>
 					) : (
 						<Button
-							title='Save Changes'
+							title="Save Changes"
 							onPress={handleSubmit}
 							loading={isSubmitting}
 							style={styles.footerButton}
@@ -649,7 +649,7 @@ export default function EditProject() {
 				</Animated.View>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -658,9 +658,9 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.background,
 	},
 	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.lg,
 		paddingVertical: Spacing.md,
 	},
@@ -669,8 +669,8 @@ const styles = StyleSheet.create({
 		height: 40,
 		borderRadius: 20,
 		backgroundColor: Colors.card,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		fontSize: 18,
@@ -678,22 +678,22 @@ const styles = StyleSheet.create({
 		color: Colors.text,
 	},
 	progressContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		paddingHorizontal: Spacing.lg,
 		paddingVertical: Spacing.md,
 	},
 	stepItem: {
-		alignItems: 'center',
+		alignItems: "center",
 	},
 	stepCircle: {
 		width: 32,
 		height: 32,
 		borderRadius: 16,
 		backgroundColor: Colors.card,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		borderWidth: 2,
 		borderColor: Colors.border,
 	},
@@ -767,20 +767,20 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.card,
 		borderWidth: 2,
 		borderColor: Colors.border,
-		borderStyle: 'dashed',
-		alignItems: 'center',
-		justifyContent: 'center',
-		overflow: 'hidden',
+		borderStyle: "dashed",
+		alignItems: "center",
+		justifyContent: "center",
+		overflow: "hidden",
 	},
 	inputError: {
 		borderColor: Colors.error,
 	},
 	iconPreview: {
-		width: '100%',
-		height: '100%',
+		width: "100%",
+		height: "100%",
 	},
 	iconPlaceholder: {
-		alignItems: 'center',
+		alignItems: "center",
 	},
 	iconPlaceholderText: {
 		fontSize: 12,
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
 	},
 	descriptionInput: {
 		height: 100,
-		textAlignVertical: 'top',
+		textAlignVertical: "top",
 	},
 	screenshotsSection: {
 		marginTop: Spacing.md,
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
 		paddingVertical: Spacing.sm,
 	},
 	screenshotItem: {
-		position: 'relative',
+		position: "relative",
 	},
 	screenshotPreview: {
 		width: 100,
@@ -814,7 +814,7 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.md,
 	},
 	removeScreenshot: {
-		position: 'absolute',
+		position: "absolute",
 		top: -8,
 		right: -8,
 		backgroundColor: Colors.background,
@@ -827,19 +827,19 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.card,
 		borderWidth: 2,
 		borderColor: Colors.border,
-		borderStyle: 'dashed',
-		alignItems: 'center',
-		justifyContent: 'center',
+		borderStyle: "dashed",
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	selectedTech: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.sm,
 		marginBottom: Spacing.lg,
 	},
 	selectedTechItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		backgroundColor: Colors.primary,
 		paddingVertical: 6,
 		paddingLeft: 12,
@@ -859,8 +859,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	techGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.sm,
 		marginBottom: Spacing.lg,
 	},
@@ -878,7 +878,7 @@ const styles = StyleSheet.create({
 		color: Colors.textSecondary,
 	},
 	addTechContainer: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	addTechInput: {
@@ -889,8 +889,8 @@ const styles = StyleSheet.create({
 		height: 48,
 		borderRadius: BorderRadius.md,
 		backgroundColor: Colors.primary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	addTechButtonDisabled: {
 		backgroundColor: Colors.card,
@@ -899,8 +899,8 @@ const styles = StyleSheet.create({
 		gap: Spacing.sm,
 	},
 	statusOption: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		padding: Spacing.md,
 		backgroundColor: Colors.card,
 		borderRadius: BorderRadius.md,
@@ -917,8 +917,8 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		borderWidth: 2,
 		borderColor: Colors.border,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginRight: Spacing.md,
 	},
 	statusRadioInner: {
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
 		color: Colors.textSecondary,
 	},
 	footer: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		padding: Spacing.lg,
 		paddingBottom: Spacing.xl,
 		gap: Spacing.md,
@@ -954,8 +954,8 @@ const styles = StyleSheet.create({
 	},
 	errorContainer: {
 		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		padding: Spacing.xl,
 	},
-})
+});

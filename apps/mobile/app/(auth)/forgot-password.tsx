@@ -1,9 +1,6 @@
-import { Button, Input } from '@/components/ui'
-import { Colors, FontSizes, Spacing } from '@/constants/theme'
-import { useForgotPassword } from '@/queries/authQueries'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -16,6 +13,9 @@ import {
 } from 'react-native'
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, Input } from '@/components/ui'
+import { Colors, FontSizes, Spacing } from '@/constants/theme'
+import { useForgotPassword } from '@/queries/authQueries'
 
 export default function ForgotPassword() {
 	const [email, setEmail] = useState('')
@@ -48,7 +48,9 @@ export default function ForgotPassword() {
 				]
 			)
 		} catch (error) {
-			setError(error instanceof Error ? error.message : 'Failed to send reset email')
+			setError(
+				error instanceof Error ? error.message : 'Failed to send reset email'
+			)
 		}
 	}
 
@@ -82,8 +84,8 @@ export default function ForgotPassword() {
 
 						<Text style={styles.title}>Forgot Password?</Text>
 						<Text style={styles.subtitle}>
-							Enter your email address and we&apos;ll send you a link to reset your
-							password
+							Enter your email address and we&apos;ll send you a link to reset
+							your password
 						</Text>
 					</Animated.View>
 

@@ -1,26 +1,26 @@
-import { Card } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
-    Alert,
-    Linking,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    View,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+	Alert,
+	Linking,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Switch,
+	Text,
+	View,
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { useAuthStore } from "@/stores/useAuthStore";
 
-type ThemeOption = 'dark' | 'light' | 'system'
+type ThemeOption = "dark" | "light" | "system";
 
 export default function Settings() {
-	const { settings, updateSettings } = useAuthStore()
+	const { settings, updateSettings } = useAuthStore();
 
 	const [notifications, setNotifications] = useState({
 		push: settings.notifications.pushEnabled,
@@ -28,79 +28,96 @@ export default function Settings() {
 		feedbackUpdates: settings.notifications.feedbackUpdates,
 		projectInvites: settings.notifications.projectInvites,
 		weeklyDigest: settings.notifications.weeklyDigest,
-	})
+	});
 
 	const [privacy, setPrivacy] = useState({
 		profilePublic: settings.privacy.profilePublic,
 		showEmail: settings.privacy.showEmail,
 		showStats: settings.privacy.showStats,
-	})
+	});
 
-	const [theme, setTheme] = useState<ThemeOption>(settings.appearance.theme)
+	const [theme, setTheme] = useState<ThemeOption>(settings.appearance.theme);
 
-	const themeOptions: { id: ThemeOption; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-		{ id: 'dark', label: 'Dark', icon: 'moon' },
-		{ id: 'light', label: 'Light', icon: 'sunny' },
-		{ id: 'system', label: 'System', icon: 'phone-portrait-outline' },
-	]
+	const themeOptions: {
+		id: ThemeOption;
+		label: string;
+		icon: keyof typeof Ionicons.glyphMap;
+	}[] = [
+		{ id: "dark", label: "Dark", icon: "moon" },
+		{ id: "light", label: "Light", icon: "sunny" },
+		{ id: "system", label: "System", icon: "phone-portrait-outline" },
+	];
 
-	const updateNotification = (key: keyof typeof notifications, value: boolean) => {
-		setNotifications((prev) => ({ ...prev, [key]: value }))
+	const updateNotification = (
+		key: keyof typeof notifications,
+		value: boolean,
+	) => {
+		setNotifications((prev) => ({ ...prev, [key]: value }));
 		updateSettings({
 			notifications: {
 				...settings.notifications,
-				[key === 'push' ? 'pushEnabled' : key === 'email' ? 'emailEnabled' : key]: value,
+				[key === "push"
+					? "pushEnabled"
+					: key === "email"
+						? "emailEnabled"
+						: key]: value,
 			},
-		})
-	}
+		});
+	};
 
 	const updatePrivacy = (key: keyof typeof privacy, value: boolean) => {
-		setPrivacy((prev) => ({ ...prev, [key]: value }))
+		setPrivacy((prev) => ({ ...prev, [key]: value }));
 		updateSettings({
 			privacy: {
 				...settings.privacy,
 				[key]: value,
 			},
-		})
-	}
+		});
+	};
 
 	const updateTheme = (newTheme: ThemeOption) => {
-		setTheme(newTheme)
+		setTheme(newTheme);
 		updateSettings({
 			appearance: {
 				...settings.appearance,
 				theme: newTheme,
 			},
-		})
-	}
+		});
+	};
 
 	const openLink = (url: string) => {
 		Linking.openURL(url).catch(() => {
-			Alert.alert('Error', 'Could not open link')
-		})
-	}
+			Alert.alert("Error", "Could not open link");
+		});
+	};
 
 	const handleDeleteAccount = () => {
 		Alert.alert(
-			'Delete Account',
-			'Are you sure you want to delete your account? This action cannot be undone.',
+			"Delete Account",
+			"Are you sure you want to delete your account? This action cannot be undone.",
 			[
-				{ text: 'Cancel', style: 'cancel' },
+				{ text: "Cancel", style: "cancel" },
 				{
-					text: 'Delete',
-					style: 'destructive',
+					text: "Delete",
+					style: "destructive",
 					onPress: () => {
-						Alert.alert('Account Deletion', 'Please contact support to delete your account.')
+						Alert.alert(
+							"Account Deletion",
+							"Please contact support to delete your account.",
+						);
 					},
 				},
-			]
-		)
-	}
+			],
+		);
+	};
 
 	return (
-		<SafeAreaView style={styles.container} edges={['top']}>
+		<SafeAreaView style={styles.container} edges={["top"]}>
 			{/* Header */}
-			<Animated.View entering={FadeInDown.duration(600).springify()} style={styles.header}>
+			<Animated.View
+				entering={FadeInDown.duration(600).springify()}
+				style={styles.header}
+			>
 				<Pressable style={styles.backButton} onPress={() => router.back()}>
 					<Ionicons name="arrow-back" size={24} color={Colors.text} />
 				</Pressable>
@@ -131,7 +148,11 @@ export default function Settings() {
 									<Ionicons
 										name={option.icon}
 										size={20}
-										color={theme === option.id ? Colors.primary : Colors.textSecondary}
+										color={
+											theme === option.id
+												? Colors.primary
+												: Colors.textSecondary
+										}
 									/>
 									<Text
 										style={[
@@ -156,7 +177,7 @@ export default function Settings() {
 							label="Push Notifications"
 							description="Receive push notifications on your device"
 							value={notifications.push}
-							onToggle={(value) => updateNotification('push', value)}
+							onToggle={(value) => updateNotification("push", value)}
 						/>
 						<View style={styles.divider} />
 						<SettingRow
@@ -164,7 +185,7 @@ export default function Settings() {
 							label="Email Notifications"
 							description="Receive updates via email"
 							value={notifications.email}
-							onToggle={(value) => updateNotification('email', value)}
+							onToggle={(value) => updateNotification("email", value)}
 						/>
 						<View style={styles.divider} />
 						<SettingRow
@@ -172,7 +193,7 @@ export default function Settings() {
 							label="Feedback Updates"
 							description="Get notified about feedback on your projects"
 							value={notifications.feedbackUpdates}
-							onToggle={(value) => updateNotification('feedbackUpdates', value)}
+							onToggle={(value) => updateNotification("feedbackUpdates", value)}
 						/>
 						<View style={styles.divider} />
 						<SettingRow
@@ -180,7 +201,7 @@ export default function Settings() {
 							label="Project Invites"
 							description="Get notified when invited to test projects"
 							value={notifications.projectInvites}
-							onToggle={(value) => updateNotification('projectInvites', value)}
+							onToggle={(value) => updateNotification("projectInvites", value)}
 						/>
 						<View style={styles.divider} />
 						<SettingRow
@@ -188,7 +209,7 @@ export default function Settings() {
 							label="Weekly Digest"
 							description="Receive weekly summary of activity"
 							value={notifications.weeklyDigest}
-							onToggle={(value) => updateNotification('weeklyDigest', value)}
+							onToggle={(value) => updateNotification("weeklyDigest", value)}
 						/>
 					</Card>
 				</Animated.View>
@@ -202,7 +223,7 @@ export default function Settings() {
 							label="Public Profile"
 							description="Allow others to see your profile"
 							value={privacy.profilePublic}
-							onToggle={(value) => updatePrivacy('profilePublic', value)}
+							onToggle={(value) => updatePrivacy("profilePublic", value)}
 						/>
 						<View style={styles.divider} />
 						<SettingRow
@@ -210,7 +231,7 @@ export default function Settings() {
 							label="Show Email"
 							description="Display your email on your public profile"
 							value={privacy.showEmail}
-							onToggle={(value) => updatePrivacy('showEmail', value)}
+							onToggle={(value) => updatePrivacy("showEmail", value)}
 						/>
 						<View style={styles.divider} />
 						<SettingRow
@@ -218,7 +239,7 @@ export default function Settings() {
 							label="Show Stats"
 							description="Display your activity statistics publicly"
 							value={privacy.showStats}
-							onToggle={(value) => updatePrivacy('showStats', value)}
+							onToggle={(value) => updatePrivacy("showStats", value)}
 						/>
 					</Card>
 				</Animated.View>
@@ -230,25 +251,30 @@ export default function Settings() {
 						<LinkRow
 							icon="help-circle-outline"
 							label="Help Center"
-							onPress={() => openLink('https://betalift.app/help')}
+							onPress={() => openLink("https://betalift.app/help")}
 						/>
 						<View style={styles.divider} />
 						<LinkRow
 							icon="chatbubble-ellipses-outline"
 							label="Contact Support"
-							onPress={() => openLink('mailto:support@betalift.app')}
+							onPress={() => openLink("mailto:support@betalift.app")}
 						/>
 						<View style={styles.divider} />
 						<LinkRow
 							icon="bug-outline"
 							label="Report a Bug"
-							onPress={() => openLink('mailto:bugs@betalift.app')}
+							onPress={() => openLink("mailto:bugs@betalift.app")}
 						/>
 						<View style={styles.divider} />
 						<LinkRow
 							icon="star-outline"
 							label="Rate the App"
-							onPress={() => Alert.alert('Rate Us', 'Thanks for your support! Rating feature coming soon.')}
+							onPress={() =>
+								Alert.alert(
+									"Rate Us",
+									"Thanks for your support! Rating feature coming soon.",
+								)
+							}
 						/>
 					</Card>
 				</Animated.View>
@@ -260,26 +286,33 @@ export default function Settings() {
 						<LinkRow
 							icon="document-text-outline"
 							label="Terms of Service"
-							onPress={() => openLink('https://betalift.app/terms')}
+							onPress={() => openLink("https://betalift.app/terms")}
 						/>
 						<View style={styles.divider} />
 						<LinkRow
 							icon="shield-checkmark-outline"
 							label="Privacy Policy"
-							onPress={() => openLink('https://betalift.app/privacy')}
+							onPress={() => openLink("https://betalift.app/privacy")}
 						/>
 						<View style={styles.divider} />
 						<LinkRow
 							icon="information-circle-outline"
 							label="Licenses"
-							onPress={() => Alert.alert('Open Source', 'BetaLift uses various open source libraries. See our GitHub for details.')}
+							onPress={() =>
+								Alert.alert(
+									"Open Source",
+									"BetaLift uses various open source libraries. See our GitHub for details.",
+								)
+							}
 						/>
 					</Card>
 				</Animated.View>
 
 				{/* Danger Zone */}
 				<Animated.View entering={FadeInUp.duration(600).delay(600).springify()}>
-					<Text style={[styles.sectionTitle, { color: Colors.error }]}>Danger Zone</Text>
+					<Text style={[styles.sectionTitle, { color: Colors.error }]}>
+						Danger Zone
+					</Text>
 					<Card style={{ ...styles.card, ...styles.dangerCard }}>
 						<Pressable style={styles.dangerRow} onPress={handleDeleteAccount}>
 							<Ionicons name="trash-outline" size={22} color={Colors.error} />
@@ -304,7 +337,7 @@ export default function Settings() {
 				</Animated.View>
 			</ScrollView>
 		</SafeAreaView>
-	)
+	);
 }
 
 // Helper components
@@ -315,11 +348,11 @@ function SettingRow({
 	value,
 	onToggle,
 }: {
-	icon: keyof typeof Ionicons.glyphMap
-	label: string
-	description: string
-	value: boolean
-	onToggle: (value: boolean) => void
+	icon: keyof typeof Ionicons.glyphMap;
+	label: string;
+	description: string;
+	value: boolean;
+	onToggle: (value: boolean) => void;
 }) {
 	return (
 		<View style={styles.settingRow}>
@@ -331,11 +364,14 @@ function SettingRow({
 			<Switch
 				value={value}
 				onValueChange={onToggle}
-				trackColor={{ false: Colors.backgroundTertiary, true: `${Colors.primary}50` }}
+				trackColor={{
+					false: Colors.backgroundTertiary,
+					true: `${Colors.primary}50`,
+				}}
 				thumbColor={value ? Colors.primary : Colors.textTertiary}
 			/>
 		</View>
-	)
+	);
 }
 
 function LinkRow({
@@ -343,9 +379,9 @@ function LinkRow({
 	label,
 	onPress,
 }: {
-	icon: keyof typeof Ionicons.glyphMap
-	label: string
-	onPress: () => void
+	icon: keyof typeof Ionicons.glyphMap;
+	label: string;
+	onPress: () => void;
 }) {
 	return (
 		<Pressable style={styles.linkRow} onPress={onPress}>
@@ -353,7 +389,7 @@ function LinkRow({
 			<Text style={styles.linkLabel}>{label}</Text>
 			<Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
 		</Pressable>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -362,9 +398,9 @@ const styles = StyleSheet.create({
 		backgroundColor: Colors.background,
 	},
 	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.sm,
 		borderBottomWidth: 1,
@@ -373,8 +409,8 @@ const styles = StyleSheet.create({
 	backButton: {
 		width: 40,
 		height: 40,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		fontSize: 18,
@@ -392,7 +428,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontFamily: Fonts.semibold,
 		color: Colors.textSecondary,
-		textTransform: 'uppercase',
+		textTransform: "uppercase",
 		letterSpacing: 0.5,
 		marginTop: Spacing.lg,
 		marginBottom: Spacing.sm,
@@ -408,21 +444,21 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	themeOptions: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	themeOption: {
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: Spacing.xs,
 		paddingVertical: Spacing.sm,
 		paddingHorizontal: Spacing.md,
 		borderRadius: BorderRadius.md,
 		backgroundColor: Colors.backgroundSecondary,
 		borderWidth: 2,
-		borderColor: 'transparent',
+		borderColor: "transparent",
 	},
 	themeOptionSelected: {
 		borderColor: Colors.primary,
@@ -437,8 +473,8 @@ const styles = StyleSheet.create({
 		color: Colors.primary,
 	},
 	settingRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		paddingVertical: Spacing.xs,
 	},
 	settingInfo: {
@@ -463,8 +499,8 @@ const styles = StyleSheet.create({
 		marginVertical: Spacing.sm,
 	},
 	linkRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		paddingVertical: Spacing.sm,
 	},
 	linkLabel: {
@@ -480,8 +516,8 @@ const styles = StyleSheet.create({
 		backgroundColor: `${Colors.error}05`,
 	},
 	dangerRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		paddingVertical: Spacing.xs,
 	},
 	dangerInfo: {
@@ -500,7 +536,7 @@ const styles = StyleSheet.create({
 		marginTop: 2,
 	},
 	versionContainer: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginTop: Spacing.xl,
 		marginBottom: Spacing.lg,
 	},
@@ -515,4 +551,4 @@ const styles = StyleSheet.create({
 		color: Colors.textTertiary,
 		marginTop: 2,
 	},
-})
+});

@@ -1,44 +1,46 @@
-import { ProjectStatusBadge } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import type { Project } from '@/interfaces'
-import { Ionicons } from '@expo/vector-icons'
-import { Image } from 'expo-image'
-import { router } from 'expo-router'
-import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-} from 'react-native-reanimated'
+	useAnimatedStyle,
+	useSharedValue,
+	withSpring,
+} from "react-native-reanimated";
+import { ProjectStatusBadge } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Project } from "@/interfaces";
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface ProjectCardProps {
-	project: Project
-	variant?: 'default' | 'compact'
+	project: Project;
+	variant?: "default" | "compact";
 }
 
-export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) {
-	const scale = useSharedValue(1)
+export function ProjectCard({
+	project,
+	variant = "default",
+}: ProjectCardProps) {
+	const scale = useSharedValue(1);
 
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
-	}))
+	}));
 
 	const handlePressIn = () => {
-		scale.value = withSpring(0.98)
-	}
+		scale.value = withSpring(0.98);
+	};
 
 	const handlePressOut = () => {
-		scale.value = withSpring(1)
-	}
+		scale.value = withSpring(1);
+	};
 
 	const handlePress = () => {
-		router.push(`/project/${project.id}`)
-	}
+		router.push(`/project/${project.id}`);
+	};
 
-	if (variant === 'compact') {
+	if (variant === "compact") {
 		return (
 			<AnimatedPressable
 				style={[styles.compactCard, animatedStyle]}
@@ -50,7 +52,11 @@ export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) 
 					<Image source={{ uri: project.icon }} style={styles.compactIcon} />
 				) : (
 					<View style={styles.compactIconPlaceholder}>
-						<Ionicons name='cube-outline' size={24} color={Colors.textTertiary} />
+						<Ionicons
+							name="cube-outline"
+							size={24}
+							color={Colors.textTertiary}
+						/>
 					</View>
 				)}
 				<View style={styles.compactContent}>
@@ -63,7 +69,7 @@ export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) 
 				</View>
 				<ProjectStatusBadge status={project.status} />
 			</AnimatedPressable>
-		)
+		);
 	}
 
 	return (
@@ -79,11 +85,15 @@ export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) 
 					<Image
 						source={{ uri: project.screenshots[0] }}
 						style={styles.image}
-						contentFit='cover'
+						contentFit="cover"
 					/>
 				) : (
 					<View style={styles.imagePlaceholder}>
-						<Ionicons name='image-outline' size={48} color={Colors.textTertiary} />
+						<Ionicons
+							name="image-outline"
+							size={48}
+							color={Colors.textTertiary}
+						/>
 					</View>
 				)}
 				<View style={styles.statusBadgeContainer}>
@@ -98,7 +108,7 @@ export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) 
 						<Image source={{ uri: project.icon }} style={styles.icon} />
 					) : (
 						<View style={styles.iconPlaceholder}>
-							<Ionicons name='cube' size={20} color={Colors.primary} />
+							<Ionicons name="cube" size={20} color={Colors.primary} />
 						</View>
 					)}
 					<View style={styles.titleContainer}>
@@ -106,7 +116,9 @@ export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) 
 							{project.name}
 						</Text>
 						{project.creator && (
-							<Text style={styles.creator}>by {project.creator.displayName}</Text>
+							<Text style={styles.creator}>
+								by {project.creator.displayName}
+							</Text>
 						)}
 					</View>
 				</View>
@@ -124,7 +136,9 @@ export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) 
 							</View>
 						))}
 						{project.techStack.length > 3 && (
-							<Text style={styles.moreTech}>+{project.techStack.length - 3}</Text>
+							<Text style={styles.moreTech}>
+								+{project.techStack.length - 3}
+							</Text>
 						)}
 					</View>
 				)}
@@ -132,43 +146,53 @@ export function ProjectCard({ project, variant = 'default' }: ProjectCardProps) 
 				{/* Stats */}
 				<View style={styles.stats}>
 					<View style={styles.stat}>
-						<Ionicons name='people-outline' size={16} color={Colors.textTertiary} />
+						<Ionicons
+							name="people-outline"
+							size={16}
+							color={Colors.textTertiary}
+						/>
 						<Text style={styles.statText}>{project.testerCount} testers</Text>
 					</View>
 					<View style={styles.stat}>
-						<Ionicons name='chatbubble-outline' size={16} color={Colors.textTertiary} />
-						<Text style={styles.statText}>{project.feedbackCount} feedback</Text>
+						<Ionicons
+							name="chatbubble-outline"
+							size={16}
+							color={Colors.textTertiary}
+						/>
+						<Text style={styles.statText}>
+							{project.feedbackCount} feedback
+						</Text>
 					</View>
 				</View>
 			</View>
 		</AnimatedPressable>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
 	card: {
 		backgroundColor: Colors.card,
 		borderRadius: BorderRadius.lg,
-		overflow: 'hidden',
+		overflow: "hidden",
 		marginBottom: Spacing.md,
 	},
 	imageContainer: {
 		height: 140,
-		position: 'relative',
+		position: "relative",
 	},
 	image: {
-		width: '100%',
-		height: '100%',
+		width: "100%",
+		height: "100%",
 	},
 	imagePlaceholder: {
-		width: '100%',
-		height: '100%',
+		width: "100%",
+		height: "100%",
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	statusBadgeContainer: {
-		position: 'absolute',
+		position: "absolute",
 		top: Spacing.sm,
 		right: Spacing.sm,
 	},
@@ -176,8 +200,8 @@ const styles = StyleSheet.create({
 		padding: Spacing.md,
 	},
 	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginBottom: Spacing.sm,
 	},
 	icon: {
@@ -190,8 +214,8 @@ const styles = StyleSheet.create({
 		height: 36,
 		borderRadius: 8,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	titleContainer: {
 		flex: 1,
@@ -215,8 +239,8 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.sm,
 	},
 	techStack: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.xs,
 		marginBottom: Spacing.md,
 	},
@@ -235,15 +259,15 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		fontFamily: Fonts.medium,
 		color: Colors.textTertiary,
-		alignSelf: 'center',
+		alignSelf: "center",
 	},
 	stats: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.lg,
 	},
 	stat: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.xs,
 	},
 	statText: {
@@ -254,8 +278,8 @@ const styles = StyleSheet.create({
 
 	// Compact variant
 	compactCard: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		backgroundColor: Colors.card,
 		borderRadius: BorderRadius.md,
 		padding: Spacing.md,
@@ -271,8 +295,8 @@ const styles = StyleSheet.create({
 		height: 44,
 		borderRadius: 10,
 		backgroundColor: Colors.backgroundSecondary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	compactContent: {
 		flex: 1,
@@ -290,4 +314,4 @@ const styles = StyleSheet.create({
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
 	},
-})
+});

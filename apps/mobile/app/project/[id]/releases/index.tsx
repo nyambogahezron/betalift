@@ -1,84 +1,81 @@
-import { Button, Card } from '@/components/ui'
-import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
-import { getReleasesForProject } from '@/data/mockData'
-import type { Release } from '@/interfaces'
-import { Ionicons } from '@expo/vector-icons'
-import { router, useLocalSearchParams } from 'expo-router'
-import React, { useMemo, useState } from 'react'
-import {
-    FlatList,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { getReleasesForProject } from "@/data/mockData";
+import type { Release } from "@/interfaces";
 
-type FilterType = 'all' | 'published' | 'beta' | 'draft'
+type FilterType = "all" | "published" | "beta" | "draft";
 
 export default function ReleasesScreen() {
-	const { id: projectId } = useLocalSearchParams<{ id: string }>()
-	const insets = useSafeAreaInsets()
-	const [filter, setFilter] = useState<FilterType>('all')
+	const { id: projectId } = useLocalSearchParams<{ id: string }>();
+	const insets = useSafeAreaInsets();
+	const [filter, setFilter] = useState<FilterType>("all");
 
 	// Get releases from centralized mock data
-	const releases = useMemo(() => getReleasesForProject(projectId || '1'), [projectId])
+	const releases = useMemo(
+		() => getReleasesForProject(projectId || "1"),
+		[projectId],
+	);
 
 	const filteredReleases = releases.filter((release) => {
-		if (filter === 'all') return true
-		return release.status === filter
-	})
+		if (filter === "all") return true;
+		return release.status === filter;
+	});
 
-	const getStatusColor = (status: Release['status']) => {
+	const getStatusColor = (status: Release["status"]) => {
 		switch (status) {
-			case 'published':
-				return Colors.success
-			case 'beta':
-				return Colors.warning
-			case 'draft':
-				return Colors.textTertiary
-			case 'archived':
-				return Colors.error
+			case "published":
+				return Colors.success;
+			case "beta":
+				return Colors.warning;
+			case "draft":
+				return Colors.textTertiary;
+			case "archived":
+				return Colors.error;
 			default:
-				return Colors.textSecondary
+				return Colors.textSecondary;
 		}
-	}
+	};
 
-	const getStatusIcon = (status: Release['status']) => {
+	const getStatusIcon = (status: Release["status"]) => {
 		switch (status) {
-			case 'published':
-				return 'checkmark-circle'
-			case 'beta':
-				return 'flask'
-			case 'draft':
-				return 'create'
-			case 'archived':
-				return 'archive'
+			case "published":
+				return "checkmark-circle";
+			case "beta":
+				return "flask";
+			case "draft":
+				return "create";
+			case "archived":
+				return "archive";
 			default:
-				return 'ellipse'
+				return "ellipse";
 		}
-	}
+	};
 
 	const formatFileSize = (bytes?: number) => {
-		if (!bytes) return 'N/A'
-		const mb = bytes / (1024 * 1024)
-		return `${mb.toFixed(1)} MB`
-	}
+		if (!bytes) return "N/A";
+		const mb = bytes / (1024 * 1024);
+		return `${mb.toFixed(1)} MB`;
+	};
 
 	const formatDate = (date?: Date) => {
-		if (!date) return 'Not published'
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-		})
-	}
+		if (!date) return "Not published";
+		return date.toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		});
+	};
 
 	const renderRelease = ({ item, index }: { item: Release; index: number }) => {
-		const statusColor = getStatusColor(item.status)
-		const statusIcon = getStatusIcon(item.status)
-		const isLatest = index === 0 && item.status === 'published'
+		const statusColor = getStatusColor(item.status);
+		const statusIcon = getStatusIcon(item.status);
+		const isLatest = index === 0 && item.status === "published";
 
 		return (
 			<Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
@@ -103,9 +100,14 @@ export default function ReleasesScreen() {
 									{ backgroundColor: `${statusColor}15` },
 								]}
 							>
-								<Ionicons name={statusIcon as any} size={14} color={statusColor} />
+								<Ionicons
+									name={statusIcon as any}
+									size={14}
+									color={statusColor}
+								/>
 								<Text style={[styles.statusText, { color: statusColor }]}>
-									{(item.status || 'draft').charAt(0).toUpperCase() + (item.status || 'draft').slice(1)}
+									{(item.status || "draft").charAt(0).toUpperCase() +
+										(item.status || "draft").slice(1)}
 								</Text>
 							</View>
 						</View>
@@ -159,15 +161,15 @@ export default function ReleasesScreen() {
 					</Card>
 				</Pressable>
 			</Animated.View>
-		)
-	}
+		);
+	};
 
 	const filterOptions: { key: FilterType; label: string }[] = [
-		{ key: 'all', label: 'All' },
-		{ key: 'published', label: 'Published' },
-		{ key: 'beta', label: 'Beta' },
-		{ key: 'draft', label: 'Draft' },
-	]
+		{ key: "all", label: "All" },
+		{ key: "published", label: "Published" },
+		{ key: "beta", label: "Beta" },
+		{ key: "draft", label: "Draft" },
+	];
 
 	return (
 		<View style={styles.container}>
@@ -235,7 +237,7 @@ export default function ReleasesScreen() {
 				/>
 			)}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -253,16 +255,16 @@ const styles = StyleSheet.create({
 		borderBottomColor: Colors.border,
 	},
 	headerTop: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		marginBottom: Spacing.md,
 	},
 	backButton: {
 		width: 40,
 		height: 40,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginLeft: -Spacing.sm,
 	},
 	title: {
@@ -273,14 +275,14 @@ const styles = StyleSheet.create({
 	addButton: {
 		width: 40,
 		height: 40,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginRight: -Spacing.sm,
 	},
 
 	// Filter
 	filterContainer: {
-		flexDirection: 'row',
+		flexDirection: "row",
 		gap: Spacing.sm,
 	},
 	filterChip: {
@@ -311,14 +313,14 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 	},
 	releaseHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		marginBottom: Spacing.xs,
 	},
 	versionContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: Spacing.sm,
 	},
 	version: {
@@ -338,8 +340,8 @@ const styles = StyleSheet.create({
 		color: Colors.text,
 	},
 	statusBadge: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 		paddingHorizontal: Spacing.sm,
 		paddingVertical: 4,
@@ -356,13 +358,13 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 	},
 	releaseInfo: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: Spacing.md,
 	},
 	releaseInfoItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 4,
 	},
 	releaseInfoText: {
@@ -371,7 +373,7 @@ const styles = StyleSheet.create({
 		color: Colors.textTertiary,
 	},
 	releaseFooter: {
-		position: 'absolute',
+		position: "absolute",
 		right: Spacing.md,
 		bottom: Spacing.md,
 	},
@@ -379,8 +381,8 @@ const styles = StyleSheet.create({
 	// Empty
 	emptyContainer: {
 		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingHorizontal: Spacing.xl,
 	},
 	emptyTitle: {
@@ -393,10 +395,10 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontFamily: Fonts.regular,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		marginTop: Spacing.xs,
 	},
 	emptyButton: {
 		marginTop: Spacing.lg,
 	},
-})
+});
