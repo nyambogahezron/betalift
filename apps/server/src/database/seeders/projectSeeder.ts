@@ -1,6 +1,5 @@
 import Project from "../models/project.js";
 import ProjectMembership from "../models/projectMembership.js";
-import Release from "../models/release.js";
 import type { IUser } from "../models/user.js";
 
 export const seedProjects = async (users: IUser[]) => {
@@ -126,7 +125,7 @@ export const seedProjects = async (users: IUser[]) => {
 		// The plan was "new" seeders for membership and releases.
 		// So we can remove the inline creation of members/releases here to avoid duplication if we use the new seeders.
 		// Assuming index.ts will call `seedProjectMemberships` and `seedReleases`.
-		
+
 		createdProjects.push(project);
 	}
 

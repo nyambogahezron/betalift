@@ -1,4 +1,3 @@
-import nodemailer from "nodemailer";
 import ENV from "../config/env";
 import {
 	getFeedbackCommentEmail,
@@ -12,15 +11,7 @@ import {
 } from "../templates/emails";
 import { logger } from "../utils/logger";
 
-const transporter = nodemailer.createTransport({
-	host: ENV.smtpHost,
-	port: ENV.smtpPort,
-	secure: ENV.smtpSecure,
-	auth: {
-		user: ENV.smtpUser,
-		pass: ENV.smtpPassword,
-	},
-});
+import RabbitMQClient from "../rabbitmq/client";
 
 export interface EmailOptions {
 	to: string;
@@ -31,17 +22,15 @@ export interface EmailOptions {
 
 export const sendEmail = async (options: EmailOptions): Promise<void> => {
 	try {
-		const info = await transporter.sendMail({
-			from: ENV.emailFrom,
-			to: options.to,
-			subject: options.subject,
-			text: options.text,
-			html: options.html,
-		});
-
-		logger.info(`Email sent: ${info.messageId}`);
+		const published = await RabbitMQClient.publishEmail(options);
+		if (published) {
+			logger.info(`Email queued for: ${options.to}`);
+		} else {
+			logger.error(`Failed to queue email for: ${options.to}`);
+			throw new Error("Failed to queue email");
+		}
 	} catch (error) {
-		logger.error("Error sending email:", error);
+		logger.error("Error queueing email:", error);
 		throw error;
 	}
 };

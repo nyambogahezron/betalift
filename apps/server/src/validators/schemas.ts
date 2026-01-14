@@ -88,6 +88,7 @@ export const createProjectSchema = z.object({
 		.optional(),
 	website: z.string().url({ message: "Invalid website URL" }).optional(),
 	icon: z.string().url({ message: "Invalid icon URL" }).optional(),
+	screenshots: z.array(z.string().url({ message: "Invalid screenshot URL" })).optional(),
 	isPublic: z.boolean().optional().default(true),
 	lookingForTesters: z.boolean().optional().default(true),
 });
@@ -100,6 +101,7 @@ export const updateProjectSchema = z.object({
 	repositoryUrl: z.union([z.string().url(), z.literal("")]).optional(),
 	website: z.union([z.string().url(), z.literal("")]).optional(),
 	icon: z.union([z.string().url(), z.literal("")]).optional(),
+	screenshots: z.array(z.string().url()).optional(),
 	isPublic: z.boolean().optional(),
 	lookingForTesters: z.boolean().optional(),
 	status: z

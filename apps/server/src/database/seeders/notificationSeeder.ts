@@ -1,5 +1,5 @@
-import Notification from "../models/notification.js";
-import type { IUser } from "../models/user.js";
+import Notification from "../models/notification";
+import type { IUser } from "../models/user";
 
 export const seedNotifications = async (users: IUser[]) => {
 	const createdNotifications = [];
@@ -29,6 +29,8 @@ export const seedNotifications = async (users: IUser[]) => {
 		for (let i = 0; i < numberOfNotifications; i++) {
 			const type =
 				notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
+
+			if (!type) continue;
 
 			const notification = await Notification.create({
 				userId: user._id,
