@@ -26,6 +26,7 @@
 		"test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
 	},
 	"dependencies": {
+		"amqplib": "^0.10.9",
 		"bcryptjs": "^3.0.3",
 		"cookie-parser": "^1.4.7",
 		"cors": "^2.8.5",
@@ -46,6 +47,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.11",
+		"@types/amqplib": "^0.10.8",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/cookie-parser": "^1.4.10",
 		"@types/cors": "^2.8.19",

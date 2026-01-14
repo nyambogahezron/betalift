@@ -13,9 +13,9 @@ import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import { apiLimiter } from "./middleware/rateLimiter";
 import apiRoutes from "./routes";
-import path from "path";
+import path from "node:path";
 import { logger } from "./utils/logger";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,5 +93,8 @@ process.on("uncaughtException", (error) => {
 	logger.error("Uncaught Exception:", error);
 	process.exit(1);
 });
+
+import RabbitMQClient from "./rabbitmq/client";
+RabbitMQClient.connect();
 
 export default app;

@@ -7,8 +7,6 @@ import { seedProjects } from "./projectSeeder.js";
 import { seedProjectMemberships } from "./projectMembershipSeeder.js";
 import { seedReleases } from "./releaseSeeder.js";
 import { seedFeedback } from "./feedbackSeeder.js";
-import { seedConversations } from "./conversationSeeder.js";
-import { seedMessages } from "./messageSeeder.js";
 import { seedNotifications } from "./notificationSeeder.js";
 
 const seedDatabase = async () => {
@@ -40,11 +38,6 @@ const seedDatabase = async () => {
 		const feedback = await seedFeedback(users, projects);
 		logger.info(`Seeded ${feedback.length} feedback items`);
 
-		const conversations = await seedConversations(users);
-		logger.info(`Seeded ${conversations.length} conversations`);
-
-		const messages = await seedMessages(users, conversations);
-		logger.info(`Seeded ${messages.length} messages`);
 
 		const notifications = await seedNotifications(users);
 		logger.info(`Seeded ${notifications.length} notifications`);

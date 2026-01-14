@@ -35,33 +35,33 @@ export interface IUserSettings {
 }
 
 export interface IUser extends Document {
-		email: string;
-		password: string;
-		username: string;
-		displayName?: string;
-		avatar?: string;
-		bio?: string;
-		role: "creator" | "tester" | "both";
-		stats: IUserStats;
-		settings?: IUserSettings;
-		isEmailVerified: boolean;
-		emailVerificationToken?: string;
-		emailVerificationExpires?: Date;
-		resetPasswordToken?: string;
-		resetPasswordExpires?: Date;
-		refreshToken?: string;
-		failedLoginAttempts: number;
-		accountLockedUntil?: Date;
-		lastFailedLogin?: Date;
-		createdAt: Date;
-		updatedAt: Date;
-		comparePassword(candidatePassword: string): Promise<boolean>;
-		generateAuthToken(): string;
-		generateRefreshToken(): string;
-		isAccountLocked(): boolean;
-		incrementFailedAttempts(): Promise<void>;
-		resetFailedAttempts(): Promise<void>;
-	}
+	email: string;
+	password: string;
+	username: string;
+	displayName?: string;
+	avatar?: string;
+	bio?: string;
+	role: "creator" | "tester" | "both";
+	stats: IUserStats;
+	settings?: IUserSettings;
+	isEmailVerified: boolean;
+	emailVerificationToken?: string;
+	emailVerificationExpires?: Date;
+	resetPasswordToken?: string;
+	resetPasswordExpires?: Date;
+	refreshToken?: string;
+	failedLoginAttempts: number;
+	accountLockedUntil?: Date;
+	lastFailedLogin?: Date;
+	createdAt: Date;
+	updatedAt: Date;
+	comparePassword(candidatePassword: string): Promise<boolean>;
+	generateAuthToken(): string;
+	generateRefreshToken(): string;
+	isAccountLocked(): boolean;
+	incrementFailedAttempts(): Promise<void>;
+	resetFailedAttempts(): Promise<void>;
+}
 
 const userStatsSchema = new Schema<IUserStats>(
 	{
@@ -267,7 +267,9 @@ userSchema.methods.incrementFailedAttempts = async function (): Promise<void> {
 			LOCK_TIME_MINUTES.length - 1,
 		);
 		const lockoutMinutes = LOCK_TIME_MINUTES[lockoutIndex];
-		this.accountLockedUntil = new Date(Date.now() + lockoutMinutes * 60 * 1000);
+		if (lockoutMinutes) {
+			this.accountLockedUntil = new Date(Date.now() + lockoutMinutes * 60 * 1000);
+		}
 	}
 
 	await this.save();
