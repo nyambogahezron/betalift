@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import { router, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	FlatList,
@@ -23,107 +23,125 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "@/components/ui";
 import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import {
-	getMessagesForConversation,
-	getUserById,
-	mockConversations,
-} from "@/data/mockData";
+import { useSocket } from "@/context/SocketContext";
+import { useAuthStore } from "@/stores/useAuthStore";
 import type { Message, User } from "@/interfaces";
 
 export default function ChatScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const insets = useSafeAreaInsets();
 	const flatListRef = useRef<FlatList>(null);
+	const { socket, isConnected, sendMessage } = useSocket();
+	const { user } = useAuthStore();
+	const router = useRouter();
 
-	// Get conversation and related data from centralized mock data
-	const conversation = useMemo(
-		() => mockConversations.find((c) => c.id === id),
-		[id],
-	);
-
-	const otherUser = useMemo((): User => {
-		// Try to find user from conversation participants
-		if (conversation?.participants?.[0]) {
-			return conversation.participants[0];
-		}
-		// Fallback to getUserById if this is a direct user message
-		const userFromId = getUserById(id || "");
-		if (userFromId) {
-			return userFromId;
-		}
-		// Default fallback user
-		return {
-			id: id || "unknown",
-			email: "unknown@example.com",
-			username: "unknown",
-			displayName: "Unknown User",
-			role: "tester",
-			stats: {
-				projectsCreated: 0,
-				projectsTested: 0,
-				feedbackGiven: 0,
-				feedbackReceived: 0,
-			},
-			createdAt: new Date(),
-		};
-	}, [id, conversation]);
-
-	const initialMessages = useMemo(
-		() => getMessagesForConversation(conversation?.id || id || ""),
-		[conversation?.id, id],
-	);
-
-	const [messages, setMessages] = useState<Message[]>(initialMessages);
+	const [conversation, setConversation] = useState<any>(null); // Type any to avoid strict type issues with mapped _id temporarily
+	const [messages, setMessages] = useState<Message[]>([]);
 	const [inputText, setInputText] = useState("");
 	const [isTyping, setIsTyping] = useState(false);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+	// Fetch conversation details and messages
 	useEffect(() => {
-		// Scroll to bottom on mount
-		setTimeout(() => {
-			flatListRef.current?.scrollToEnd({ animated: false });
-		}, 100);
-	}, []);
+		if (socket && isConnected && id) {
+			// Fetch all conversations to find the current one (since we don't have get_conversation_by_id)
+			socket.emit('get_conversations', (response: any) => {
+				if (response.success) {
+					// Map _id and find
+					const convs = response.data.map((c: any) => ({ ...c, id: c._id }));
+					const currentConv = convs.find((c: any) => c.id === id);
+					if (currentConv) {
+						setConversation(currentConv);
+					}
+				}
+			});
+
+			// Fetch messages
+			socket.emit('get_messages', { conversationId: id, limit: 50, offset: 0 }, (response: any) => {
+				if (response.success) {
+					const mappedMessages = response.data.map((m: any) => ({
+						...m,
+						id: m._id, // Map _id to id
+						createdAt: new Date(m.createdAt), // Ensure Date object
+						senderId: m.senderId === user?.id ? 'me' : m.senderId // Map my ID to 'me' if needed by UI
+					})).reverse(); // specific sort might be needed depending on API
+					setMessages(mappedMessages);
+
+					// Scroll to bottom
+					setTimeout(() => {
+						flatListRef.current?.scrollToEnd({ animated: false });
+					}, 100);
+				}
+			});
+
+			// Listen for new messages
+			const handleNewMessage = (message: any) => {
+				if (message.conversationId === id || message.conversationId === conversation?.id) { // handle both if mapped or not
+					const mappedMsg = {
+						...message,
+						id: message._id,
+						createdAt: new Date(message.createdAt),
+						senderId: message.senderId === user?.id ? 'me' : message.senderId
+					};
+					setMessages((prev) => [...prev, mappedMsg]);
+					setTimeout(() => {
+						flatListRef.current?.scrollToEnd({ animated: true });
+					}, 100);
+				}
+			};
+
+			socket.on('new_message', handleNewMessage);
+
+			return () => {
+				socket.off('new_message', handleNewMessage);
+			};
+		}
+	}, [socket, isConnected, id, user?.id]);
+
+	const otherUser = useMemo((): User => {
+		if (conversation?.participants) {
+			// Find participant that is NOT me
+			const other = conversation.participants.find((p: any) => p._id !== user?.id);
+			if (other) return { ...other, id: other._id };
+			// Fallback if I am the only participant?
+			return conversation.participants[0] ? { ...conversation.participants[0], id: conversation.participants[0]._id } : {
+				id: "unknown",
+				email: "unknown@example.com",
+				username: "Unknown",
+				role: "tester",
+				stats: { projectsCreated: 0, projectsTested: 0, feedbackGiven: 0, feedbackReceived: 0 },
+				createdAt: new Date()
+			};
+		}
+
+		// Placeholder if loading
+		return {
+			id: "loading",
+			email: "",
+			username: "Loading...",
+			displayName: "Loading...",
+			role: "tester",
+			stats: { projectsCreated: 0, projectsTested: 0, feedbackGiven: 0, feedbackReceived: 0 },
+			createdAt: new Date(),
+		};
+	}, [conversation, user?.id]);
 
 	const handleSend = () => {
 		if (!inputText.trim() && !selectedImage) return;
 
 		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-		const newMessage: Message = {
-			id: `m${Date.now()}`,
-			conversationId: id,
-			senderId: "me",
-			content: inputText.trim(),
-			type: selectedImage ? "image" : "text",
-			createdAt: new Date(),
-			readBy: ["me"],
-			attachments: selectedImage
-				? [
-						{
-							id: `a${Date.now()}`,
-							type: "image",
-							url: selectedImage,
-							name: "image.jpg",
-						},
-					]
-				: undefined,
-		};
+		// Optimistic update handled by socket event? 
+		// If we want instant feedback, we can append locally.
+		// But since we listen to 'new_message', we might get duplicates if we append locally.
+		// For 'me', the socket emits to room, so I receive it.
+		// So I will NOT append locally to avoid dupes, assuming fast connection. 
+		// Or I can check ID.
 
-		setMessages((prev) => [...prev, newMessage]);
+		sendMessage(id, inputText.trim(), selectedImage ? "image" : "text", selectedImage ? [{ type: 'image', url: selectedImage }] : []);
+
 		setInputText("");
 		setSelectedImage(null);
-
-		// Scroll to bottom
-		setTimeout(() => {
-			flatListRef.current?.scrollToEnd({ animated: true });
-		}, 100);
-
-		// Simulate typing response
-		setIsTyping(true);
-		setTimeout(() => {
-			setIsTyping(false);
-		}, 2000);
 	};
 
 	const handlePickImage = async () => {
