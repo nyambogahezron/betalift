@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
 	FlatList,
 	Pressable,
@@ -13,13 +13,56 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "@/components/ui";
 import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { mockConversations } from "@/data/mockData";
+import { useSocket } from "@/context/SocketContext";
 import type { Conversation } from "@/interfaces";
 
 export default function MessagesScreen() {
 	const insets = useSafeAreaInsets();
 	const [searchQuery, setSearchQuery] = useState("");
-	const [conversations] = useState<Conversation[]>(mockConversations);
+	const [conversations, setConversations] = useState<Conversation[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const { socket, isConnected } = useSocket();
+	const router = useRouter();
+
+	useEffect(() => {
+		if (socket && isConnected) {
+			setIsLoading(true);
+			socket.emit('get_conversations', (response: any) => {
+				if (response.success) {
+					const mappedConversations = response.data.map((c: any) => ({ ...c, id: c._id || c.id }));
+					setConversations(mappedConversations);
+				} else {
+					console.error('Failed to fetch conversations:', response.message);
+				}
+				setIsLoading(false);
+			});
+
+			// Listen for updates
+			socket.on('conversations_list', (response: any) => {
+				if (response.success) {
+					const mappedConversations = response.data.map((c: any) => ({ ...c, id: c._id || c.id }));
+					setConversations(mappedConversations);
+				}
+			});
+
+			// Listen for new messages to update conversation list (if backend pushes full list or update)
+			socket.on('new_message', () => {
+				socket.emit('get_conversations', (response: any) => {
+					if (response.success) {
+						const mappedConversations = response.data.map((c: any) => ({ ...c, id: c._id || c.id }));
+						setConversations(mappedConversations);
+					}
+				});
+			});
+		}
+
+		return () => {
+			if (socket) {
+				socket.off('conversations_list');
+				socket.off('new_message');
+			}
+		};
+	}, [socket, isConnected]);
 
 	const filteredConversations = conversations.filter((conv) => {
 		const otherUser = conv.participants[0];
@@ -31,7 +74,8 @@ export default function MessagesScreen() {
 		);
 	});
 
-	const formatTime = (date: Date) => {
+	const formatTime = (dateString: string | Date) => {
+		const date = new Date(dateString);
 		const now = new Date();
 		const diff = now.getTime() - date.getTime();
 		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -63,13 +107,13 @@ export default function MessagesScreen() {
 	}) => {
 		const otherUser = item.participants[0];
 		const isUnread = item.unreadCount > 0;
-		const isSentByMe = item.lastMessage?.senderId === "me";
+		const isSentByMe = item.lastMessage?.senderId === "me"; // Logic might need adjustment based on real user ID
 
 		return (
 			<Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
 				<Pressable
 					style={styles.conversationItem}
-					onPress={() => router.push(`/messages/${item.id}`)}
+					onPress={() => router.push(`/messages/${item.id}`)} // Use id (mapped from _id)
 				>
 					<View style={styles.avatarContainer}>
 						<Avatar
@@ -194,7 +238,6 @@ export default function MessagesScreen() {
 				<FlatList
 					data={filteredConversations}
 					renderItem={renderConversation}
-					keyExtractor={(item) => item.id}
 					contentContainerStyle={styles.listContent}
 					showsVerticalScrollIndicator={false}
 					ItemSeparatorComponent={() => <View style={styles.separator} />}

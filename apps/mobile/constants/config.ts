@@ -5,4 +5,5 @@ export const API_CONFIG = {
 		'Content-Type': 'application/json',
 		Accept: 'application/json',
 	},
+	CHAT_URL: __DEV__ ? 'http://10.0.2.2:5001' : 'https://chat.betalift.com',
 }
