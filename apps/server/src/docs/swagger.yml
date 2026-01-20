@@ -1,0 +1,1092 @@
+openapi: 3.0.0
+info:
+  title: Betalift API
+  description: >-
+    Postman collection for Betalift API (v1) covering auth, users, projects,
+    feedback, conversations, and notifications. Collection-level bearer auth
+    uses {{accessToken}}; tests set common variables.
+  version: 1.0.0
+servers:
+  - url: http://{{baseurl}}
+  - url: http://{{api_url}}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Users
+  - name: Projects
+  - name: Feedback
+  - name: Conversations
+  - name: Notifications
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"email\": \"hezron@gmail.com\",\n  \"password\":
+                \"user1234\",\n  \"username\": \"user\",\n  \"displayName\":
+                \"Hezron\",\n  \"role\": \"both\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"email\": \"hezron@gmail.com\",\n  \"password\":
+                \"user1234\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout
+      requestBody:
+        content: {}
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get Current User
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /auth/verify-email:
+    post:
+      tags:
+        - Auth
+      summary: Verify Email
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"token\": \"{{verificationToken}}\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: Forgot Password
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"email\": \"{{testEmail}}\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Reset Password
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"token\": \"{{passwordResetToken}}\",\n  \"password\":
+                \"NewPassw0rd!\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /users:
+    get:
+      tags:
+        - Users
+      summary: List Users
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: '10'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get User By Id
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Users
+      summary: Update User
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"displayName\": \"Updated User\",\n  \"bio\": \"Updated
+                bio\"\n}"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Users
+      summary: Delete User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /users/{userId}/stats:
+    get:
+      tags:
+        - Users
+      summary: User Stats
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /users/{userId}/settings:
+    patch:
+      tags:
+        - Users
+      summary: Update Settings
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"settings\": {\n    \"notifications\": {\"email\":
+                true}\n  }\n}"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /users/{userId}/engagement:
+    get:
+      tags:
+        - Users
+      summary: Get Engagement
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Users
+      summary: Update Engagement
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"lastActiveAt\": \"{{{{$timestamp}}}}\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects:
+    get:
+      tags:
+        - Projects
+      summary: List Projects
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: '10'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Projects
+      summary: Create Project
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Sample Project\",\n  \"description\": \"A
+                sample project created from Postman\",\n  \"techStack\":
+                [\"react-native\", \"node\"],\n  \"category\":
+                \"mobile-app\",\n  \"isPublic\": true\n}"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects/{projectId}:
+    get:
+      tags:
+        - Projects
+      summary: Get Project
+      parameters:
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Projects
+      summary: Update Project
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"status\": \"beta\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Projects
+      summary: Delete Project
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects/{projectId}/members:
+    get:
+      tags:
+        - Projects
+      summary: Project Members
+      parameters:
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects/{projectId}/requests:
+    get:
+      tags:
+        - Projects
+      summary: List Join Requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Projects
+      summary: Create Join Request
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"message\": \"Let me join\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects/{projectId}/requests/{joinRequestId}:
+    patch:
+      tags:
+        - Projects
+      summary: Update Join Request
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"status\": \"approved\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: joinRequestId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects/{projectId}/releases:
+    get:
+      tags:
+        - Projects
+      summary: List Releases
+      parameters:
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Projects
+      summary: Create Release
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"version\": \"1.0.0\",\n  \"title\": \"Initial
+                release\",\n  \"description\": \"First build\",\n  \"status\":
+                \"draft\"\n}"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects/{projectId}/releases/{releaseId}:
+    get:
+      tags:
+        - Projects
+      summary: Get Release
+      parameters:
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: releaseId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Projects
+      summary: Update Release
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"status\": \"published\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: releaseId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Projects
+      summary: Delete Release
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: releaseId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /projects/{projectId}/feedback:
+    get:
+      tags:
+        - Projects
+      summary: List Project Feedback
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: '10'
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Projects
+      summary: Create Project Feedback
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"type\": \"bug\",\n  \"title\": \"Bug report\",\n 
+                \"description\": \"Button not working\",\n  \"priority\":
+                \"medium\"\n}"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: projectId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /feedback/{feedbackId}:
+    get:
+      tags:
+        - Feedback
+      summary: Get Feedback By Id
+      parameters:
+        - name: feedbackId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Feedback
+      summary: Update Feedback
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"status\": \"open\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: feedbackId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Feedback
+      summary: Delete Feedback
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: feedbackId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /feedback/{feedbackId}/comments:
+    get:
+      tags:
+        - Feedback
+      summary: List Comments
+      parameters:
+        - name: feedbackId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Feedback
+      summary: Create Comment
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"content\": \"Looks good!\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: feedbackId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /feedback/{feedbackId}/comments/{commentId}:
+    delete:
+      tags:
+        - Feedback
+      summary: Delete Comment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: feedbackId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: commentId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /feedback/{feedbackId}/vote:
+    post:
+      tags:
+        - Feedback
+      summary: Vote Feedback
+      requestBody:
+        content: {}
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: feedbackId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /conversations:
+    get:
+      tags:
+        - Conversations
+      summary: List Conversations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Conversations
+      summary: Create Conversation
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"participantId\": \"{{participantId}}\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /conversations/{conversationId}/messages:
+    get:
+      tags:
+        - Conversations
+      summary: Get Messages
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: '20'
+        - name: conversationId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Conversations
+      summary: Send Message
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"content\": \"Hello!\",\n  \"type\": \"text\"\n}"'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: conversationId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /conversations/{conversationId}/read:
+    patch:
+      tags:
+        - Conversations
+      summary: Mark As Read
+      requestBody:
+        content: {}
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List Notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: '20'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Notifications
+      summary: Delete All Notifications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/read-all:
+    patch:
+      tags:
+        - Notifications
+      summary: Mark All Read
+      requestBody:
+        content: {}
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/{notificationId}/read:
+    patch:
+      tags:
+        - Notifications
+      summary: Mark Notification Read
+      requestBody:
+        content: {}
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/{notificationId}:
+    delete:
+      tags:
+        - Notifications
+      summary: Delete Notification
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /:
+    get:
+      tags:
+        - General
+      summary: Server Helth
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
