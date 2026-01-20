@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, {
@@ -6,17 +8,18 @@ import express, {
 	type Response,
 } from "express";
 import helmet from "helmet";
+import ip from "ip";
 import morgan from "morgan";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
 import ENV from "./config/env";
 import { connectDatabase } from "./database/connect";
 import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import { apiLimiter } from "./middleware/rateLimiter";
+import RabbitMQClient from "./rabbitmq/client";
 import apiRoutes from "./routes";
-import path from "node:path";
 import { logger } from "./utils/logger";
-import { fileURLToPath } from "node:url";
-import ip from 'ip'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +42,10 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+// Swagger Documentation
+const swaggerDocument = YAML.load(path.join(__dirname, "./docs/swagger.yml"));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.use("/public", express.static(path.join(__dirname, "public")));
 
 // Health check route
@@ -71,7 +78,10 @@ app.use(notFound);
 app.use(errorHandler);
 
 const server = app.listen(ENV.port, () => {
-	logger.info(`Server is running on http://${ip.address()}:${ENV.port}`)
+	logger.info(`Server is running on http://${ip.address()}:${ENV.port}`);
+	logger.info(
+		`Valid documentation available at http://${ip.address()}:${ENV.port}/api-docs`,
+	);
 	logger.info(`Environment: ${ENV.nodeEnv}`);
 });
 
@@ -95,7 +105,6 @@ process.on("uncaughtException", (error) => {
 	process.exit(1);
 });
 
-import RabbitMQClient from "./rabbitmq/client";
 RabbitMQClient.connect();
 
 export default app;

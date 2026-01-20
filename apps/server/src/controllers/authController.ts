@@ -71,13 +71,9 @@ export const register = asyncHandler(
 		});
 
 		res.status(201).json({
-			success: true,
 			message:
 				"User registered successfully. Please check your email to verify your account.",
-			data: {
-				user: user.toJSON(),
-				accessToken,
-			},
+			user
 		});
 	},
 );
@@ -143,12 +139,8 @@ export const login = asyncHandler(async (req: AuthRequest, res: Response) => {
 	});
 
 	res.json({
-		success: true,
 		message: "Login successful",
-		data: {
-			user,
-			accessToken,
-		},
+		user,
 	});
 });
 
@@ -159,7 +151,6 @@ export const logout = asyncHandler(
 		res.clearCookie("accessToken");
 
 		res.json({
-			success: true,
 			message: "Logout successful",
 		});
 	},
@@ -175,7 +166,6 @@ export const getCurrentUser = asyncHandler(
 		if (!user) throw new NotFoundError("User not found");
 
 		res.json({
-			success: true,
 			user,
 		});
 	},
@@ -204,7 +194,6 @@ export const verifyEmail = asyncHandler(
 		await user.save();
 
 		res.json({
-			success: true,
 			message: "Email verified successfully",
 		});
 	},
@@ -222,7 +211,6 @@ export const forgotPassword = asyncHandler(
 
 		if (!user) {
 			res.json({
-				success: true,
 				message:
 					"If an account exists with that email, a password reset link has been sent.",
 			});
@@ -245,7 +233,6 @@ export const forgotPassword = asyncHandler(
 		}
 
 		res.json({
-			success: true,
 			message:
 				"If an account exists with that email, a password reset link has been sent.",
 		});
@@ -282,7 +269,6 @@ export const resetPassword = asyncHandler(
 		await user.save();
 
 		res.json({
-			success: true,
 			message: "Password reset successful",
 		});
 	},
