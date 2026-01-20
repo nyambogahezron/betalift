@@ -9,7 +9,8 @@ import {
 	updateSettings,
 	updateUser,
 	updateUserEngagement,
-} from "../../controllers/userController";
+	registerPushToken,
+} from '../../controllers/userController'
 import { authenticate } from "../../middleware/authentication";
 import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
 import {
@@ -32,6 +33,8 @@ const idParamSchema = z.object({ id: mongoIdSchema });
 router.get("/", readLimiter, validateQuery(getUsersQuerySchema), getUsers);
 
 router.use(authenticate);
+
+router.post('/push-token', writeLimiter, registerPushToken)
 
 router
 	.route("/:id")

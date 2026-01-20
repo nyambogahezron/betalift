@@ -1,15 +1,13 @@
-// User types
 export interface User {
-	id: string;
-	email: string;
-	username: string;
-	displayName?: string;
-	avatar?: string;
-	bio?: string;
-	role: "creator" | "tester" | "both";
-	stats: UserStats;
-	createdAt: Date;
-	updatedAt?: Date;
+	id: string
+	email: string
+	username: string
+	displayName?: string
+	bio?: string
+	avatar?: string
+	stats: UserStats
+	createdAt: Date
+	updatedAt?: Date
 }
 
 export interface UserStats {
@@ -19,7 +17,6 @@ export interface UserStats {
 	feedbackReceived: number;
 }
 
-// Project types
 export type ProjectStatus = "active" | "beta" | "closed" | "paused";
 
 export interface Project {
@@ -74,7 +71,6 @@ export interface ProjectMembership {
 	joinedAt: Date;
 }
 
-// Feedback types
 export type FeedbackType =
 	| "bug"
 	| "feature"
@@ -144,7 +140,6 @@ export interface FeedbackVote {
 	createdAt: Date;
 }
 
-// Notification types
 export interface Notification {
 	id: string;
 	userId: string;
@@ -164,7 +159,6 @@ export type NotificationType =
 	| "feedback_status_changed"
 	| "project_update";
 
-// API Response types
 export interface ApiResponse<T> {
 	success: boolean;
 	data?: T;

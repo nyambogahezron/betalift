@@ -9,12 +9,6 @@ export const seedProjectMemberships = async (
 	const createdMemberships = [];
 
 	for (const project of projects) {
-		// Owner is already added as a member in projectSeeder (we will move that logic here or check existence)
-		// But based on the existing projectSeeder.ts, it was adding the owner.
-		// We will assume projectSeeder handles the owner membership or we can ensure it here.
-		// Let's create memberships for other users.
-
-		// Add 2-5 random testers to each project
 		const potentialTesters = users.filter(
 			(u) => u._id.toString() !== project.ownerId.toString(),
 		);
@@ -25,7 +19,6 @@ export const seedProjectMemberships = async (
 			.slice(0, numberOfTesters);
 
 		for (const tester of selectedTesters) {
-			// Check if membership already exists (to prevent duplicates if run multiple times or overlapping logic)
 			const existing = await ProjectMembership.findOne({
 				projectId: project._id,
 				userId: tester._id,
@@ -35,8 +28,8 @@ export const seedProjectMemberships = async (
 				const membership = await ProjectMembership.create({
 					projectId: project._id,
 					userId: tester._id,
-					role: "tester",
-					status: Math.random() > 0.2 ? "approved" : "pending", // 80% approved
+
+					status: Math.random() > 0.2 ? "approved" : "pending",
 					joinedAt: new Date(),
 				});
 				createdMemberships.push(membership);

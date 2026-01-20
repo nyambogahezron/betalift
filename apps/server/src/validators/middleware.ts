@@ -44,9 +44,15 @@ export const validateBody = (schema: z.ZodTypeAny) => {
 export const validateQuery = (schema: z.ZodTypeAny) => {
 	return async (req: Request, _res: Response, next: NextFunction) => {
 		try {
-			const validated = await schema.parseAsync(req.query);
-			req.query = validated as unknown as Request["query"];
-			next();
+			const validated = await schema.parseAsync(req.query)
+			// Fix: Do not overwrite req.query object directly as it might be read-only
+			// Instead, we can assign properties if needed, or rely on the validated data being close enough
+			// In Express 5, req.query is a getter/setter, but some setups make it read-only.
+			// However, since we are validating, we can just ensure type safety or replace content.
+			// Safe approach: property copy
+			Object.keys(req.query).forEach((key) => delete req.query[key])
+			Object.assign(req.query, validated)
+			next()
 		} catch (error) {
 			if (error instanceof ZodError) {
 				const firstError = error.issues[0];
@@ -62,9 +68,11 @@ export const validateQuery = (schema: z.ZodTypeAny) => {
 export const validateParams = (schema: z.ZodTypeAny) => {
 	return async (req: Request, _res: Response, next: NextFunction) => {
 		try {
-			const validated = await schema.parseAsync(req.params);
-			req.params = validated as unknown as Request["params"];
-			next();
+			const validated = await schema.parseAsync(req.params)
+			// Fix: Same for params
+			Object.keys(req.params).forEach((key) => delete req.params[key])
+			Object.assign(req.params, validated)
+			next()
 		} catch (error) {
 			if (error instanceof ZodError) {
 				const firstError = error.issues[0];

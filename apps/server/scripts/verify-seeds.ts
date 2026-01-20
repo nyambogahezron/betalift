@@ -4,9 +4,13 @@ import { logger } from "../src/utils/logger.js";
 import User from "../src/database/models/user.js";
 import Project from "../src/database/models/project.js";
 import Feedback from "../src/database/models/feedback.js";
-import Conversation from "../src/database/models/conversation.js";
 
 const verifySeeds = async () => {
+	if (ENV.nodeEnv !== "development") {
+		logger.info("Skipping database verification in non-development environment");
+		return;
+	}
+
 	try {
 		await mongoose.connect(ENV.mongoUri);
 		logger.info("Connected to MongoDB for verification");
@@ -30,9 +34,6 @@ const verifySeeds = async () => {
 
 		const feedbackCount = await Feedback.countDocuments();
 		logger.info(`Feedback count: ${feedbackCount}`);
-
-		const conversationCount = await Conversation.countDocuments();
-		logger.info(`Conversation count: ${conversationCount}`);
 
 		logger.info("Verification completed.");
 		process.exit(0);

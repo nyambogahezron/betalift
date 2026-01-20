@@ -66,12 +66,7 @@ export default function ProjectDetail() {
 		},
 	});
 
-	useEffect(() => {
-		if (id) {
-			fetchFeedbacks(id);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [id]);
+
 
 	// Animated styles for header
 	const headerAnimatedStyle = useAnimatedStyle(() => {

@@ -44,4 +44,12 @@ export const handleApiError = (error: unknown): string => {
 	return 'An unexpected error occurred.'
 }
 
+export const registerPushToken = async (pushToken: string): Promise<void> => {
+	try {
+		await apiClient.post('/api/v1/users/push-token', { pushToken })
+	} catch (error) {
+		console.error('Failed to register push token:', error)
+	}
+}
+
 export default apiClient

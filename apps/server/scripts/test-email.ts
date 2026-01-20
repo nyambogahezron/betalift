@@ -1,7 +1,13 @@
 import nodemailer from 'nodemailer';
 import ENV from '../src/config/env';
+import { logger } from '../src/utils/logger';
 
 const testEmail = async () => {
+    if (ENV.nodeEnv !== "development") {
+        logger.info("Skipping email test in non-development environment");
+        return;
+    }
+
     console.log('Starting email test...');
     console.log(`SMTP Host: ${ENV.smtpHost}`);
     console.log(`SMTP Port: ${ENV.smtpPort}`);

@@ -59,6 +59,13 @@ export const getProjects = asyncHandler(
 			delete query.isPublic; // Show all projects if filtering by owner
 		}
 
+		if (req.query.excludeOwnerId) {
+			query.ownerId = { $ne: req.query.excludeOwnerId as string }
+		}
+
+		console.log('getProjects Query:', JSON.stringify(query, null, 2))
+		console.log('Request Query Params:', req.query)
+
 		const [projects, total] = await Promise.all([
 			Project.find(query)
 				.populate("ownerId", "username displayName avatar")

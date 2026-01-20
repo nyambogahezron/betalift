@@ -9,18 +9,17 @@ interface ApiResponse<T> {
 
 export interface AuthResponse {
 	user: {
-		_id: string;
-		email: string;
-		username: string;
-		displayName: string;
-		role: "creator" | "tester" | "both";
-		avatar?: string;
-		bio?: string;
-		isEmailVerified: boolean;
-		createdAt: string;
-		updatedAt: string;
-	};
-	accessToken: string;
+		_id: string
+		email: string
+		username: string
+		displayName: string
+		avatar?: string
+		bio?: string
+		isEmailVerified: boolean
+		createdAt: string
+		updatedAt: string
+	}
+	accessToken: string
 }
 
 export interface LoginCredentials {
@@ -29,11 +28,10 @@ export interface LoginCredentials {
 }
 
 export interface RegisterCredentials {
-	email: string;
-	password: string;
-	username: string;
-	displayName?: string;
-	role: "creator" | "tester" | "both";
+	email: string
+	password: string
+	username: string
+	displayName?: string
 }
 
 export interface VerifyEmailRequest {
