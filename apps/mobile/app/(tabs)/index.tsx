@@ -17,21 +17,22 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ProjectCard } from "@/components/project";
 import { Avatar, Button, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { mockConversations } from "@/data/mockData";
-import type { Conversation, Project } from "@/interfaces";
-import { useProjects } from "@/queries/projectQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { BorderRadius, Colors, Fonts, Spacing } from '@/constants/theme'
+import type { Conversation, Project } from '@/interfaces'
+import { useConversations } from '@/queries/messageQueries'
+import { useNotifications } from '@/queries/notificationQueries'
+import { useProjects } from '@/queries/projectQueries'
+import { useAuthStore } from '@/stores/useAuthStore'
 
-type TabType = "my-projects" | "joined";
+type TabType = 'my-projects' | 'joined'
 
 function shortenUsername(username: string) {
-	const name = username.split(" ")[0];
+	const name = username.split(' ')[0]
 
 	if (name.length > 10) {
-		return `${name.slice(0, 10)}...`;
+		return `${name.slice(0, 10)}...`
 	}
-	return name;
+	return name
 }
 
 function Budge({
@@ -39,9 +40,9 @@ function Budge({
 	containerStyles,
 	budgeStyles,
 }: {
-	count: number;
-	containerStyles?: ViewStyle;
-	budgeStyles?: TextStyle;
+	count: number
+	containerStyles?: ViewStyle
+	budgeStyles?: TextStyle
 }) {
 	return (
 		<View
@@ -52,8 +53,8 @@ function Budge({
 					paddingHorizontal: 6,
 					paddingVertical: 1,
 					minWidth: 20,
-					alignItems: "center",
-					position: "absolute",
+					alignItems: 'center',
+					position: 'absolute',
 					top: -8,
 					right: -8,
 				},
@@ -73,58 +74,82 @@ function Budge({
 				{count}
 			</Text>
 		</View>
-	);
+	)
 }
 
 export default function Home() {
-	const [activeTab, setActiveTab] = useState<TabType>("my-projects");
-	const [refreshing, setRefreshing] = useState(false);
-	const [conversations] = useState<Conversation[]>(mockConversations);
+	const [activeTab, setActiveTab] = useState<TabType>('my-projects')
+	const [refreshing, setRefreshing] = useState(false)
+
+	const { data: notificationsData } = useNotifications()
+	const unreadNotificationsCount = notificationsData?.unreadCount || 0
+
+	const { data: conversationsData } = useConversations()
+	const conversations: Conversation[] = conversationsData || []
 
 	const totalUnread = conversations.reduce(
-		(acc, conv) => acc + conv.unreadCount,
-		0,
-	);
+		(acc, conv) => acc + (conv.unreadCount || 0),
+		0
+	)
 
-	const { user } = useAuthStore();
-	const { data: projectsData, isLoading, refetch } = useProjects();
+	const { user } = useAuthStore()
 
-	const allProjects = useMemo(() => {
-		return projectsData?.projects || projectsData || [];
-	}, [projectsData]);
+	// Query for My Projects (owned by user)
+	const {
+		data: myProjectsData,
+		isLoading: isLoadingMy,
+		refetch: refetchMy,
+	} = useProjects({
+		ownerId: user?.id,
+		status: activeTab === 'my-projects' ? undefined : 'active', // Optimization
+	})
+	// Query for Joined Projects
+	const {
+		data: allProjectsData,
+		isLoading: isLoadingJoin,
+		refetch: refetchJoin,
+	} = useProjects({
+		// excludeOwnerId: user?.id // Optional: exclude my own to reduce data
+	})
 
 	const myProjects = useMemo(() => {
-		if (!user?.id) return [];
-		return allProjects.filter(
-			(p: any) => p.owner?._id === user.id || p.ownerId === user.id,
-		);
-	}, [allProjects, user?.id]);
+		return (
+			(myProjectsData?.projects ? myProjectsData.projects : myProjectsData) ||
+			[]
+		)
+	}, [myProjectsData])
 
 	const joinedProjects = useMemo(() => {
-		if (!user?.id) return [];
-		return allProjects.filter((p: any) => {
-			const ownerId = p.owner?._id || p.ownerId;
+		if (!user?.id) return []
+		const all =
+			(allProjectsData?.projects
+				? allProjectsData.projects
+				: allProjectsData) || []
+		return all.filter((p: any) => {
+			const ownerId = typeof p.ownerId === 'object' ? p.ownerId?._id : p.ownerId
 			return (
 				ownerId !== user.id &&
 				p.members?.some(
-					(m: any) => m.user?._id === user.id || m.userId === user.id,
+					(m: any) => m.user?._id === user.id || m.userId === user.id
 				)
-			);
-		});
-	}, [allProjects, user?.id]);
+			)
+		})
+	}, [allProjectsData, user?.id])
 
-	const pendingInvites = useMemo(() => {
-		// TODO: Implement pending invites when backend is ready
-		return [];
-	}, []);
+	const isLoading = activeTab === 'my-projects' ? isLoadingMy : isLoadingJoin
 
 	const onRefresh = useCallback(async () => {
-		setRefreshing(true);
-		await refetch();
-		setRefreshing(false);
-	}, [refetch]);
+		setRefreshing(true)
+		await Promise.all([refetchMy(), refetchJoin()])
+		setRefreshing(false)
+	}, [refetchMy, refetchJoin])
 
-	const showMyProjects = user?.role === "creator" || user?.role === "both";
+	const pendingInvites = useMemo(() => {
+		// TODO: Implement pending invites
+		return []
+	}, [])
+
+	const showMyProjects = true
 
 	return (
 		<SafeAreaView style={[styles.container]}>
@@ -135,44 +160,66 @@ export default function Home() {
 			>
 				<View>
 					<Text style={styles.greeting}>
-						Hello,{" "}
+						Hello,{' '}
 						{user?.displayName
 							? shortenUsername(user.displayName)
 							: user?.username
-								? shortenUsername(user.username)
-								: "there"}
+							? shortenUsername(user.username)
+							: 'there'}
 						! 👋
 					</Text>
 					<Text style={styles.subtitle}>
-						{activeTab === "my-projects"
-							? "Manage your beta projects"
-							: "Projects you are testing"}
+						{activeTab === 'my-projects'
+							? 'Manage your beta projects'
+							: 'Projects you are testing'}
 					</Text>
 				</View>
 				<View style={styles.headerActions}>
 					<Pressable
 						style={styles.headerIconButton}
-						onPress={() => router.push("/messages")}
+						onPress={() => router.push('/notifications')}
 					>
-						<Budge
-							count={totalUnread}
-							containerStyles={{
-								marginRight: 10,
-								position: "absolute",
-								top: 0,
-								right: -5,
-								zIndex: 10,
-							}}
-						/>
+						{unreadNotificationsCount > 0 && (
+							<Budge
+								count={unreadNotificationsCount}
+								containerStyles={{
+									position: 'absolute',
+									top: 0,
+									right: 0,
+									zIndex: 10,
+								}}
+							/>
+						)}
 						<Ionicons
-							name="chatbubbles-outline"
+							name='notifications-outline'
+							size={24}
+							color={Colors.text}
+						/>
+					</Pressable>
+					<Pressable
+						style={styles.headerIconButton}
+						onPress={() => router.push('/messages')}
+					>
+						{totalUnread > 0 && (
+							<Budge
+								count={totalUnread}
+								containerStyles={{
+									position: 'absolute',
+									top: 0,
+									right: -5,
+									zIndex: 10,
+								}}
+							/>
+						)}
+						<Ionicons
+							name='chatbubbles-outline'
 							size={24}
 							color={Colors.text}
 						/>
 					</Pressable>
 					<Pressable
 						style={styles.profileButton}
-						onPress={() => router.push("/(tabs)/profile")}
+						onPress={() => router.push('/(tabs)/profile')}
 					>
 						<Avatar
 							source={user?.avatar}
@@ -180,10 +227,10 @@ export default function Home() {
 								user?.displayName
 									? shortenUsername(user.displayName)
 									: user?.username
-										? shortenUsername(user.username)
-										: undefined
+									? shortenUsername(user.username)
+									: undefined
 							}
-							size="md"
+							size='md'
 						/>
 					</Pressable>
 				</View>
@@ -198,15 +245,15 @@ export default function Home() {
 					<Pressable
 						style={[
 							styles.tab,
-							activeTab === "my-projects" && styles.tabActive,
+							activeTab === 'my-projects' && styles.tabActive,
 						]}
-						onPress={() => setActiveTab("my-projects")}
+						onPress={() => setActiveTab('my-projects')}
 					>
 						<Ionicons
-							name="rocket"
+							name='rocket'
 							size={18}
 							color={
-								activeTab === "my-projects"
+								activeTab === 'my-projects'
 									? Colors.primary
 									: Colors.textTertiary
 							}
@@ -214,7 +261,7 @@ export default function Home() {
 						<Text
 							style={[
 								styles.tabText,
-								activeTab === "my-projects" && styles.tabTextActive,
+								activeTab === 'my-projects' && styles.tabTextActive,
 							]}
 						>
 							My Projects
@@ -228,13 +275,13 @@ export default function Home() {
 				)}
 
 				<Pressable
-					style={[styles.tab, activeTab === "joined" && styles.tabActive]}
-					onPress={() => setActiveTab("joined")}
+					style={[styles.tab, activeTab === 'joined' && styles.tabActive]}
+					onPress={() => setActiveTab('joined')}
 				>
 					<Text
 						style={[
 							styles.tabText,
-							activeTab === "joined" && styles.tabTextActive,
+							activeTab === 'joined' && styles.tabTextActive,
 						]}
 					>
 						Joined Projects
@@ -264,9 +311,9 @@ export default function Home() {
 			>
 				{isLoading && !refreshing ? (
 					<View style={styles.loadingContainer}>
-						<ActivityIndicator size="large" color={Colors.primary} />
+						<ActivityIndicator size='large' color={Colors.primary} />
 					</View>
-				) : activeTab === "my-projects" ? (
+				) : activeTab === 'my-projects' ? (
 					<MyProjectsTab projects={myProjects} />
 				) : (
 					<JoinedProjectsTab
@@ -277,16 +324,16 @@ export default function Home() {
 			</ScrollView>
 
 			{/* FAB Button - only show on My Projects tab */}
-			{showMyProjects && activeTab === "my-projects" && (
+			{showMyProjects && activeTab === 'my-projects' && (
 				<Pressable
 					style={styles.fab}
-					onPress={() => router.push("/project/create")}
+					onPress={() => router.push('/project/create')}
 				>
-					<Ionicons name="add" size={28} color={Colors.text} />
+					<Ionicons name='add' size={28} color={Colors.text} />
 				</Pressable>
 			)}
 		</SafeAreaView>
-	);
+	)
 }
 
 function MyProjectsTab({ projects }: { projects: Project[] }) {

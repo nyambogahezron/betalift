@@ -19,6 +19,7 @@ app.get("/", (_req, res) => {
 });
 
 const server = app.listen(ENV.PORT, () => {
+	logger.info('Chat Service Starting...')
 	logger.info(`Chat server running on http://${ip.address()}:${ENV.PORT}`);
 });
 

@@ -1,16 +1,21 @@
 import mongoose from "mongoose";
-import ENV from "../../config/env.js";
-import { logger } from "../../utils/logger.js";
-import { seedUsers } from "./userSeeder.js";
-import { seedUserEngagement } from "./userEngagementSeeder.js";
-import { seedProjects } from "./projectSeeder.js";
-import { seedProjectMemberships } from "./projectMembershipSeeder.js";
-import { seedReleases } from "./releaseSeeder.js";
-import { seedFeedback } from "./feedbackSeeder.js";
-import { seedNotifications } from "./notificationSeeder.js";
+import ENV from "../src/config/env.js";
+import { logger } from "../src/utils/logger.js";
+import { seedFeedback } from "../src/database/seeders/feedbackSeeder.js";
+import { seedNotifications } from "../src/database/seeders/notificationSeeder.js";
+import { seedProjectMemberships } from "../src/database/seeders/projectMembershipSeeder.js";
+import { seedProjects } from "../src/database/seeders/projectSeeder.js";
+import { seedReleases } from "../src/database/seeders/releaseSeeder.js";
+import { seedUserEngagement } from "../src/database/seeders/userEngagementSeeder.js";
+import { seedUsers } from "../src/database/seeders/userSeeder.js";
 
 const seedDatabase = async () => {
 	try {
+		if (ENV.nodeEnv !== "development") {
+			logger.info("Skipping database seeding in non-development environment");
+			return;
+		}
+
 		await mongoose.connect(ENV.mongoUri);
 		logger.info("Connected to MongoDB");
 
@@ -24,7 +29,9 @@ const seedDatabase = async () => {
 		logger.info(`Seeded ${users.length} users`);
 
 		const engagements = await seedUserEngagement(users);
-		logger.info(`Seeded/Updated ${engagements.length} user engagement profiles`);
+		logger.info(
+			`Seeded/Updated ${engagements.length} user engagement profiles`,
+		);
 
 		const projects = await seedProjects(users);
 		logger.info(`Seeded ${projects.length} projects`);
@@ -37,7 +44,6 @@ const seedDatabase = async () => {
 
 		const feedback = await seedFeedback(users, projects);
 		logger.info(`Seeded ${feedback.length} feedback items`);
-
 
 		const notifications = await seedNotifications(users);
 		logger.info(`Seeded ${notifications.length} notifications`);

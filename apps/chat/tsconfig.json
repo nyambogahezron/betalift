@@ -20,6 +20,6 @@
 		"moduleDetection": "force",
 		"skipLibCheck": true
 	},
-	"include": ["src/**/*", "__tests__"],
+	"include": ["src/**/*", "tests"],
 	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "logs"]
 }

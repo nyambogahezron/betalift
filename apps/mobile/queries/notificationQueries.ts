@@ -1,121 +1,99 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import apiClient from "../services/api";
+import apiClient, { handleApiError } from '../services/api'
 
-interface ApiResponse<T> {
-	success: boolean;
-	message?: string;
-	data?: T;
+export interface NotificationType {
+	id: string
+	title: string
+	message: string
+	type:
+		| 'project_invite'
+		| 'project_joined'
+		| 'feedback_received'
+		| 'feedback_comment'
+		| 'feedback_status_changed'
+		| 'project_update'
+	data?: any
+	isRead: boolean
+	createdAt: string
+}
+
+interface NotificationResponse {
+	notifications: NotificationType[]
+	pagination: {
+		page: number
+		limit: number
+		total: number
+		pages: number
+	}
+	unreadCount: number
 }
 
 export const notificationKeys = {
-	all: ["notifications"] as const,
-	lists: () => [...notificationKeys.all, "list"] as const,
-	list: (params?: any) => [...notificationKeys.lists(), params] as const,
-};
+	all: ['notifications'] as const,
+	list: (filters: Record<string, any>) =>
+		[...notificationKeys.all, filters] as const,
+}
 
-export const useNotifications = (params?: {
-	page?: number;
-	limit?: number;
-}) => {
+// Fetch notifications
+export const useNotifications = (params: { page?: number; isRead?: boolean } = {}) => {
 	return useQuery({
 		queryKey: notificationKeys.list(params),
 		queryFn: async () => {
-			const response = await apiClient.get<ApiResponse<any>>(
-				"/api/v1/notifications",
-				{ params },
-			);
-
-			if (response.data.success && response.data.data) {
-				return response.data.data;
+			try {
+				const { data } = await apiClient.get<{
+					success: boolean
+					data: NotificationResponse
+				}>('/notifications', {
+					params,
+				})
+				return data.data
+			} catch (error) {
+				throw new Error(handleApiError(error))
 			}
-
-			throw new Error(response.data.message || "Failed to fetch notifications");
 		},
 	});
 };
 
+// Mark as read
 export const useMarkNotificationAsRead = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async (notificationId: string) => {
-			const response = await apiClient.patch<ApiResponse<any>>(
-				`/api/v1/notifications/${notificationId}/read`,
-			);
-
-			if (response.data.success && response.data.data) {
-				return response.data.data;
-			}
-
-			throw new Error(response.data.message || "Failed to mark as read");
+		mutationFn: async (id: string) => {
+			const { data } = await apiClient.patch(`/notifications/${id}/read`)
+			return data
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 		},
-	});
+	})
 };
 
+// Mark all as read
 export const useMarkAllNotificationsAsRead = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: async () => {
-			const response = await apiClient.patch<ApiResponse<null>>(
-				"/api/v1/notifications/read-all",
-			);
-
-			if (response.data.success) {
-				return true;
-			}
-
-			throw new Error(response.data.message || "Failed to mark all as read");
+			const { data } = await apiClient.patch('/notifications/read-all')
+			return data
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 		},
 	});
 };
 
+// Delete notification
 export const useDeleteNotification = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async (notificationId: string) => {
-			const response = await apiClient.delete<ApiResponse<null>>(
-				`/api/v1/notifications/${notificationId}`,
-			);
-
-			if (response.data.success) {
-				return true;
-			}
-
-			throw new Error(response.data.message || "Failed to delete notification");
+		mutationFn: async (id: string) => {
+			await apiClient.delete(`/notifications/${id}`)
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 		},
-	});
-};
-
-export const useDeleteAllNotifications = () => {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		mutationFn: async () => {
-			const response = await apiClient.delete<ApiResponse<null>>(
-				"/api/v1/notifications",
-			);
-
-			if (response.data.success) {
-				return true;
-			}
-
-			throw new Error(
-				response.data.message || "Failed to delete all notifications",
-			);
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-		},
-	});
+	})
 };

@@ -30,7 +30,7 @@ import {
 // @access  Public
 export const register = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const { email, password, username, displayName, role } = req.body;
+		const { email, password, username, displayName } = req.body
 
 		const isUserAvailable = await User.findOne({
 			$or: [{ email }, { username }],
@@ -47,10 +47,9 @@ export const register = asyncHandler(
 			password,
 			username,
 			displayName: displayName || username,
-			role: role || "both",
 			emailVerificationToken: verificationToken,
 			emailVerificationExpires: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours
-		});
+		})
 
 		await UserEngagement.create({ userId: user._id });
 

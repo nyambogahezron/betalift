@@ -5,8 +5,15 @@ import {
 	getVerifyEmail,
 	getWelcomeEmail,
 } from "../src/templates/emails";
+import ENV from "../src/config/env";
+import { logger } from "../src/utils/logger";
 
-const outputDir = path.join(process.cwd(), "email-previews");
+if (ENV.nodeEnv !== "development") {
+	logger.info("Skipping email preview generation in non-development environment");
+	process.exit(0);
+}
+
+const outputDir = path.join(process.cwd(), "public/email-previews");
 
 if (!fs.existsSync(outputDir)) {
 	fs.mkdirSync(outputDir);
@@ -15,16 +22,21 @@ if (!fs.existsSync(outputDir)) {
 const previewData = [
 	{
 		name: "welcome.html",
-		content: getWelcomeEmail("TestUser", "https://betalift.com/verify-email?token=123"),
+		content: getWelcomeEmail(
+			"TestUser",
+			"123",
+			"https://betalift.com/verify-email?token=123",
+		),
 	},
 	{
 		name: "verify.html",
-		content: getVerifyEmail("TestUser", "https://betalift.com/verify-email?token=123"),
+		content: getVerifyEmail("TestUser", "123", "https://betalift.com/verify-email?token=123"),
 	},
 	{
 		name: "reset-password.html",
 		content: getPasswordResetEmail(
 			"TestUser",
+			"123",
 			"https://betalift.com/reset-password?token=123",
 		),
 	},

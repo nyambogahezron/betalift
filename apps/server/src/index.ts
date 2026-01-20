@@ -16,6 +16,7 @@ import apiRoutes from "./routes";
 import path from "node:path";
 import { logger } from "./utils/logger";
 import { fileURLToPath } from "node:url";
+import ip from 'ip'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,7 +71,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 const server = app.listen(ENV.port, () => {
-	logger.info(`Server is running on http://localhost:${ENV.port}`);
+	logger.info(`Server is running on http://${ip.address()}:${ENV.port}`)
 	logger.info(`Environment: ${ENV.nodeEnv}`);
 });
 
