@@ -3,24 +3,25 @@ import { useRef, useState } from "react";
 import {  Twitter, Github, Linkedin, Instagram, Send } from "lucide-react";
 
 const footerLinks = {
-  Product: [
-    { label: "Features", href: "#features" },
-    { label: "How it works", href: "#how-it-works" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "FAQ", href: "#faq" },
-  ],
-  Company: [
-    { label: "About", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Press", href: "#" },
-  ],
-  Legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" },
-  ],
-};
+	Product: [
+		{ label: 'Features', href: '/features' },
+		{ label: 'For Creators', href: '/for-creators' },
+		{ label: 'For Testers', href: '/for-testers' },
+		{ label: 'Pricing', href: '/pricing' },
+		{ label: 'Download', href: '/download' },
+	],
+	Company: [
+		{ label: 'About', href: '/about' },
+		{ label: 'Blog', href: '/blog' },
+		{ label: 'Contact', href: '/contact' },
+		{ label: 'FAQ', href: '/faq' },
+	],
+	Resources: [
+		{ label: 'Documentation', href: '/docs' },
+		{ label: 'Privacy Policy', href: '/privacy' },
+		{ label: 'Terms of Service', href: '/terms' },
+	],
+}
 
 const socialLinks = [
   { icon: Twitter, href: "#", label: "Twitter" },
