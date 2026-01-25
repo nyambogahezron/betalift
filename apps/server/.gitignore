@@ -8,7 +8,9 @@ coverage/
 .idea/
 npm-debug.log*
 **/*.test.ts
-**/*.spec.ts# Build artifacts
+**/*.spec.ts
+
+# Build artifacts
 scripts/*.js
 scripts/*.d.ts
 scripts/*.map
