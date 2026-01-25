@@ -1,7 +1,13 @@
 import { baseLayout } from "./layout";
 import { styles } from "./styles";
 
-export const getWelcomeEmail = (username: string, link: string, token: string): string => {
+type linkProp = `https://${string}` | `http://${string}`;
+
+export const getWelcomeEmail = (
+	username: string,
+	link: linkProp,
+	token: string,
+): string => {
 	const content = `
         <h2 style="${styles.heading}">Welcome to BetaLift, ${username}!</h2>
         <p style="${styles.paragraph}">To get started, please confirm your email address by clicking the button below:</p>
@@ -25,7 +31,11 @@ export const getWelcomeEmail = (username: string, link: string, token: string): 
 	});
 };
 
-export const getVerifyEmail = (username: string, link: string, token: string): string => {
+export const getVerifyEmail = (
+	username: string,
+	link: linkProp,
+	token: string,
+): string => {
 	const content = `
         <h2 style="${styles.heading}">Verify your email</h2>
         <p style="${styles.paragraph}">Hi ${username},</p>
@@ -49,7 +59,11 @@ export const getVerifyEmail = (username: string, link: string, token: string): s
 	});
 };
 
-export const getPasswordResetEmail = (username: string, link: string, token: string): string => {
+export const getPasswordResetEmail = (
+	username: string,
+	link: linkProp,
+	token: string,
+): string => {
 	const content = `
         <h2 style="${styles.heading}">Password Reset Request</h2>
         <p style="${styles.paragraph}">Hi ${username},</p>
@@ -77,7 +91,7 @@ export const getPasswordResetEmail = (username: string, link: string, token: str
 export const getProjectInviteEmail = (
 	inviterName: string,
 	projectName: string,
-	link: string,
+	link: linkProp,
 ): string => {
 	const content = `
         <h2 style="${styles.heading}">Project Invitation</h2>
@@ -104,7 +118,7 @@ export const getProjectInviteEmail = (
 export const getProjectJoinedEmail = (
 	username: string,
 	projectName: string,
-	link: string,
+	link: linkProp,
 ): string => {
 	const content = `
         <h2 style="${styles.heading}">Welcome to the Team!</h2>
@@ -126,7 +140,7 @@ export const getFeedbackReceivedEmail = (
 	projectName: string,
 	feedbackTitle: string,
 	submitterName: string,
-	link: string,
+	link: linkProp,
 ): string => {
 	const content = `
         <h2 style="${styles.heading}">New Feedback Received</h2>
@@ -151,7 +165,7 @@ export const getFeedbackCommentEmail = (
 	feedbackTitle: string,
 	commenterName: string,
 	commentPreview: string,
-	link: string,
+	link: linkProp,
 ): string => {
 	const content = `
         <h2 style="${styles.heading}">New Comment</h2>
@@ -175,7 +189,7 @@ export const getFeedbackCommentEmail = (
 export const getFeedbackStatusChangedEmail = (
 	feedbackTitle: string,
 	newStatus: string,
-	link: string,
+	link: linkProp,
 ): string => {
 	const content = `
         <h2 style="${styles.heading}">Status Update</h2>
@@ -202,7 +216,7 @@ export const getProjectUpdateEmail = (
 	projectName: string,
 	updateTitle: string,
 	updatePreview: string,
-	link: string,
+	link: linkProp,
 ): string => {
 	const content = `
         <h2 style="${styles.heading}">Project Update: ${projectName}</h2>
