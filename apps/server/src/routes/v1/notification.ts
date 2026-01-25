@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
 	deleteAllNotifications,
 	deleteNotification,
+	getNotification,
 	getNotifications,
 	markAllNotificationsAsRead,
 	markNotificationAsRead,
@@ -27,6 +28,12 @@ router
 	.delete(writeLimiter, deleteAllNotifications);
 
 router.patch("/read-all", writeLimiter, markAllNotificationsAsRead);
+router.get(
+	"/:id",
+	frequentAccessLimiter,
+	validateParams(idParamSchema),
+	getNotification,
+);
 router.patch(
 	"/:id/read",
 	writeLimiter,

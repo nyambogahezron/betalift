@@ -238,6 +238,7 @@ export default function MessagesScreen() {
 				<FlatList
 					data={filteredConversations}
 					renderItem={renderConversation}
+					keyExtractor={(item) => item.id}
 					contentContainerStyle={styles.listContent}
 					showsVerticalScrollIndicator={false}
 					ItemSeparatorComponent={() => <View style={styles.separator} />}
