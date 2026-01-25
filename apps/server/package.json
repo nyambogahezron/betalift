@@ -12,8 +12,8 @@
 	"main": "index.ts",
 	"scripts": {
 		"build": "tsc",
-		"start": "node dist/src/index.js",
-		"dev": "nodemon --watch 'src/**/*' --exec tsx src/index.ts",
+		"start": "node --env-file=.env dist/src/index.js",
+		"dev": "nodemon --env-file=.env --watch 'src/**/*' --exec tsx src/index.ts",
 		"seed": "tsx src/database/seeders/index.ts",
 		"format": "biome format",
 		"lint": "biome lint",

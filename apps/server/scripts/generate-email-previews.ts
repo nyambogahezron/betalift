@@ -24,20 +24,20 @@ const previewData = [
 		name: "welcome.html",
 		content: getWelcomeEmail(
 			"TestUser",
-			"123",
-			"https://betalift.com/verify-email?token=123",
+			"https://betalift.com/verify-email?token=123456",
+			"123456",
 		),
 	},
 	{
 		name: "verify.html",
-		content: getVerifyEmail("TestUser", "123", "https://betalift.com/verify-email?token=123"),
+		content: getVerifyEmail("TestUser", "https://betalift.com/verify-email?token=123456", "123456"),
 	},
 	{
 		name: "reset-password.html",
 		content: getPasswordResetEmail(
 			"TestUser",
-			"123",
-			"https://betalift.com/reset-password?token=123",
+			"https://betalift.com/reset-password?token=123456",
+			"123456",
 		),
 	},
 ];
