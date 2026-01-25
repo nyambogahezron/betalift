@@ -1,21 +1,21 @@
-name: Deploy Server to Vercel
+name: Deploy WWW to Vercel
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'apps/server/**'
-      - '.github/workflows/deploy-server.yml'
+      - 'apps/www/**'
+      - '.github/workflows/deploy-www.yml'
   pull_request:
     branches:
       - main
     paths:
-      - 'apps/server/**'
+      - 'apps/www/**'
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SERVER_PROJECT_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WWW_PROJECT_ID }}
 
 jobs:
   deploy:
@@ -34,13 +34,13 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        working-directory: ./apps/server
+        working-directory: ./apps/www
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        working-directory: ./apps/server
+        working-directory: ./apps/www
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        working-directory: ./apps/server
+        working-directory: ./apps/www
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
