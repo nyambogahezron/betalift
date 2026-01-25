@@ -54,6 +54,31 @@ export const getNotifications = asyncHandler(
 	},
 );
 
+// @desc    Get single notification
+// @route   GET /api/v1/notifications/:id
+// @access  Private
+export const getNotification = asyncHandler(
+	async (req: AuthenticatedRequest, res: Response) => {
+		const notification = await Notification.findById(req.params.id);
+
+		if (!notification) {
+			throw new NotFoundError("Notification not found");
+		}
+
+		// Verify user owns the notification
+		if (notification.userId.toString() !== req.user._id) {
+			throw new ForbiddenError(
+				"You do not have permission to view this notification",
+			);
+		}
+
+		res.json({
+			success: true,
+			data: { notification },
+		});
+	},
+);
+
 // @desc    Mark notification as read
 // @route   PATCH /api/v1/notifications/:id/read
 // @access  Private

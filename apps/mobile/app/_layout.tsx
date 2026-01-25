@@ -92,70 +92,68 @@ export default function Layout() {
 								</Stack.Protected>
 
 								<Stack.Protected guard={isAuthenticated}>
-									<SocketProvider>
-										<Stack.Screen
-											name='(tabs)'
-											options={{ headerShown: false }}
-										/>
+									<Stack.Screen
+										name='(tabs)'
+										options={{ headerShown: false }}
+									/>
 
-										<Stack.Screen
-											name='project/[id]'
-											options={{ headerShown: false }}
-										/>
-										<Stack.Screen
-											name='project/create'
-											options={{
-												headerShown: false,
-												presentation: 'modal',
-											}}
-										/>
+									<Stack.Screen
+										name='project/[id]'
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name='project/create'
+										options={{
+											headerShown: false,
+											presentation: 'modal',
+										}}
+									/>
 
-										<Stack.Screen
-											name='feedback/[id]'
-											options={{ headerShown: false }}
-										/>
-										<Stack.Screen
-											name='feedback/create'
-											options={{
-												headerShown: false,
-												presentation: 'modal',
-											}}
-										/>
-										<Stack.Screen
-											name='feedback/detail/[id]'
-											options={{ headerShown: false }}
-										/>
+									<Stack.Screen
+										name='feedback/[id]'
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name='feedback/create'
+										options={{
+											headerShown: false,
+											presentation: 'modal',
+										}}
+									/>
+									<Stack.Screen
+										name='feedback/detail/[id]'
+										options={{ headerShown: false }}
+									/>
 
-										<Stack.Screen
-											name='messages/index'
-											options={{ headerShown: false }}
-										/>
-										<Stack.Screen
-											name='messages/[id]'
-											options={{ headerShown: false }}
-										/>
+									<Stack.Screen
+										name='messages/index'
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name='messages/[id]'
+										options={{ headerShown: false }}
+									/>
 
-										<Stack.Screen
-											name='user/[id]'
-											options={{ headerShown: false }}
-										/>
-										<Stack.Screen
-											name='users/index'
-											options={{ headerShown: false }}
-										/>
+									<Stack.Screen
+										name='user/[id]'
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name='users/index'
+										options={{ headerShown: false }}
+									/>
 
-										<Stack.Screen
-											name='profile/edit'
-											options={{
-												headerShown: false,
-												presentation: 'modal',
-											}}
-										/>
-										<Stack.Screen
-											name='profile/settings'
-											options={{ headerShown: false }}
-										/>
-									</SocketProvider>
+									<Stack.Screen
+										name='profile/edit'
+										options={{
+											headerShown: false,
+											presentation: 'modal',
+										}}
+									/>
+									<Stack.Screen
+										name='profile/settings'
+										options={{ headerShown: false }}
+									/>
 								</Stack.Protected>
 							</Stack>
 							<StatusBar style='light' />

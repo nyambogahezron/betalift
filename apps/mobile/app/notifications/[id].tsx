@@ -11,19 +11,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Card } from "@/components/ui";
 import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { useDeleteNotification, useNotifications } from "@/queries/notificationQueries";
+import { useDeleteNotification, useNotification } from "@/queries/notificationQueries";
 
 export default function NotificationDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const router = useRouter();
 	const deleteMutation = useDeleteNotification();
-	const { data } = useNotifications(); // We can just fetch from cache or find in list. 
-    // Ideally we'd have a useNotification(id) hook, but finding in the list is okay for cache hits if list was loaded.
-    // For robust app, let's just find it in the already fetched list or simpler: ensure we passed data.
-    // Since we don't have useNotification(id), finding it in `data` is a quick hack, but `useNotifications` refreshes.
-    
-    // Better: Assuming list is cached.
-    const notification = data?.notifications.find((n) => n.id === id);
+	const { data: notification, isLoading } = useNotification(id!);
 
 	const handleDelete = () => {
 		if (id) {
@@ -34,6 +28,17 @@ export default function NotificationDetailScreen() {
 			});
 		}
 	};
+
+	if (isLoading) {
+		return (
+			<SafeAreaView style={styles.container}>
+				<Stack.Screen options={{ title: 'Details' }} />
+				<View style={styles.center}>
+					<ActivityIndicator size="large" color={Colors.primary} />
+				</View>
+			</SafeAreaView>
+		);
+	}
 
     if (!notification) {
         return (

@@ -50,6 +50,7 @@ async function registerForPushNotificationsAsync() {
       
     if (!projectId) {
       handleRegistrationError('Project ID not found');
+      return;
     }
 
     try {

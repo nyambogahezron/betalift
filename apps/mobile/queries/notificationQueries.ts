@@ -32,6 +32,7 @@ export const notificationKeys = {
 	all: ['notifications'] as const,
 	list: (filters: Record<string, any>) =>
 		[...notificationKeys.all, filters] as const,
+	detail: (id: string) => [...notificationKeys.all, 'detail', id] as const,
 }
 
 // Fetch notifications
@@ -51,6 +52,25 @@ export const useNotifications = (params: { page?: number; isRead?: boolean } = {
 				throw new Error(handleApiError(error))
 			}
 		},
+	});
+};
+
+// Fetch single notification
+export const useNotification = (id: string) => {
+	return useQuery({
+		queryKey: notificationKeys.detail(id),
+		queryFn: async () => {
+			try {
+				const { data } = await apiClient.get<{
+					success: boolean
+					data: { notification: NotificationType }
+				}>(`/notifications/${id}`)
+				return data.data.notification
+			} catch (error) {
+				throw new Error(handleApiError(error))
+			}
+		},
+		enabled: !!id,
 	});
 };
 

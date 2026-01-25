@@ -21,7 +21,7 @@ export default function TabLayout() {
 				options={{
 					title: "Home",
 					tabBarIcon: ({ color, focused }) => (
-						<Feather name={focused ? "home" : "home"} size={24} color={color} />
+						<Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
 					),
 				}}
 			/>
@@ -58,7 +58,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
 	tabBar: {
 		backgroundColor: Colors.backgroundSecondary,
-		height: Platform.OS === "ios" ? 88 : 115,
+		height: Platform.OS === "ios" ? 88 : 68,
 		paddingTop: 8,
 		paddingBottom: Platform.OS === "ios" ? 28 : 8,
 		borderColor: "transparent",
