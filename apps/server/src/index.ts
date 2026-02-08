@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { connectDatabase } from '@repo/database'
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, {
@@ -12,21 +13,20 @@ import ip from "ip";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-import ENV from "./config/env";
-import { connectDatabase } from "./database/connect";
+import ENV from './config/env'
 import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import { apiLimiter } from "./middleware/rateLimiter";
 import RabbitMQClient from "./rabbitmq/client";
 import apiRoutes from "./routes";
-import { logger } from "./utils/logger";
+import logger from '@repo/logger'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app: Application = express();
 
-connectDatabase();
+connectDatabase(ENV.nodeEnv === 'test' ? ENV.mongoUriTest : ENV.mongoUri)
 
 // Middleware
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));

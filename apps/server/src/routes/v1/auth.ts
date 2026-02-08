@@ -1,4 +1,11 @@
-import { Router } from "express";
+import {
+	forgotPasswordSchema,
+	loginSchema,
+	registerSchema,
+	resetPasswordSchema,
+	verifyEmailSchema,
+} from '@repo/schema'
+import { Router } from 'express'
 import {
 	forgotPassword,
 	getCurrentUser,
@@ -7,52 +14,45 @@ import {
 	register,
 	resetPassword,
 	verifyEmail,
-} from "../../controllers/authController";
-import { authenticate } from "../../middleware/authentication";
-import { checkIpLockout } from "../../middleware/loginAttemptTracker";
+} from '../../controllers/authController'
+import { authenticate } from '../../middleware/authentication'
+import { checkIpLockout } from '../../middleware/loginAttemptTracker'
 import {
 	authLimiter,
 	loginRateLimiter,
 	readLimiter,
-} from "../../middleware/rateLimiter";
-import { validateBody } from "../../validators/middleware";
-import {
-	forgotPasswordSchema,
-	loginSchema,
-	registerSchema,
-	resetPasswordSchema,
-	verifyEmailSchema,
-} from "../../validators/schemas";
+} from '../../middleware/rateLimiter'
+import { validateBody } from '../../validators/middleware'
 
-const router = Router();
+const router: Router = Router()
 
-router.post("/register", authLimiter, validateBody(registerSchema), register);
+router.post('/register', authLimiter, validateBody(registerSchema), register)
 router.post(
-	"/login",
+	'/login',
 	loginRateLimiter,
 	checkIpLockout,
 	validateBody(loginSchema),
 	login,
-);
-router.post("/logout", authLimiter, authenticate, logout);
-router.get("/me", readLimiter, authenticate, getCurrentUser);
+)
+router.post('/logout', authLimiter, authenticate, logout)
+router.get('/me', readLimiter, authenticate, getCurrentUser)
 router.post(
-	"/verify-email",
+	'/verify-email',
 	authLimiter,
 	validateBody(verifyEmailSchema),
 	verifyEmail,
-);
+)
 router.post(
-	"/forgot-password",
+	'/forgot-password',
 	authLimiter,
 	validateBody(forgotPasswordSchema),
 	forgotPassword,
-);
+)
 router.post(
-	"/reset-password",
+	'/reset-password',
 	authLimiter,
 	validateBody(resetPasswordSchema),
 	resetPassword,
-);
+)
 
-export default router;
+export default router

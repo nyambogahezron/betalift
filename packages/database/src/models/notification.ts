@@ -64,8 +64,8 @@ const notificationSchema = new Schema<INotification>(
 				ret: Record<string, unknown> & { _id: unknown },
 			) => {
 				ret.id = (ret._id as { toString(): string }).toString();
-				delete ret._id;
-				delete ret.__v;
+				ret._id = undefined;
+				ret.__v = undefined;
 				return ret;
 			},
 		},
@@ -75,7 +75,7 @@ const notificationSchema = new Schema<INotification>(
 notificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
 notificationSchema.index({ userId: 1, createdAt: -1 });
 
-export default mongoose.model<INotification>(
+export const Notification = mongoose.model<INotification>(
 	"Notification",
 	notificationSchema,
 );

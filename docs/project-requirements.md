@@ -1,0 +1,918 @@
+# BETALIFT PROJECT REQUIREMENTS
+**MVP Feature Specifications**
+
+---
+
+## Table of Contents
+1. [Authentication & Security](#1-authentication--security)
+2. [User Management](#2-user-management)
+3. [Project Management (Content System)](#3-project-management-content-system)
+4. [Feedback System (Commenting/Interaction)](#4-feedback-system-commentinginteraction)
+5. [Search & Discovery](#5-search--discovery)
+6. [User Interface & Experience](#6-user-interface--experience)
+7. [Data & Infrastructure](#7-data--infrastructure)
+8. [API Architecture](#8-api-architecture)
+9. [Quality Assurance](#9-quality-assurance)
+10. [Deployment & Operations](#10-deployment--operations)
+11. [Analytics & Monitoring](#11-analytics--monitoring)
+12. [Advanced Features](#12-advanced-features)
+
+
+## 1. AUTHENTICATION & SECURITY
+
+### Overview
+Secure authentication system ensuring user data protection and seamless access management across the platform.
+
+### Feature: User Authentication
+**Sign Up / Login / Logout**
+
+**Implementation Requirements:**
+
+- [x] **Secure Account Creation**
+    - Email and password-based registration
+    - Password strength validation (min 8 chars, 1 uppercase, 1 number)
+    - Duplicate email detection
+    - Terms of service acceptance
+
+- [x] **JWT Token-Based Authentication**
+    - Access tokens (7-day expiry, configurable)
+    - Refresh tokens (30-day expiry, configurable)
+    - Secure token storage (AsyncStorage on mobile)
+    - Token rotation on refresh
+
+- [x] **Password Security**
+    - bcryptjs hashing (10 salt rounds)
+    - No plain text storage
+    - Passwords never returned in API responses
+
+- [x] **Email Verification**
+    - Verification token generation on signup
+    - Email with verification link
+    - Token expiry (24 hours)
+    - Resend verification option
+
+- [x] **Password Reset Flow**
+    - "Forgot Password" link on login screen
+    - Email with reset token
+    - Secure reset token (6-hour expiry)
+    - Password confirmation on reset
+
+- [x] **Session Management**
+    - Persistent login via refresh tokens
+    - "Remember Me" functionality
+    - Automatic token refresh before expiry
+    - Logout clears all tokens
+
+**Future Enhancements (Post-MVP):**
+- OAuth 2.0 integration (Google, Apple Sign-In)
+- Two-Factor Authentication (2FA) via SMS or authenticator app
+- Biometric authentication (Face ID, Touch ID)
+- Session management dashboard (view/revoke active sessions)
+
+**Acceptance Criteria:**
+- [ ] Users can register with unique email addresses
+- [ ] Login returns valid JWT tokens
+- [ ] Invalid credentials return appropriate error messages
+- [ ] Email verification is required before full account access
+- [ ] Password reset link sent successfully
+- [ ] Tokens expire and refresh automatically
+- [ ] Logout invalidates all user tokens
+
+
+## 2. USER MANAGEMENT
+
+### Overview
+Comprehensive user profile system enabling personalization, privacy control, and account management.
+
+### Feature: User Profile Management
+**View & Edit Profile**
+
+**Implementation Requirements:**
+
+- [x] **Profile Information Fields**
+    - Username (unique, 3-30 characters, alphanumeric + underscores)
+    - Email address (unique, validated format)
+    - Display name (optional, 1-50 characters)
+    - Bio (optional, max 500 characters)
+    - Role (creator, tester, both)
+    - Avatar image
+    - Creation date (auto-generated)
+
+- [x] **Avatar/Image Upload**
+    - Accept image formats: JPEG, PNG, WebP
+    - Max file size: 10MB
+    - Automatic image optimization (resize to 256x256px)
+    - Multer middleware for handling multipart uploads
+    - Default avatar generation for new users
+
+- [x] **Password Management**
+    - Change password from profile settings
+    - Require current password for verification
+    - Same password strength validation as signup
+    - Logout all devices on password change
+
+- [x] **Privacy Settings**
+    - Profile visibility: Public / Private
+    - Show/hide email from other users
+    - Show/hide statistics (projects created/tested)
+    - Control who can message you (everyone, connections only, nobody)
+
+- [x] **User Statistics (Auto-calculated)**
+    - Projects created count
+    - Projects tested count
+    - Feedback given count
+    - Feedback received count
+    - Account age
+
+- [x] **Account Deletion**
+    - Confirmation dialog with password re-entry
+    - Data removal notice (30-day grace period)
+    - Anonymize user data instead of hard delete
+    - Email confirmation of account deletion
+
+**Future Enhancements (Post-MVP):**
+- Activity log showing recent actions
+- Social media links (GitHub, Twitter, LinkedIn)
+- User badges/achievements system
+- Export personal data (GDPR compliance)
+
+**Acceptance Criteria:**
+- [ ] Users can view their complete profile
+- [ ] Profile updates save successfully
+- [ ] Avatar upload and display works correctly
+- [ ] Privacy settings are enforced across the platform
+- [ ] Statistics update in real-time
+- [ ] Account deletion removes/anonymizes all user data
+
+
+## 3. PROJECT MANAGEMENT (CONTENT SYSTEM)
+
+### Overview
+Core content management system for creating, organizing, and managing beta projects with comprehensive metadata and media support.
+
+### Feature: Project Creation & Management
+**CRUD Operations for Projects**
+
+**Implementation Requirements:**
+
+- [x] **Create Project**
+    - Project name (required, max 100 characters)
+    - Short description (optional, max 200 characters)
+    - Full description (required, max 5000 characters, markdown support)
+    - Category selection (mobile-app, web-app, desktop-app, game, API, etc.)
+    - Tech stack tags (multiple, searchable)
+    - Project status (active, beta, paused, closed)
+    - Visibility (public, private, invite-only)
+    - Max testers limit (optional)
+
+- [x] **Project Media**
+    - Project icon/logo (512x512px recommended)
+    - Screenshots gallery (up to 10 images)
+    - Image upload with optimization
+    - Swipeable gallery view in mobile app
+    - Full-screen image viewer
+
+- [x] **Project Links**
+    - Website URL
+    - TestFlight URL (iOS beta)
+    - Google Play Store URL
+    - Apple App Store URL
+    - GitHub repository
+    - Discord server
+    - Documentation URL
+    - All links validated for proper URL format
+
+- [x] **Update Project**
+    - Only owner can edit project details
+    - All fields editable except owner
+    - Change status (active → paused → closed)
+    - Update member limits
+    - Add/remove screenshots
+
+- [x] **Delete Project**
+    - Owner-only permission
+    - Confirmation dialog with project name verification
+    - Cascade delete: feedback, comments, memberships, join requests
+    - Notify all members of project deletion
+    - 30-day soft delete with recovery option
+
+- [x] **Project Membership**
+    - Owner (project creator)
+    - Members (accepted testers)
+    - Join request system for private projects
+    - Auto-join for public projects
+    - Member management (add, remove, promote)
+    - Member roles: owner, admin, tester
+
+- [x] **Project Statistics**
+    - Total testers count
+    - Total feedback count
+    - Average rating (from feedback)
+    - Active feedback count
+    - Last activity timestamp
+
+**Future Enhancements (Post-MVP):**
+- Rich text editor with WYSIWYG interface
+- Content versioning and change history
+- Draft mode (save before publishing)
+- Admin approval workflow for new projects
+- Project templates for quick setup
+- Collaborative editing (multiple owners)
+
+**Acceptance Criteria:**
+- [ ] Authenticated users can create projects
+- [ ] Projects display with all metadata
+- [ ] Only owners can edit/delete projects
+- [ ] Screenshots upload and display correctly
+- [ ] Join requests work for private projects
+- [ ] Statistics update automatically
+- [ ] Project deletion cascades properly
+
+
+## 4. FEEDBACK SYSTEM (COMMENTING/INTERACTION)
+
+### Overview
+Robust feedback mechanism enabling testers to report bugs, suggest features, and interact through comments and voting.
+
+### Feature: Feedback & Comment System
+**Comprehensive Feedback Collection**
+
+**Implementation Requirements:**
+
+- [x] **Feedback Submission**
+    - Type selection: Bug, Feature, Improvement, Praise, Question, Other
+    - Priority level: Critical, High, Medium, Low
+    - Title (required, max 200 characters)
+    - Description (required, max 5000 characters, markdown support)
+    - Steps to reproduce (optional, for bugs)
+    - Screenshot attachments (up to 5 images, max 10MB each)
+    - Auto-capture device information
+
+- [x] **Device Information Auto-Capture**
+    - Platform (iOS, Android, Web)
+    - Device model (e.g., iPhone 13, Galaxy S21)
+    - Operating system version
+    - App version
+    - Screen resolution
+    - User can edit/hide device info before submission
+
+- [x] **Nested Comments System**
+    - Users can comment on feedback
+    - Reply to comments (threaded conversations)
+    - Comment editing (5-minute window)
+    - Comment deletion (author or project owner)
+    - Mention users with @ notation
+    - Rich text support (bold, italic, links)
+
+- [x] **Voting System**
+    - Upvote/downvote feedback
+    - One vote per user per feedback
+    - Change vote (upvote → downvote or vice versa)
+    - Remove vote
+    - Vote count displayed prominently
+    - Sort feedback by vote count
+
+- [x] **Feedback Status Workflow**
+    - Pending: Initial submission, awaiting review
+    - Open: Acknowledged by creator
+    - In Progress: Currently being worked on
+    - Resolved: Issue fixed or feature implemented
+    - Closed: Completed and verified
+    - Wont Fix: Declined with reason
+    - Only project owner can change status
+
+- [x] **Moderation Tools**
+    - Project owners can delete inappropriate feedback
+    - Flag feedback for review
+    - Pin important feedback to top
+    - Mark feedback as duplicate
+    - Merge duplicate feedback
+
+- [x] **Notification System**
+    - Notify creator of new feedback
+    - Notify feedback author of status changes
+    - Notify users of replies to their comments
+    - In-app notifications with badge counts
+    - Email notifications (configurable in settings)
+
+**Future Enhancements (Post-MVP):**
+- Spam detection using ML
+- User reputation system
+- Block/report users
+- Feedback analytics dashboard
+- Export feedback as CSV/JSON
+
+**Acceptance Criteria:**
+- [ ] Project members can submit feedback
+- [ ] All feedback types supported
+- [ ] Comments thread displays correctly
+- [ ] Voting updates in real-time
+- [ ] Device info auto-captured accurately
+- [ ] Notifications sent for key events
+- [ ] Status workflow enforced properly
+
+
+## 5. SEARCH & DISCOVERY
+
+### Overview
+Powerful search capabilities enabling users to discover projects and find specific feedback efficiently.
+
+### Feature: Search & Filter System **(Priority: MEDIUM)**
+**Project & Feedback Search**
+
+**Implementation Requirements:**
+
+- [x] **Basic Search Functionality**
+    - Keyword search across project names and descriptions
+    - Search feedback by title and content
+    - Case-insensitive matching
+    - Partial word matching
+    - Search results sorted by relevance
+
+- [x] **Filter Options**
+    - Filter projects by:
+        - Category (mobile-app, web-app, etc.)
+        - Status (active, beta, paused, closed)
+        - Tech stack tags
+        - Number of testers (min/max range)
+    - Filter feedback by:
+        - Type (bug, feature, improvement, etc.)
+        - Priority (critical, high, medium, low)
+        - Status (open, in-progress, resolved, etc.)
+        - Date range
+
+- [x] **Sort Options**
+    - Projects: Recent, Popular, Most Testers, Highest Rated
+    - Feedback: Recent, Most Upvoted, Most Commented
+
+- [x] **Pagination**
+    - Limit: 20 results per page (default)
+    - Cursor-based pagination for efficiency
+    - "Load More" button on mobile
+    - Page numbers on web
+
+**Future Enhancements (Post-MVP):**
+- Full-text search with MongoDB Atlas Search or Elasticsearch
+- Autocomplete suggestions while typing
+- Recent searches history
+- Saved search filters
+- Advanced search with Boolean operators (AND, OR, NOT)
+- Search within project (all feedback)
+- Fuzzy matching for typo tolerance
+
+**Acceptance Criteria:**
+- [ ] Search returns relevant results
+- [ ] Filters work individually and combined
+- [ ] Sort options apply correctly
+- [ ] Pagination handles large result sets
+- [ ] Empty state displayed when no results
+
+
+## 6. USER INTERFACE & EXPERIENCE
+
+### Overview
+Mobile-first responsive design ensuring optimal user experience across all devices and screen sizes.
+
+### Feature: Responsive Design
+**Cross-Platform UI/UX**
+
+**Implementation Requirements:**
+
+- [x] **Mobile-First Approach**
+    - Design and develop for mobile screens first
+    - Progressive enhancement for larger screens
+    - React Native ensures native performance
+    - Consistent experience across iOS and Android
+
+- [x] **Responsive Layout Components**
+    - Flexible grid system adapting to screen size
+    - Responsive typography (scale based on screen width)
+    - Images scale proportionally
+    - Safe area handling (notches, home indicators)
+
+- [x] **Touch-Friendly Design**
+    - Minimum touch target size: 44x44 pixels
+    - Sufficient spacing between interactive elements
+    - Swipe gestures for navigation (galleries, modals)
+    - Pull-to-refresh on list views
+    - Long-press actions for context menus
+
+- [x] **Cross-Device Testing**
+    - Test on various iOS devices (iPhone SE, Pro, iPad)
+    - Test on various Android devices (different manufacturers)
+    - Portrait and landscape orientations
+    - Different screen densities (@1x, @2x, @3x)
+
+- [x] **Performance Optimization**
+    - Lazy loading for images and lists
+    - Virtualized lists for long data sets (FlatList)
+    - Smooth animations at 60fps (React Native Reanimated)
+    - Minimal re-renders through proper state management
+
+**Future Enhancements (Post-MVP):**
+- Web version using React Native Web
+- Tablet-optimized layouts with split views
+- Accessibility features (screen reader support, high contrast)
+- Haptic feedback for interactions
+- Offline mode with data sync
+
+**Acceptance Criteria:**
+- [ ] App works seamlessly on iOS and Android
+- [ ] UI adapts to different screen sizes
+- [ ] Touch targets are easily tappable
+- [ ] Animations are smooth and performant
+- [ ] No horizontal scrolling issues
+
+
+## 7. DATA & INFRASTRUCTURE
+
+### Overview
+Robust database architecture ensuring data integrity, performance, and scalability.
+
+### Feature: Database Integration
+**MongoDB with Mongoose ODM**
+
+**Implementation Requirements:**
+
+- [x] **Database Selection: MongoDB**
+    - Document-based NoSQL database
+    - Flexible schema for evolving data models
+    - Strong community and ecosystem support
+    - Built-in replication and sharding for scale
+
+- [x] **Schema Design**
+    - Efficient relationship modeling:
+        - Users ↔ Projects (one-to-many via ownerId)
+        - Projects ↔ Feedback (one-to-many via projectId)
+        - Feedback ↔ Comments (one-to-many via feedbackId)
+        - Users ↔ ProjectMembership (many-to-many)
+        - Users ↔ FeedbackVotes (many-to-many)
+    - Embedded documents where appropriate (settings, device info)
+    - References for frequently updated relationships
+
+- [x] **Indexing Strategy**
+    - Unique indexes: user.email, user.username
+    - Compound indexes for common queries:
+        - project.status + project.category
+        - feedback.projectId + feedback.status
+    - Text indexes for search: project.name, project.description
+    - TTL indexes for expiring tokens (password reset, email verification)
+
+- [x] **Data Integrity**
+    - Schema validation via Mongoose models
+    - Required fields enforcement
+    - Data type validation
+    - Enum constraints for status fields
+    - Custom validators for complex rules
+    - Referential integrity through middleware
+
+- [x] **Database Backups**
+    - Automated daily backups
+    - Point-in-time recovery capability
+    - Backup retention: 30 days
+    - Regular backup restoration tests
+
+- [x] **Data Migration**
+    - Seed scripts for initial data
+    - Migration scripts for schema changes
+    - Version control for migrations
+
+**Future Enhancements (Post-MVP):**
+- Read replicas for improved read performance
+- Database sharding for horizontal scaling
+- Caching layer (Redis) for frequent queries
+- Data archival for old records
+
+**Environment Configuration:**
+- Development: `mongodb://localhost:27017/betalift`
+- Test: `mongodb://localhost:27017/betalift_test`
+- Production: MongoDB Atlas cluster (AWS/GCP)
+
+**Acceptance Criteria:**
+- [ ] Database connection established successfully
+- [ ] All models defined with proper validation
+- [ ] Indexes created and optimized
+- [ ] Queries execute within acceptable time (< 100ms)
+- [ ] Data integrity maintained across operations
+- [ ] Backups automated and tested
+
+
+## 8. API ARCHITECTURE
+
+### Overview
+RESTful API design following industry best practices for scalability, security, and maintainability.
+
+### Feature: RESTful API Endpoints
+**Standardized API Design**
+
+**Implementation Requirements:**
+
+- [x] **HTTP Methods**
+    - GET     - Retrieve resources
+    - POST    - Create new resources
+    - PATCH   - Partial update of resources
+    - PUT     - Full replacement of resources
+    - DELETE  - Remove resources
+
+- [x] **Standard Status Codes**
+    - 200 OK              - Successful GET, PATCH, PUT
+    - 201 Created         - Successful POST
+    - 204 No Content      - Successful DELETE
+    - 400 Bad Request     - Invalid input data
+    - 401 Unauthorized    - Missing or invalid authentication
+    - 403 Forbidden       - Insufficient permissions
+    - 404 Not Found       - Resource doesnt exist
+    - 409 Conflict        - Duplicate resource
+    - 422 Unprocessable   - Validation errors
+    - 500 Server Error    - Internal server issues
+
+- [x] **Consistent Response Format**
+    **Success:**
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "message": "Operation completed successfully"
+    }
+    ```
+
+    **Error:**
+    ```json
+    {
+      "success": false,
+      "error": "Error message",
+      "details": [ ... ]  // Validation errors
+    }
+    ```
+
+- [x] **Authentication & Authorization**
+    - JWT Bearer token in Authorization header
+    - Middleware to verify token on protected routes
+    - Role-based access control (owner, admin, tester)
+    - Resource-level permissions (can user edit this project?)
+
+- [x] **Input Validation**
+    - Express-validator for request validation
+    - Validate all user inputs before processing
+    - Sanitize inputs to prevent XSS attacks
+    - Return detailed validation errors
+
+- [x] **Error Handling**
+    - Global error handler middleware
+    - Custom error classes (ApiError hierarchy)
+    - Mongoose error translation (ValidationError, CastError)
+    - Async error wrapper for route handlers
+    - Never expose stack traces in production
+
+- [x] **API Documentation**
+    - Postman collection in `apps/server/postman/`
+    - Document each endpoint with:
+        - Request method and path
+        - Request headers and body schema
+        - Response schema and status codes
+        - Example requests and responses
+    - Keep documentation in sync with code
+
+**Future Enhancements (Post-MVP):**
+- OpenAPI/Swagger specification
+- API versioning strategy (v2, v3)
+- Rate limiting per user/IP
+- Request/response compression
+- GraphQL endpoint for complex queries
+
+**Middleware Stack:**
+1. Helmet (security headers)
+2. CORS (cross-origin resource sharing)
+3. Morgan (HTTP request logging)
+4. express.json (JSON body parser)
+5. cookieParser (parse cookies)
+6. Authentication (JWT verification)
+7. Validation (input validation)
+8. Route handlers
+9. 404 handler
+10. Error handler (must be last)
+
+**Acceptance Criteria:**
+- [ ] All endpoints follow REST conventions
+- [ ] Proper HTTP status codes returned
+- [ ] Authentication enforced on protected routes
+- [ ] Input validation catches invalid data
+- [ ] Error responses are consistent and helpful
+- [ ] API documentation is complete and accurate
+
+
+## 9. QUALITY ASSURANCE
+
+### Overview
+Comprehensive testing strategy ensuring code quality, reliability, and preventing regressions.
+
+### Feature: Testing Infrastructure
+**Automated Testing Suite**
+
+**Implementation Requirements:**
+
+- [x] **Unit Tests**
+    - Test individual functions and components in isolation
+    - Framework: Jest
+    - Target coverage: 80% minimum
+    - Test files: `*.test.ts` or `*.spec.ts`
+    - Focus areas:
+        - Utility functions (JWT, validation, helpers)
+        - Zustand stores (state management)
+        - React components (UI components)
+
+- [x] **Integration Tests**
+    - Test API endpoints with database
+    - Framework: Jest + Supertest
+    - Use `mongodb-memory-server` for test database
+    - Test scenarios:
+        - User registration and login flow
+        - Project CRUD operations
+        - Feedback submission and voting
+        - Authorization checks
+
+- [x] **Input Validation Tests**
+    - Test all validation rules
+    - Invalid input returns proper errors
+    - Edge cases handled correctly
+    - SQL injection prevention (though using MongoDB)
+    - XSS prevention through sanitization
+
+- [x] **Error Handling Tests**
+    - Test custom error classes
+    - Verify error middleware catches all errors
+    - Check appropriate status codes returned
+    - Ensure error messages are user-friendly
+
+- [x] **Test Organization**
+    - Follow AAA pattern: Arrange, Act, Assert
+    - Descriptive test names: "should return 401 when token invalid"
+    - Group related tests with `describe` blocks
+    - Use `beforeEach`/`afterEach` for setup/cleanup
+    - Mock external dependencies (emails, file uploads)
+
+**Future Enhancements (Post-MVP):**
+- E2E tests with Detox for mobile
+- Visual regression testing
+- Performance testing
+- Load testing for API endpoints
+- Code coverage reports in CI/CD
+
+**Test Commands:**
+* `npm test` - Run all tests
+* `npm test:watch` - Run tests in watch mode
+* `npm test:coverage` - Generate coverage report
+* `npm test:ci` - Run tests in CI environment
+
+**Acceptance Criteria:**
+- [ ] All critical paths have tests
+- [ ] Tests pass consistently
+- [ ] Code coverage meets 80% threshold
+- [ ] Tests run in CI/CD pipeline
+- [ ] Failing tests block merges
+
+
+## 10. DEPLOYMENT & OPERATIONS
+
+### Overview
+Production-ready deployment strategy with CI/CD automation and monitoring.
+
+### Feature: Deployment Infrastructure
+**Cloud Deployment & DevOps**
+
+**Implementation Requirements:**
+
+- [x] **Cloud Platform Options**
+    - Recommended: AWS, Heroku, or Railway
+    - Server (Backend API):
+        - AWS: EC2 + Elastic Beanstalk
+        - Heroku: Node.js dyno
+        - Railway: Node.js deployment
+    - Database:
+        - MongoDB Atlas (managed, recommended)
+        - AWS DocumentDB (MongoDB-compatible)
+    - File Storage:
+        - AWS S3 for images/screenshots
+        - Cloudinary for image optimization
+    - Mobile App:
+        - Expo Application Services (EAS)
+        - TestFlight (iOS beta distribution)
+        - Google Play Internal Testing (Android beta)
+
+- [x] **Environment Configuration**
+    - Development: Local development servers
+    - Staging: Pre-production environment for testing
+    - Production: Live production environment
+    - Separate `.env` files for each environment
+    - Environment variables managed via platform (Heroku Config Vars, etc.)
+
+- [x] **Deployment Automation**
+    - GitHub Actions or similar CI/CD tool
+    - Automated deployment on push to main/dev
+    - Server deployment workflow:
+        1. Run tests
+        2. Build TypeScript
+        3. Deploy to platform
+        4. Run database migrations
+        5. Health check
+    - Mobile deployment workflow:
+        1. Run tests
+        2. Build with EAS
+        3. Submit to TestFlight/Play Store
+
+- [x] **Documentation**
+    - Setup instructions in `README.md`
+    - Deployment guide in `docs/DEPLOYMENT.md`
+    - Environment variables documented
+    - Troubleshooting common issues
+    - Architecture diagrams
+
+- [x] **Security Configuration**
+    - HTTPS enforcement on all endpoints
+    - Password hashing with bcrypt (10 rounds)
+    - JWT secret rotation strategy
+    - Database connection string encryption
+    - Environment variables never committed to Git
+    - Helmet.js for security headers
+    - Rate limiting on auth endpoints
+
+**Future Enhancements (Post-MVP):**
+- Blue-green deployments for zero downtime
+- Automatic rollback on health check failure
+- Infrastructure as Code (Terraform)
+- Container orchestration (Kubernetes)
+
+**Acceptance Criteria:**
+- [ ] Application deployed to production
+- [ ] HTTPS enabled on all endpoints
+- [ ] Environment variables configured
+- [ ] Database backups automated
+- [ ] Deployment documentation complete
+- [ ] Health check endpoint responds
+
+
+## 11. ANALYTICS & MONITORING
+
+### Overview
+Observability infrastructure for tracking application performance, user behavior, and identifying issues proactively.
+
+### Feature: Logging, Monitoring & Analytics **(Priority: MEDIUM)**
+**Application Observability**
+
+**Implementation Requirements:**
+
+- [x] **Application Logging**
+    - Winston logger for structured logging
+    - Log levels: error, warn, info, debug
+    - Log format: timestamp, level, message, metadata
+    - File-based logs: `logs/error.log`, `logs/combined.log`
+    - Log rotation to prevent disk space issues
+    - Never log sensitive data (passwords, tokens)
+
+- [x] **Error Tracking**
+    - Track and aggregate application errors
+    - Capture stack traces and context
+    - Alert on critical errors
+    - Recommended tools: Sentry, Bugsnag, Rollbar
+
+- [x] **Performance Monitoring**
+    - Track API response times
+    - Monitor database query performance
+    - Identify slow endpoints
+    - Server resource usage (CPU, memory, disk)
+    - Uptime monitoring and alerts
+
+- [x] **User Analytics**
+    - Track user activity and engagement:
+        - Daily/monthly active users (DAU/MAU)
+        - User retention rate
+        - Feature usage statistics
+        - User journey tracking
+    - Project analytics:
+        - Most popular projects
+        - Feedback submission rate
+        - Average time to resolve feedback
+    - Recommended tools: Google Analytics, Mixpanel, Amplitude
+
+**Future Enhancements (Post-MVP):**
+- Real-time dashboards (Grafana)
+- Custom alerts for business metrics
+- A/B testing framework
+- User behavior heatmaps
+
+**Acceptance Criteria:**
+- [ ] Logs captured for all major events
+- [ ] Errors automatically tracked and reported
+- [ ] Performance metrics collected
+- [ ] Basic user analytics implemented
+- [ ] Monitoring alerts configured
+
+
+## 12. ADVANCED FEATURES
+
+### Overview
+Additional features to enhance platform capabilities and user experience beyond core MVP requirements.
+
+### Feature: Advanced Functionality **(Priority: LOW)**
+**Post-MVP Enhancements**
+
+- [x] **Accessibility Features**
+    - Screen reader support (ARIA labels)
+    - Keyboard navigation
+    - High contrast mode
+    - Font size adjustment
+    - Alt text for all images
+    - Focus indicators for interactive elements
+    - WCAG 2.1 AA compliance
+
+- [x] **Email Notifications (Transactional)**
+    - Implemented via Nodemailer:
+        - Welcome email on registration
+        - Email verification link
+        - Password reset link
+        - Project invitation
+        - New feedback notification (for creators)
+        - Feedback status change (for testers)
+        - Weekly activity digest (opt-in)
+
+- [x] **Internationalization (i18n)**
+    - Support for multiple languages
+    - Language selection in settings
+    - Recommended: i18next for React Native
+    - Priority languages: English, Spanish, French, German
+    - RTL support for Arabic, Hebrew
+
+- [x] **Backup & Recovery**
+    - Automated daily database backups
+    - Point-in-time recovery (last 30 days)
+    - User data export functionality (GDPR compliance)
+    - Account recovery via support
+
+- [x] **Third-Party Integrations**
+    - Social media login (OAuth 2.0):
+        - Google Sign-In
+        - Apple Sign-In
+        - GitHub (for developers)
+    - Payment gateway (future monetization):
+        - Stripe for subscriptions
+        - Premium features for pro users
+    - Communication platforms:
+        - Slack integration (notifications)
+        - Discord webhooks
+
+- [x] **Scalability Considerations**
+    - Horizontal scaling: Load balancing across multiple servers
+    - Database optimization: Indexing, query optimization
+    - Caching layer: Redis for frequent queries
+    - CDN for static assets (images, app bundles)
+    - Message queue for background jobs (Bull + Redis)
+    - Microservices architecture for large-scale growth
+
+- [x] **Version Control & Collaboration**
+    - Implemented:
+        - Git for source control
+        - GitHub repository hosting
+        - Branch protection rules
+        - Pull request workflow
+        - Code review requirements
+        - `CONTRIBUTING.md` guidelines
+
+---
+
+## IMPLEMENTATION PRIORITY
+
+### Priority Matrix
+
+**CRITICAL (Must Have for MVP Launch)**
+- [x] User Authentication (login, register, logout, JWT)
+- [x] Project Management (CRUD operations)
+- [x] Feedback System (submit, view, comment, vote)
+- [x] RESTful API endpoints
+- [x] Database integration (MongoDB)
+- [x] Mobile UI (React Native + Expo)
+
+**HIGH (Launch Week Priorities)**
+- [x] Email verification and password reset
+- [x] User profile management
+- [x] Responsive design (iOS + Android)
+- [x] Error handling and validation
+- [x] Basic security measures (HTTPS, password hashing)
+- [x] Deployment to production
+- [x] Documentation (setup, API, deployment)
+- [x] Unit and integration tests
+
+**MEDIUM (Post-Launch Enhancement)**
+- [ ] Search and filter functionality
+- [ ] Email notifications
+- [ ] Logging and monitoring
+- [ ] Analytics dashboard
+- [ ] User roles expansion
+
+**LOW (Future Roadmap)**
+- [ ] OAuth social login
+- [ ] Two-factor authentication
+- [ ] Internationalization
+- [ ] Payment integration
+- [ ] Accessibility features
+- [ ] Advanced analytics
+

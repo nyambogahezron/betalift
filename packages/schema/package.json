@@ -1,0 +1,29 @@
+{
+	"name": "@repo/schema",
+	"version": "0.0.0",
+	"private": true,
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"check-types": "tsc --noEmit",
+		"lint": "biome lint .",
+		"format": "biome format . --write",
+		"check": "biome check --write .",
+		"clean": "rm -rf node_modules dist logs bun.lock .turbo"
+	},
+	"dependencies": {
+		"zod": "^3.24.1"
+	},
+	"devDependencies": {
+		"@repo/typescript-config": "*",
+		"typescript": "^5.3.3"
+	}
+}

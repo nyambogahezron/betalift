@@ -1,6 +1,6 @@
 import amqplib from "amqplib";
 import { RABBITMQ_CONFIG } from "../config/rabbitmq";
-import { logger } from "../utils/logger";
+import logger from '@repo/logger'
 
 class RabbitMQClient {
 	// biome-ignore lint/suspicious/noExplicitAny: External library typing mismatch

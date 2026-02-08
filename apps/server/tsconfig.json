@@ -2,6 +2,10 @@
 	"compilerOptions": {
 		"rootDir": "./src",
 		"outDir": "./dist",
+		"baseUrl": ".",
+		"paths": {
+			"@repo/*": ["../../packages/*"]
+		},
 		"module": "es2020",
 		"moduleResolution": "node",
 		"target": "ES2020",
@@ -20,6 +24,6 @@
 		"moduleDetection": "force",
 		"skipLibCheck": true
 	},
-	"include": ["src/**/*", "tests", "scripts/seed.ts"],
+	"include": ["src/**/*", "tests"],
 	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "logs"]
 }

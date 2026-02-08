@@ -1,5 +1,11 @@
-import { Router } from "express";
-import { z } from "zod";
+import {
+	createFeedbackCommentSchema,
+	mongoIdSchema,
+	updateFeedbackSchema,
+	voteFeedbackSchema,
+} from '@repo/schema'
+import { Router } from 'express'
+import { z } from 'zod'
 import {
 	createFeedbackComment,
 	deleteFeedback,
@@ -8,27 +14,21 @@ import {
 	getFeedbackComments,
 	updateFeedback,
 	voteFeedback,
-} from "../../controllers/feedbackController";
-import { authenticate } from "../../middleware/authentication";
-import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
-import { validateBody, validateParams } from "../../validators/middleware";
-import {
-	createFeedbackCommentSchema,
-	mongoIdSchema,
-	updateFeedbackSchema,
-	voteFeedbackSchema,
-} from "../../validators/schemas";
+} from '../../controllers/feedbackController'
+import { authenticate } from '../../middleware/authentication'
+import { readLimiter, writeLimiter } from '../../middleware/rateLimiter'
+import { validateBody, validateParams } from '../../validators/middleware'
 
-const router = Router();
+const router: Router = Router()
 
-const idParamSchema = z.object({ id: mongoIdSchema });
+const idParamSchema = z.object({ id: mongoIdSchema })
 const commentIdParamSchema = z.object({
 	id: mongoIdSchema,
 	commentId: mongoIdSchema,
-});
+})
 
 router
-	.route("/:id")
+	.route('/:id')
 	.get(readLimiter, validateParams(idParamSchema), getFeedbackById)
 	.patch(
 		writeLimiter,
@@ -42,10 +42,10 @@ router
 		authenticate,
 		validateParams(idParamSchema),
 		deleteFeedback,
-	);
+	)
 
 router
-	.route("/:id/comments")
+	.route('/:id/comments')
 	.get(readLimiter, validateParams(idParamSchema), getFeedbackComments)
 	.post(
 		writeLimiter,
@@ -53,23 +53,23 @@ router
 		validateParams(idParamSchema),
 		validateBody(createFeedbackCommentSchema),
 		createFeedbackComment,
-	);
+	)
 
 router.delete(
-	"/:id/comments/:commentId",
+	'/:id/comments/:commentId',
 	writeLimiter,
 	authenticate,
 	validateParams(commentIdParamSchema),
 	deleteFeedbackComment,
-);
+)
 
 router.post(
-	"/:id/vote",
+	'/:id/vote',
 	writeLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(voteFeedbackSchema),
 	voteFeedback,
-);
+)
 
-export default router;
+export default router

@@ -1,5 +1,6 @@
-import { Router } from "express";
-import { z } from "zod";
+import { mongoIdSchema, paginationSchema } from '@repo/schema'
+import { Router } from 'express'
+import { z } from 'zod'
 import {
 	deleteAllNotifications,
 	deleteNotification,
@@ -7,44 +8,43 @@ import {
 	getNotifications,
 	markAllNotificationsAsRead,
 	markNotificationAsRead,
-} from "../../controllers/notificationController";
-import { authenticate } from "../../middleware/authentication";
+} from '../../controllers/notificationController'
+import { authenticate } from '../../middleware/authentication'
 import {
 	frequentAccessLimiter,
 	writeLimiter,
-} from "../../middleware/rateLimiter";
-import { validateParams, validateQuery } from "../../validators/middleware";
-import { mongoIdSchema, paginationSchema } from "../../validators/schemas";
+} from '../../middleware/rateLimiter'
+import { validateParams, validateQuery } from '../../validators/middleware'
 
-const router = Router();
+const router: Router = Router()
 
-const idParamSchema = z.object({ id: mongoIdSchema });
+const idParamSchema = z.object({ id: mongoIdSchema })
 
-router.use(authenticate);
+router.use(authenticate)
 
 router
-	.route("/")
+	.route('/')
 	.get(frequentAccessLimiter, validateQuery(paginationSchema), getNotifications)
-	.delete(writeLimiter, deleteAllNotifications);
+	.delete(writeLimiter, deleteAllNotifications)
 
-router.patch("/read-all", writeLimiter, markAllNotificationsAsRead);
+router.patch('/read-all', writeLimiter, markAllNotificationsAsRead)
 router.get(
-	"/:id",
+	'/:id',
 	frequentAccessLimiter,
 	validateParams(idParamSchema),
 	getNotification,
-);
+)
 router.patch(
-	"/:id/read",
+	'/:id/read',
 	writeLimiter,
 	validateParams(idParamSchema),
 	markNotificationAsRead,
-);
+)
 router.delete(
-	"/:id",
+	'/:id',
 	writeLimiter,
 	validateParams(idParamSchema),
 	deleteNotification,
-);
+)
 
-export default router;
+export default router

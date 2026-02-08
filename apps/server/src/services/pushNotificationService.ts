@@ -3,7 +3,7 @@ import {
 	type ExpoPushMessage,
 	type ExpoPushTicket,
 } from "expo-server-sdk";
-import { logger } from "../utils/logger";
+import logger from '@repo/logger'
 
 class PushNotificationService {
 	private expo: Expo;

@@ -1,16 +1,29 @@
-# Betalift
+<div align="center">
+  <img src="./assets/logo.png" alt="Betalift Logo" width="120" />
+  <h1>Betalift</h1>
+  <p><strong>Collaborative Beta Testing Platform</strong></p>
+</div>
 
-Betalift is a collaborative platform designed to connect users, manage projects, and facilitate feedback and communication. 
+Betalift connects creators with testers to streamline feedback, project management, and community engagement. Built for speed, reliability, and ease of use.
 
-## Features
+## Highlights
+- **User & Project Management**: Secure authentication, role-based access, and comprehensive project workflows.
+- **Feedback Loop**: Intuitive feedback submission with nested comments, voting, and real-time status updates.
+- **Engagement**: Real-time messaging, notifications, and analytics to keep the community active.
+- **Performance**: Powered by a robust backend with background job processing and optimized data handling.
 
-- 🔐 User authentication and profile management
-- 📁 Project creation, membership, and requests
-- 💬 Feedback system with comments and votes
-- 📨 Real-time messaging between users
-- 🔔 Notifications system
-- 📧 Transactional emails and weekly digests
-- 🖼️ Image processing and optimization
-- 📊 Analytics and engagement tracking
-- ⚡ Background job processing with RabbitMQ
-- 🎨 Modern UI with reusable components
+## Tech Stack
+- **Frontend**: React Native, Expo
+- **Backend**: Node.js, Express, MongoDB
+- **Infrastructure**: RabbitMQ, Redis, Docker
+- **Monorepo**: TurboRepo
+
+## Documentation
+For more detailed information about the project, including requirements and overview, please visit the [docs](./docs) directory.
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```

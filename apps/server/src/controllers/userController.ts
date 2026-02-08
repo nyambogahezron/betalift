@@ -1,9 +1,6 @@
+import { Feedback, Project, User, UserEngagement } from "@repo/database";
 import type { Response } from "express";
 import ENV from "../config/env";
-import Feedback from "../database/models/feedback";
-import Project from "../database/models/project";
-import User from "../database/models/user";
-import UserEngagement from "../database/models/userEngagement";
 import asyncHandler from "../middleware/asyncHandler";
 import type {
 	AuthRequest,

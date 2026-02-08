@@ -1,12 +1,14 @@
+import {
+	Feedback,
+	FeedbackComment,
+	FeedbackVote,
+	Notification,
+	Project,
+	User,
+} from "@repo/database";
 import type { Response } from "express";
 import type mongoose from "mongoose";
 import ENV from "../config/env";
-import Feedback from "../database/models/feedback";
-import FeedbackComment from "../database/models/feedbackComment";
-import FeedbackVote from "../database/models/feedbackVote";
-import Notification from "../database/models/notification";
-import Project from "../database/models/project";
-import User from "../database/models/user";
 import asyncHandler from "../middleware/asyncHandler";
 import type {
 	AuthRequest,

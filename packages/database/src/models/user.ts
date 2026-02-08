@@ -1,0 +1,292 @@
+import bcrypt from "bcryptjs";
+import mongoose, { type Document, Schema } from "mongoose";
+import validator from "validator";
+
+export interface IUserStats {
+	projectsCreated: number;
+	projectsTested: number;
+	feedbackGiven: number;
+	feedbackReceived: number;
+}
+
+export interface INotificationSettings {
+	pushEnabled: boolean;
+	emailEnabled: boolean;
+	feedbackUpdates: boolean;
+	projectInvites: boolean;
+	weeklyDigest: boolean;
+}
+
+export interface IPrivacySettings {
+	profilePublic: boolean;
+	showEmail: boolean;
+	showStats: boolean;
+}
+
+export interface IAppearanceSettings {
+	theme: "dark" | "light" | "system";
+	language: string;
+}
+
+export interface IUserSettings {
+	notifications: INotificationSettings;
+	privacy: IPrivacySettings;
+	appearance: IAppearanceSettings;
+}
+
+export interface IUser extends Document {
+	email: string;
+	password: string;
+	username: string;
+	displayName?: string;
+	avatar?: string;
+	bio?: string;
+	stats: IUserStats;
+	settings?: IUserSettings;
+	isEmailVerified: boolean;
+	emailVerificationToken?: string;
+	emailVerificationExpires?: Date;
+	resetPasswordToken?: string;
+	resetPasswordExpires?: Date;
+	refreshToken?: string;
+	failedLoginAttempts: number;
+	accountLockedUntil?: Date;
+	lastFailedLogin?: Date;
+	createdAt: Date;
+	updatedAt: Date;
+	comparePassword(candidatePassword: string): Promise<boolean>;
+	generateAuthToken(): string;
+	generateRefreshToken(): string;
+	isAccountLocked(): boolean;
+	incrementFailedAttempts(): Promise<void>;
+	resetFailedAttempts(): Promise<void>;
+	pushTokens: string[];
+}
+
+const userStatsSchema = new Schema<IUserStats>(
+	{
+		projectsCreated: { type: Number, default: 0 },
+		projectsTested: { type: Number, default: 0 },
+		feedbackGiven: { type: Number, default: 0 },
+		feedbackReceived: { type: Number, default: 0 },
+	},
+	{ _id: false },
+);
+
+const notificationSettingsSchema = new Schema<INotificationSettings>(
+	{
+		pushEnabled: { type: Boolean, default: true },
+		emailEnabled: { type: Boolean, default: true },
+		feedbackUpdates: { type: Boolean, default: true },
+		projectInvites: { type: Boolean, default: true },
+		weeklyDigest: { type: Boolean, default: false },
+	},
+	{ _id: false },
+);
+
+const privacySettingsSchema = new Schema<IPrivacySettings>(
+	{
+		profilePublic: { type: Boolean, default: true },
+		showEmail: { type: Boolean, default: false },
+		showStats: { type: Boolean, default: true },
+	},
+	{ _id: false },
+);
+
+const appearanceSettingsSchema = new Schema<IAppearanceSettings>(
+	{
+		theme: {
+			type: String,
+			enum: ["dark", "light", "system"],
+			default: "system",
+		},
+		language: { type: String, default: "en" },
+	},
+	{ _id: false },
+);
+
+const userSettingsSchema = new Schema<IUserSettings>(
+	{
+		notifications: { type: notificationSettingsSchema, default: () => ({}) },
+		privacy: { type: privacySettingsSchema, default: () => ({}) },
+		appearance: { type: appearanceSettingsSchema, default: () => ({}) },
+	},
+	{ _id: false },
+);
+
+const userSchema = new Schema<IUser>(
+	{
+		email: {
+			type: String,
+			required: [true, "Email is required"],
+			unique: true,
+			lowercase: true,
+			trim: true,
+			validate: {
+				validator: (value: string) => validator.isEmail(value),
+				message: "Please enter a valid email",
+			},
+		},
+		password: {
+			type: String,
+			required: [true, "Password is required"],
+			minlength: [6, "Password must be at least 6 characters"],
+			select: false,
+		},
+		username: {
+			type: String,
+			required: [true, "Username is required"],
+			unique: true,
+			trim: true,
+			minlength: [3, "Username must be at least 3 characters"],
+			maxlength: [30, "Username cannot exceed 30 characters"],
+			validate: {
+				validator: (value: string) => validator.isAlphanumeric(value),
+				message: "Username can only contain letters and numbers",
+			},
+		},
+		displayName: {
+			type: String,
+			trim: true,
+			maxlength: [50, "Display name cannot exceed 50 characters"],
+		},
+		avatar: {
+			type: String,
+		},
+		bio: {
+			type: String,
+			maxlength: [500, "Bio cannot exceed 500 characters"],
+		},
+
+		stats: {
+			type: userStatsSchema,
+			default: () => ({}),
+		},
+		settings: {
+			type: userSettingsSchema,
+			default: () => ({}),
+		},
+		isEmailVerified: {
+			type: Boolean,
+			default: false,
+		},
+		emailVerificationToken: {
+			type: String,
+			select: false,
+		},
+		emailVerificationExpires: {
+			type: Date,
+			select: false,
+		},
+		resetPasswordToken: {
+			type: String,
+			select: false,
+		},
+		resetPasswordExpires: {
+			type: Date,
+			select: false,
+		},
+		refreshToken: {
+			type: String,
+			select: false,
+		},
+		failedLoginAttempts: {
+			type: Number,
+			default: 0,
+		},
+		accountLockedUntil: {
+			type: Date,
+			select: false,
+		},
+		lastFailedLogin: {
+			type: Date,
+			select: false,
+		},
+		pushTokens: {
+			type: [String],
+			default: [],
+		},
+	},
+	{
+		timestamps: true,
+		toJSON: {
+			transform: (
+				_doc: Document,
+				ret: Record<string, unknown> & { _id: unknown },
+			) => {
+				ret.id = (ret._id as { toString(): string }).toString();
+				ret._id = undefined;
+				ret.__v = undefined;
+				ret.password = undefined;
+				ret.refreshToken = undefined;
+				ret.emailVerificationToken = undefined;
+				ret.emailVerificationExpires = undefined;
+				ret.resetPasswordToken = undefined;
+				ret.resetPasswordExpires = undefined;
+				return ret;
+			},
+		},
+	},
+);
+
+// Hash password before saving
+userSchema.pre("save", async function () {
+	if (!this.isModified("password")) return;
+
+	const salt = await bcrypt.genSalt(10);
+	this.password = await bcrypt.hash(this.password, salt);
+});
+
+userSchema.methods.comparePassword = async function (
+	candidatePassword: string,
+): Promise<boolean> {
+	return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Check if account is locked
+userSchema.methods.isAccountLocked = function (): boolean {
+	if (this.accountLockedUntil && this.accountLockedUntil > new Date()) {
+		return true;
+	}
+	return false;
+};
+
+// Increment failed login attempts and lock account if needed
+userSchema.methods.incrementFailedAttempts = async function (): Promise<void> {
+	const MAX_LOGIN_ATTEMPTS = 5;
+	const LOCK_TIME_MINUTES = [5, 15, 30, 60, 120]; // Progressive lockout times
+
+	// Increment failed attempts
+	this.failedLoginAttempts += 1;
+	this.lastFailedLogin = new Date();
+
+	// Calculate lockout duration based on number of attempts
+	if (this.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+		const lockoutIndex = Math.min(
+			Math.floor((this.failedLoginAttempts - MAX_LOGIN_ATTEMPTS) / 3),
+			LOCK_TIME_MINUTES.length - 1,
+		);
+		const lockoutMinutes = LOCK_TIME_MINUTES[lockoutIndex];
+		if (lockoutMinutes) {
+			this.accountLockedUntil = new Date(
+				Date.now() + lockoutMinutes * 60 * 1000,
+			);
+		}
+	}
+
+	await this.save();
+};
+
+// Reset failed login attempts
+userSchema.methods.resetFailedAttempts = async function (): Promise<void> {
+	if (this.failedLoginAttempts > 0 || this.accountLockedUntil) {
+		this.failedLoginAttempts = 0;
+		this.accountLockedUntil = undefined;
+		this.lastFailedLogin = undefined;
+		await this.save();
+	}
+};
+
+userSchema.index({ createdAt: -1 });
+
+export const User = mongoose.model<IUser>("User", userSchema);

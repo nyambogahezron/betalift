@@ -1,6 +1,6 @@
+import { Notification } from "@repo/database";
 import type { Response } from "express";
 import ENV from "../config/env";
-import Notification from "../database/models/notification";
 import asyncHandler from "../middleware/asyncHandler";
 import type { AuthenticatedRequest } from "../middleware/authentication";
 import { ForbiddenError, NotFoundError } from "../utils/errors";

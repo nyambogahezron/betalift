@@ -9,7 +9,7 @@ import {
 	getProjectUpdateEmail,
 	getVerifyEmail,
 } from "../templates/emails";
-import { logger } from "../utils/logger";
+import logger from '@repo/logger'
 
 import RabbitMQClient from "../rabbitmq/client";
 

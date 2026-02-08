@@ -1,6 +1,6 @@
 import { type Channel, type ChannelModel, connect } from "amqplib";
 import { RABBITMQ_CONFIG } from "../config/rabbitmq";
-import { logger } from "../utils/logger";
+import { logger } from '@repo/logger'
 
 class RabbitMQClient {
 	private connection: ChannelModel | null = null;

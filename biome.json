@@ -6,8 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": false,
-		"ignore": ["**/dist", "**/node_modules", "**/out", "**/.next", "**/.turbo"]
+		"ignoreUnknown": false
 	},
 	"formatter": {
 		"enabled": true,
@@ -18,9 +17,6 @@
 		"rules": {
 			"recommended": true
 		}
-	},
-	"organizeImports": {
-		"enabled": true
 	},
 	"javascript": {
 		"formatter": {

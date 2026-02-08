@@ -1,6 +1,5 @@
+import { User, UserEngagement } from "@repo/database";
 import type { Response } from "express";
-import User from "../database/models/user.js";
-import UserEngagement from "../database/models/userEngagement.js";
 import asyncHandler from "../middleware/asyncHandler.js";
 import type {
 	AuthRequest,

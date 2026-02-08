@@ -36,3 +36,10 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+
+**/dist
+**/node_modules
+**/out
+**/.next
+**/.turbo

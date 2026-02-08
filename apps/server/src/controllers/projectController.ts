@@ -1,12 +1,14 @@
+import {
+	JoinRequest,
+	Notification,
+	Project,
+	ProjectMembership,
+	Release,
+	User,
+} from "@repo/database";
 import type { Response } from "express";
 import mongoose from "mongoose";
 import ENV from "../config/env";
-import JoinRequest from "../database/models/joinRequest";
-import Notification from "../database/models/notification";
-import Project from "../database/models/project";
-import ProjectMembership from "../database/models/projectMembership";
-import Release from "../database/models/release";
-import User from "../database/models/user";
 import asyncHandler from "../middleware/asyncHandler";
 import type {
 	AuthRequest,

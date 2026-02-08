@@ -1,9 +1,21 @@
-import { Router } from "express";
-import { z } from "zod";
+import {
+	createFeedbackSchema,
+	createJoinRequestSchema,
+	createProjectSchema,
+	createReleaseSchema,
+	getFeedbackQuerySchema,
+	getProjectsQuerySchema,
+	mongoIdSchema,
+	updateJoinRequestSchema,
+	updateProjectSchema,
+	updateReleaseSchema,
+} from '@repo/schema'
+import { Router } from 'express'
+import { z } from 'zod'
 import {
 	createFeedback,
 	getFeedback,
-} from "../../controllers/feedbackController";
+} from '../../controllers/feedbackController'
 import {
 	createJoinRequest,
 	createProject,
@@ -19,56 +31,44 @@ import {
 	updateJoinRequest,
 	updateProject,
 	updateRelease,
-} from "../../controllers/projectController";
+} from '../../controllers/projectController'
 import {
 	authenticate,
 	optionalAuthenticate,
-} from "../../middleware/authentication";
-import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
+} from '../../middleware/authentication'
+import { readLimiter, writeLimiter } from '../../middleware/rateLimiter'
 import {
 	validateBody,
 	validateParams,
 	validateQuery,
-} from "../../validators/middleware";
-import {
-	createFeedbackSchema,
-	createJoinRequestSchema,
-	createProjectSchema,
-	createReleaseSchema,
-	getFeedbackQuerySchema,
-	getProjectsQuerySchema,
-	mongoIdSchema,
-	updateJoinRequestSchema,
-	updateProjectSchema,
-	updateReleaseSchema,
-} from "../../validators/schemas";
+} from '../../validators/middleware'
 
-const router = Router();
+const router: Router = Router()
 
-const idParamSchema = z.object({ id: mongoIdSchema });
-const projectIdParamSchema = z.object({ projectId: mongoIdSchema });
+const idParamSchema = z.object({ id: mongoIdSchema })
+const projectIdParamSchema = z.object({ projectId: mongoIdSchema })
 const releaseIdParamSchema = z.object({
 	id: mongoIdSchema,
 	releaseId: mongoIdSchema,
-});
+})
 const requestIdParamSchema = z.object({
 	id: mongoIdSchema,
 	requestId: mongoIdSchema,
-});
+})
 
 // Project routes
 router
-	.route("/")
+	.route('/')
 	.get(readLimiter, validateQuery(getProjectsQuerySchema), getProjects)
 	.post(
 		writeLimiter,
 		authenticate,
 		validateBody(createProjectSchema),
 		createProject,
-	);
+	)
 
 router
-	.route("/:id")
+	.route('/:id')
 	.get(
 		readLimiter,
 		optionalAuthenticate,
@@ -87,60 +87,60 @@ router
 		authenticate,
 		validateParams(idParamSchema),
 		deleteProject,
-	);
+	)
 
 // Project members routes
 router.get(
-	"/:id/members",
+	'/:id/members',
 	readLimiter,
 	validateParams(idParamSchema),
 	getProjectMembers,
-);
+)
 
 // Project join requests routes
 router.get(
-	"/:id/requests",
+	'/:id/requests',
 	readLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	getProjectJoinRequests,
-);
+)
 router.post(
-	"/:id/requests",
+	'/:id/requests',
 	writeLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(createJoinRequestSchema),
 	createJoinRequest,
-);
+)
 router.patch(
-	"/:id/requests/:requestId",
+	'/:id/requests/:requestId',
 	writeLimiter,
 	authenticate,
 	validateParams(requestIdParamSchema),
 	validateBody(updateJoinRequestSchema),
 	updateJoinRequest,
-);
+)
 
 // Project releases routes
 router.get(
-	"/:id/releases",
+	'/:id/releases',
 	readLimiter,
 	optionalAuthenticate,
 	validateParams(idParamSchema),
 	getProjectReleases,
-);
+)
 router.post(
-	"/:id/releases",
+	'/:id/releases',
 	writeLimiter,
 	authenticate,
 	validateParams(idParamSchema),
 	validateBody(createReleaseSchema),
 	createRelease,
-);
+)
 
 router
-	.route("/:id/releases/:releaseId")
+	.route('/:id/releases/:releaseId')
 	.get(
 		readLimiter,
 		optionalAuthenticate,
@@ -159,11 +159,11 @@ router
 		authenticate,
 		validateParams(releaseIdParamSchema),
 		deleteRelease,
-	);
+	)
 
 // Project feedback routes
 router
-	.route("/:projectId/feedback")
+	.route('/:projectId/feedback')
 	.get(
 		readLimiter,
 		validateParams(projectIdParamSchema),
@@ -176,6 +176,6 @@ router
 		validateParams(projectIdParamSchema),
 		validateBody(createFeedbackSchema),
 		createFeedback,
-	);
+	)
 
-export default router;
+export default router

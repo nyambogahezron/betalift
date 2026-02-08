@@ -1,5 +1,5 @@
+import { User } from "@repo/database";
 import type { NextFunction, Request, Response } from "express";
-import User from "../database/models/user";
 import { UnauthorizedError } from "../utils/errors/index";
 import { type JWTPayload, verifyAccessToken } from "../utils/jwt";
 

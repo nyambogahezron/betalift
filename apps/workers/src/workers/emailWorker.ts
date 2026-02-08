@@ -1,6 +1,6 @@
 import type { Channel, Message } from "amqplib";
 import { type EmailOptions, sendEmail } from "../services/emailService";
-import { logger } from "../utils/logger";
+import logger from '@repo/logger'
 
 const QUEUE_NAME = "email_queue";
 
@@ -21,9 +21,7 @@ export const startEmailWorker = async (channel: Channel): Promise<void> => {
 				channel.ack(msg);
 				logger.info("Email processed successfully");
 			} catch (error) {
-				logger.error("Error processing email message:", error);
-				// Depending on the error, we might want to nack(requeue=false) or nack(requeue=true)
-				// For now, let's reject and not requeue to avoid infinite loops on bad data
+				logger.error('Error processing email message:', error)
 				channel.nack(msg, false, false);
 			}
 		});

@@ -3,9 +3,8 @@ import {
 	type ExpoPushMessage,
 	type ExpoPushTicket,
 } from "expo-server-sdk";
-// Assuming we can use logger here similar to server, or console.
-// Check logger in apps/workers/src/utils/logger
-import { logger } from "../utils/logger";
+
+import logger from '@repo/logger'
 
 class PushNotificationService {
 	private expo: Expo;
@@ -69,7 +68,6 @@ class PushNotificationService {
 			}
 		}
 
-		// Handle errors in tickets (optional but recommended)
 		for (const ticket of tickets) {
 			if (ticket.status === "error") {
 				logger.error(`Error sending notification: ${ticket.message}`, ticket);

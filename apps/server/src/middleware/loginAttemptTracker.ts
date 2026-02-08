@@ -1,5 +1,5 @@
+import { IPLoginAttempt } from "@repo/database";
 import type { NextFunction, Request, Response } from "express";
-import IpLoginAttempt from "../database/models/ipLoginAttempt.js";
 
 const MAX_ATTEMPTS_PER_IP = 10;
 const IP_LOCKOUT_DURATION = 30 * 60 * 1000;
@@ -29,7 +29,7 @@ export async function checkIpLockout(
 		const ip = getClientIp(req);
 		const now = new Date();
 
-		const attempt = await IpLoginAttempt.findOne({
+		const attempt = await IPLoginAttempt.findOne({
 			ipAddress: ip,
 			lockedUntil: { $gt: now },
 		});
@@ -59,7 +59,7 @@ export async function recordFailedIpAttempt(req: Request): Promise<void> {
 		const ip = getClientIp(req);
 		const now = new Date();
 
-		const attempt = await IpLoginAttempt.findOne({ ipAddress: ip });
+		const attempt = await IPLoginAttempt.findOne({ ipAddress: ip });
 
 		if (attempt) {
 			const timeSinceFirst = now.getTime() - attempt.firstAttemptAt.getTime();
@@ -80,7 +80,7 @@ export async function recordFailedIpAttempt(req: Request): Promise<void> {
 
 			await attempt.save();
 		} else {
-			await IpLoginAttempt.create({
+			await IPLoginAttempt.create({
 				ipAddress: ip,
 				failedAttempts: 1,
 				firstAttemptAt: now,
@@ -95,7 +95,7 @@ export async function recordFailedIpAttempt(req: Request): Promise<void> {
 export async function resetIpAttempts(req: Request): Promise<void> {
 	try {
 		const ip = getClientIp(req);
-		await IpLoginAttempt.deleteOne({ ipAddress: ip });
+		await IPLoginAttempt.deleteOne({ ipAddress: ip });
 	} catch (error) {
 		console.error("Error resetting IP attempts:", error);
 	}
@@ -104,7 +104,7 @@ export async function resetIpAttempts(req: Request): Promise<void> {
 export async function getRemainingIpAttempts(req: Request): Promise<number> {
 	try {
 		const ip = getClientIp(req);
-		const attempt = await IpLoginAttempt.findOne({ ipAddress: ip });
+		const attempt = await IPLoginAttempt.findOne({ ipAddress: ip });
 
 		if (!attempt) return MAX_ATTEMPTS_PER_IP;
 
@@ -123,7 +123,7 @@ export async function getRemainingIpAttempts(req: Request): Promise<number> {
 
 export async function unlockIpAddress(ip: string): Promise<boolean> {
 	try {
-		const result = await IpLoginAttempt.deleteOne({ ipAddress: ip });
+		const result = await IPLoginAttempt.deleteOne({ ipAddress: ip });
 		return result.deletedCount > 0;
 	} catch (error) {
 		console.error("Error unlocking IP address:", error);
@@ -140,7 +140,7 @@ export async function getLockedIpAddresses(): Promise<
 > {
 	try {
 		const now = new Date();
-		const lockedAttempts = await IpLoginAttempt.find({
+		const lockedAttempts = await IPLoginAttempt.find({
 			lockedUntil: { $gt: now },
 		}).lean();
 

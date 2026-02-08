@@ -12,7 +12,7 @@ import {
 } from "../schemas/socket";
 import * as conservationService from "../services/conversationService";
 import * as messageService from "../services/messageService";
-import { logger } from "../utils/logger";
+import { logger } from '@repo/logger'
 
 export const registerSocketHandlers = (io: Server, socket: Socket) => {
 	const authSocket = socket as AuthenticatedSocket;

@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import ENV from "../config/env";
 import { ApiError } from "../utils/errors";
-import { logger } from "../utils/logger";
+import logger from '@repo/logger'
 
 export const errorHandler = (
 	err: Error | ApiError,

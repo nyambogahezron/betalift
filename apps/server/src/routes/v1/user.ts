@@ -1,5 +1,12 @@
-import { Router } from "express";
-import { z } from "zod";
+import {
+	getUsersQuerySchema,
+	mongoIdSchema,
+	updateUserEngagementSchema,
+	updateUserSchema,
+	updateUserSettingsSchema,
+} from '@repo/schema'
+import { Router } from 'express'
+import { z } from 'zod'
 import {
 	deleteUser,
 	getUserById,
@@ -10,34 +17,27 @@ import {
 	updateSettings,
 	updateUser,
 	updateUserEngagement,
-} from "../../controllers/userController";
-import { authenticate } from "../../middleware/authentication";
-import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
+} from '../../controllers/userController'
+import { authenticate } from '../../middleware/authentication'
+import { readLimiter, writeLimiter } from '../../middleware/rateLimiter'
 import {
 	validateBody,
 	validateParams,
 	validateQuery,
-} from "../../validators/middleware";
-import {
-	getUsersQuerySchema,
-	mongoIdSchema,
-	updateUserEngagementSchema,
-	updateUserSchema,
-	updateUserSettingsSchema,
-} from "../../validators/schemas";
+} from '../../validators/middleware'
 
-const router = Router();
+const router: Router = Router()
 
-const idParamSchema = z.object({ id: mongoIdSchema });
+const idParamSchema = z.object({ id: mongoIdSchema })
 
-router.get("/", readLimiter, validateQuery(getUsersQuerySchema), getUsers);
+router.get('/', readLimiter, validateQuery(getUsersQuerySchema), getUsers)
 
-router.use(authenticate);
+router.use(authenticate)
 
-router.post("/push-token", writeLimiter, registerPushToken);
+router.post('/push-token', writeLimiter, registerPushToken)
 
 router
-	.route("/:id")
+	.route('/:id')
 	.get(readLimiter, validateParams(idParamSchema), getUserById)
 	.patch(
 		writeLimiter,
@@ -45,29 +45,29 @@ router
 		validateBody(updateUserSchema),
 		updateUser,
 	)
-	.delete(writeLimiter, validateParams(idParamSchema), deleteUser);
+	.delete(writeLimiter, validateParams(idParamSchema), deleteUser)
 router.get(
-	"/:id/stats",
+	'/:id/stats',
 	readLimiter,
 	validateParams(idParamSchema),
 	getUserStats,
-);
+)
 router.patch(
-	"/:id/settings",
+	'/:id/settings',
 	writeLimiter,
 	validateParams(idParamSchema),
 	validateBody(updateUserSettingsSchema),
 	updateSettings,
-);
+)
 
 router
-	.route("/:id/engagement")
+	.route('/:id/engagement')
 	.get(readLimiter, validateParams(idParamSchema), getUserEngagement)
 	.patch(
 		writeLimiter,
 		validateParams(idParamSchema),
 		validateBody(updateUserEngagementSchema),
 		updateUserEngagement,
-	);
+	)
 
-export default router;
+export default router
