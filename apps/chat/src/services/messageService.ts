@@ -6,8 +6,8 @@ type MessageAttachments = (typeof messages.$inferInsert)["attachments"];
 
 export const getMessagesForConversation = async (
 	conversationId: number,
-	limit: number = 50,
-	offset: number = 0,
+	limit = 50,
+	offset = 0,
 ) => {
 	const result = await db
 		.select()
@@ -24,7 +24,7 @@ export const createMessage = async (
 	userId: string,
 	conversationId: number,
 	content: string,
-	type: string = "text",
+	type = "text",
 	attachments: MessageAttachments = [],
 ) => {
 	const [newMessage] = await db

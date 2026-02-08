@@ -1,12 +1,13 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["src/**", "!!**/dist"]
+		"ignoreUnknown": false,
+		"ignore": ["**/dist", "**/node_modules", "**/out", "**/.next", "**/.turbo"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -18,17 +19,12 @@
 			"recommended": true
 		}
 	},
+	"organizeImports": {
+		"enabled": true
+	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
-		}
-	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
 		}
 	}
 }

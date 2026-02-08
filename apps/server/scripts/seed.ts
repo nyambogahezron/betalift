@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import ENV from "../src/config/env.js";
-import { logger } from "../src/utils/logger.js";
 import { seedFeedback } from "../src/database/seeders/feedbackSeeder.js";
 import { seedNotifications } from "../src/database/seeders/notificationSeeder.js";
 import { seedProjectMemberships } from "../src/database/seeders/projectMembershipSeeder.js";
@@ -8,6 +7,7 @@ import { seedProjects } from "../src/database/seeders/projectSeeder.js";
 import { seedReleases } from "../src/database/seeders/releaseSeeder.js";
 import { seedUserEngagement } from "../src/database/seeders/userEngagementSeeder.js";
 import { seedUsers } from "../src/database/seeders/userSeeder.js";
+import { logger } from "../src/utils/logger.js";
 
 const seedDatabase = async () => {
 	try {

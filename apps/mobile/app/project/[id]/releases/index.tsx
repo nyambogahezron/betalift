@@ -1,13 +1,13 @@
+import { Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { getReleasesForProject } from "@/data/mockData";
+import type { Release } from "@/interfaces";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { getReleasesForProject } from "@/data/mockData";
-import type { Release } from "@/interfaces";
 
 type FilterType = "all" | "published" | "beta" | "draft";
 

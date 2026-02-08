@@ -1,3 +1,13 @@
+import { Avatar, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Feedback } from "@/interfaces";
+import {
+	useCreateComment,
+	useFeedback,
+	useFeedbackComments,
+	useVoteFeedback,
+} from "@/queries/feedbackQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -25,16 +35,6 @@ import Animated, {
 	useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import type { Feedback } from "@/interfaces";
-import {
-	useCreateComment,
-	useFeedback,
-	useFeedbackComments,
-	useVoteFeedback,
-} from "@/queries/feedbackQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const HEADER_MAX_HEIGHT = 120;

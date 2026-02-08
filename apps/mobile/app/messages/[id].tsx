@@ -1,7 +1,12 @@
+import { Avatar } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { useSocket } from "@/context/SocketContext";
+import type { Message, User } from "@/interfaces";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	FlatList,
@@ -21,11 +26,6 @@ import Animated, {
 	SlideInDown,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { useSocket } from "@/context/SocketContext";
-import { useAuthStore } from "@/stores/useAuthStore";
-import type { Message, User } from "@/interfaces";
 
 export default function ChatScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,7 +45,7 @@ export default function ChatScreen() {
 	useEffect(() => {
 		if (socket && isConnected && id) {
 			// Fetch all conversations to find the current one (since we don't have get_conversation_by_id)
-			socket.emit('get_conversations', (response: any) => {
+			socket.emit("get_conversations", (response: any) => {
 				if (response.success) {
 					// Map _id and find
 					const convs = response.data.map((c: any) => ({ ...c, id: c._id }));
@@ -57,31 +57,41 @@ export default function ChatScreen() {
 			});
 
 			// Fetch messages
-			socket.emit('get_messages', { conversationId: id, limit: 50, offset: 0 }, (response: any) => {
-				if (response.success) {
-					const mappedMessages = response.data.map((m: any) => ({
-						...m,
-						id: m._id, // Map _id to id
-						createdAt: new Date(m.createdAt), // Ensure Date object
-						senderId: m.senderId === user?.id ? 'me' : m.senderId // Map my ID to 'me' if needed by UI
-					})).reverse(); // specific sort might be needed depending on API
-					setMessages(mappedMessages);
+			socket.emit(
+				"get_messages",
+				{ conversationId: id, limit: 50, offset: 0 },
+				(response: any) => {
+					if (response.success) {
+						const mappedMessages = response.data
+							.map((m: any) => ({
+								...m,
+								id: m._id, // Map _id to id
+								createdAt: new Date(m.createdAt), // Ensure Date object
+								senderId: m.senderId === user?.id ? "me" : m.senderId, // Map my ID to 'me' if needed by UI
+							}))
+							.reverse(); // specific sort might be needed depending on API
+						setMessages(mappedMessages);
 
-					// Scroll to bottom
-					setTimeout(() => {
-						flatListRef.current?.scrollToEnd({ animated: false });
-					}, 100);
-				}
-			});
+						// Scroll to bottom
+						setTimeout(() => {
+							flatListRef.current?.scrollToEnd({ animated: false });
+						}, 100);
+					}
+				},
+			);
 
 			// Listen for new messages
 			const handleNewMessage = (message: any) => {
-				if (message.conversationId === id || message.conversationId === conversation?.id) { // handle both if mapped or not
+				if (
+					message.conversationId === id ||
+					message.conversationId === conversation?.id
+				) {
+					// handle both if mapped or not
 					const mappedMsg = {
 						...message,
 						id: message._id,
 						createdAt: new Date(message.createdAt),
-						senderId: message.senderId === user?.id ? 'me' : message.senderId
+						senderId: message.senderId === user?.id ? "me" : message.senderId,
 					};
 					setMessages((prev) => [...prev, mappedMsg]);
 					setTimeout(() => {
@@ -90,10 +100,10 @@ export default function ChatScreen() {
 				}
 			};
 
-			socket.on('new_message', handleNewMessage);
+			socket.on("new_message", handleNewMessage);
 
 			return () => {
-				socket.off('new_message', handleNewMessage);
+				socket.off("new_message", handleNewMessage);
 			};
 		}
 	}, [socket, isConnected, id, user?.id]);
@@ -101,17 +111,29 @@ export default function ChatScreen() {
 	const otherUser = useMemo((): User => {
 		if (conversation?.participants) {
 			// Find participant that is NOT me
-			const other = conversation.participants.find((p: any) => p._id !== user?.id);
+			const other = conversation.participants.find(
+				(p: any) => p._id !== user?.id,
+			);
 			if (other) return { ...other, id: other._id };
 			// Fallback if I am the only participant?
-			return conversation.participants[0] ? { ...conversation.participants[0], id: conversation.participants[0]._id } : {
-				id: "unknown",
-				email: "unknown@example.com",
-				username: "Unknown",
-				role: "tester",
-				stats: { projectsCreated: 0, projectsTested: 0, feedbackGiven: 0, feedbackReceived: 0 },
-				createdAt: new Date()
-			};
+			return conversation.participants[0]
+				? {
+						...conversation.participants[0],
+						id: conversation.participants[0]._id,
+					}
+				: {
+						id: "unknown",
+						email: "unknown@example.com",
+						username: "Unknown",
+						role: "tester",
+						stats: {
+							projectsCreated: 0,
+							projectsTested: 0,
+							feedbackGiven: 0,
+							feedbackReceived: 0,
+						},
+						createdAt: new Date(),
+					};
 		}
 
 		// Placeholder if loading
@@ -121,7 +143,12 @@ export default function ChatScreen() {
 			username: "Loading...",
 			displayName: "Loading...",
 			role: "tester",
-			stats: { projectsCreated: 0, projectsTested: 0, feedbackGiven: 0, feedbackReceived: 0 },
+			stats: {
+				projectsCreated: 0,
+				projectsTested: 0,
+				feedbackGiven: 0,
+				feedbackReceived: 0,
+			},
 			createdAt: new Date(),
 		};
 	}, [conversation, user?.id]);
@@ -131,14 +158,19 @@ export default function ChatScreen() {
 
 		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-		// Optimistic update handled by socket event? 
+		// Optimistic update handled by socket event?
 		// If we want instant feedback, we can append locally.
 		// But since we listen to 'new_message', we might get duplicates if we append locally.
 		// For 'me', the socket emits to room, so I receive it.
-		// So I will NOT append locally to avoid dupes, assuming fast connection. 
+		// So I will NOT append locally to avoid dupes, assuming fast connection.
 		// Or I can check ID.
 
-		sendMessage(id, inputText.trim(), selectedImage ? "image" : "text", selectedImage ? [{ type: 'image', url: selectedImage }] : []);
+		sendMessage(
+			id,
+			inputText.trim(),
+			selectedImage ? "image" : "text",
+			selectedImage ? [{ type: "image", url: selectedImage }] : [],
+		);
 
 		setInputText("");
 		setSelectedImage(null);

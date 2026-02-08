@@ -9,8 +9,8 @@ import Release from "../database/models/release";
 import User from "../database/models/user";
 import asyncHandler from "../middleware/asyncHandler";
 import type {
-	AuthenticatedRequest,
 	AuthRequest,
+	AuthenticatedRequest,
 } from "../middleware/authentication";
 import {
 	BadRequestError,
@@ -22,9 +22,9 @@ import {
 // @access  Public
 export const getProjects = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const page = parseInt(req.query.page as string, 10) || 1;
+		const page = Number.parseInt(req.query.page as string, 10) || 1;
 		const limit = Math.min(
-			parseInt(req.query.limit as string, 10) || ENV.defaultPageSize,
+			Number.parseInt(req.query.limit as string, 10) || ENV.defaultPageSize,
 			ENV.maxPageSize,
 		);
 		const skip = (page - 1) * limit;
@@ -60,11 +60,11 @@ export const getProjects = asyncHandler(
 		}
 
 		if (req.query.excludeOwnerId) {
-			query.ownerId = { $ne: req.query.excludeOwnerId as string }
+			query.ownerId = { $ne: req.query.excludeOwnerId as string };
 		}
 
-		console.log('getProjects Query:', JSON.stringify(query, null, 2))
-		console.log('Request Query Params:', req.query)
+		console.log("getProjects Query:", JSON.stringify(query, null, 2));
+		console.log("Request Query Params:", req.query);
 
 		const [projects, total] = await Promise.all([
 			Project.find(query)

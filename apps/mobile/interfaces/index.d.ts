@@ -1,13 +1,13 @@
 export interface User {
-	id: string
-	email: string
-	username: string
-	displayName?: string
-	bio?: string
-	avatar?: string
-	stats: UserStats
-	createdAt: Date
-	updatedAt?: Date
+	id: string;
+	email: string;
+	username: string;
+	displayName?: string;
+	bio?: string;
+	avatar?: string;
+	stats: UserStats;
+	createdAt: Date;
+	updatedAt?: Date;
 }
 
 export interface UserStats {

@@ -19,6 +19,6 @@ const corsOptions = {
 		"X-CSRF-Token",
 		"X-API-Client",
 	],
-}
+};
 
 export default corsOptions;

@@ -20,31 +20,31 @@ export const projectKeys = {
 };
 
 export const useProjects = (params?: {
-	page?: number
-	limit?: number
-	search?: string
-	status?: string
-	excludeOwnerId?: string
-	ownerId?: string
+	page?: number;
+	limit?: number;
+	search?: string;
+	status?: string;
+	excludeOwnerId?: string;
+	ownerId?: string;
 }) => {
 	return useQuery({
 		queryKey: projectKeys.list(params),
 		queryFn: async () => {
 			const response = await apiClient.get<ApiResponse<any>>(
-				'/api/v1/projects',
+				"/api/v1/projects",
 				{
 					params,
-				}
-			)
+				},
+			);
 
 			if (response.data.success && response.data.data) {
-				return response.data.data
+				return response.data.data;
 			}
 
-			throw new Error(response.data.message || 'Failed to fetch projects')
+			throw new Error(response.data.message || "Failed to fetch projects");
 		},
-	})
-}
+	});
+};
 
 export const useProject = (id: string) => {
 	return useQuery({

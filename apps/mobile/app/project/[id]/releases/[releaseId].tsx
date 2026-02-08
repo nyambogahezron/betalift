@@ -1,3 +1,7 @@
+import { Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { getReleasesForProject } from "@/data/mockData";
+import type { Release } from "@/interfaces";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
@@ -15,10 +19,6 @@ import Animated, {
 	useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { getReleasesForProject } from "@/data/mockData";
-import type { Release } from "@/interfaces";
 
 const HEADER_MAX_HEIGHT = 200;
 const HEADER_MIN_HEIGHT = 100;

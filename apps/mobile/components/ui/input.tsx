@@ -1,3 +1,4 @@
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
@@ -14,7 +15,6 @@ import Animated, {
 	useSharedValue,
 	withTiming,
 } from "react-native-reanimated";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
 
 interface InputProps extends TextInputProps {
 	label?: string;

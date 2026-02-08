@@ -1,3 +1,12 @@
+import { ProjectCard } from "@/components/project";
+import { Avatar, Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import {
+	getProjectsByOwner,
+	getUserById,
+	mockUserEngagements,
+} from "@/data/mockData";
+import type { UserAvailability } from "@/interfaces";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
@@ -12,15 +21,6 @@ import Animated, {
 	useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ProjectCard } from "@/components/project";
-import { Avatar, Button, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import {
-	getProjectsByOwner,
-	getUserById,
-	mockUserEngagements,
-} from "@/data/mockData";
-import type { UserAvailability } from "@/interfaces";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const HEADER_MAX_HEIGHT = 280;

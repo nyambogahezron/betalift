@@ -6,7 +6,7 @@ class RabbitMQClient {
 	private connection: ChannelModel | null = null;
 	private channel: Channel | null = null;
 	private static instance: RabbitMQClient;
-	private isConnected: boolean = false;
+	private isConnected = false;
 
 	private constructor() {}
 

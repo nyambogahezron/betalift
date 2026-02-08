@@ -1,3 +1,10 @@
+import {
+	BorderRadius,
+	Colors,
+	Fonts,
+	Shadows,
+	Spacing,
+} from "@/constants/theme";
 import type React from "react";
 import {
 	ActivityIndicator,
@@ -12,13 +19,6 @@ import Animated, {
 	useSharedValue,
 	withSpring,
 } from "react-native-reanimated";
-import {
-	BorderRadius,
-	Colors,
-	Fonts,
-	Shadows,
-	Spacing,
-} from "@/constants/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 

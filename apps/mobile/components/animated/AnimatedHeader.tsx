@@ -1,3 +1,4 @@
+import { Colors, Fonts, Spacing } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
@@ -14,7 +15,6 @@ import Animated, {
 	type SharedValue,
 	useAnimatedStyle,
 } from "react-native-reanimated";
-import { Colors, Fonts, Spacing } from "@/constants/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

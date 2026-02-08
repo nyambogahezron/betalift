@@ -44,10 +44,9 @@ export const frequentAccessLimiter = rateLimit({
 	message: "Too many requests, please slow down",
 });
 
-
 export const loginRateLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000, 
-	max: 10, 
+	windowMs: 15 * 60 * 1000,
+	max: 10,
 	standardHeaders: true,
 	legacyHeaders: false,
 	skipSuccessfulRequests: true, // Don't count successful logins

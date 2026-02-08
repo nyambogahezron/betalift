@@ -1,3 +1,7 @@
+import { Avatar } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { useSocket } from "@/context/SocketContext";
+import type { Conversation } from "@/interfaces";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -11,10 +15,6 @@ import {
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { useSocket } from "@/context/SocketContext";
-import type { Conversation } from "@/interfaces";
 
 export default function MessagesScreen() {
 	const insets = useSafeAreaInsets();
@@ -27,29 +27,38 @@ export default function MessagesScreen() {
 	useEffect(() => {
 		if (socket && isConnected) {
 			setIsLoading(true);
-			socket.emit('get_conversations', (response: any) => {
+			socket.emit("get_conversations", (response: any) => {
 				if (response.success) {
-					const mappedConversations = response.data.map((c: any) => ({ ...c, id: c._id || c.id }));
+					const mappedConversations = response.data.map((c: any) => ({
+						...c,
+						id: c._id || c.id,
+					}));
 					setConversations(mappedConversations);
 				} else {
-					console.error('Failed to fetch conversations:', response.message);
+					console.error("Failed to fetch conversations:", response.message);
 				}
 				setIsLoading(false);
 			});
 
 			// Listen for updates
-			socket.on('conversations_list', (response: any) => {
+			socket.on("conversations_list", (response: any) => {
 				if (response.success) {
-					const mappedConversations = response.data.map((c: any) => ({ ...c, id: c._id || c.id }));
+					const mappedConversations = response.data.map((c: any) => ({
+						...c,
+						id: c._id || c.id,
+					}));
 					setConversations(mappedConversations);
 				}
 			});
 
 			// Listen for new messages to update conversation list (if backend pushes full list or update)
-			socket.on('new_message', () => {
-				socket.emit('get_conversations', (response: any) => {
+			socket.on("new_message", () => {
+				socket.emit("get_conversations", (response: any) => {
 					if (response.success) {
-						const mappedConversations = response.data.map((c: any) => ({ ...c, id: c._id || c.id }));
+						const mappedConversations = response.data.map((c: any) => ({
+							...c,
+							id: c._id || c.id,
+						}));
 						setConversations(mappedConversations);
 					}
 				});
@@ -58,8 +67,8 @@ export default function MessagesScreen() {
 
 		return () => {
 			if (socket) {
-				socket.off('conversations_list');
-				socket.off('new_message');
+				socket.off("conversations_list");
+				socket.off("new_message");
 			}
 		};
 	}, [socket, isConnected]);

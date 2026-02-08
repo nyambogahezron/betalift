@@ -1,8 +1,8 @@
+import { HapticTab } from "@/components/haptic-tab";
+import { Colors, Fonts } from "@/constants/theme";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Platform, StyleSheet } from "react-native";
-import { HapticTab } from "@/components/haptic-tab";
-import { Colors, Fonts } from "@/constants/theme";
 
 export default function TabLayout() {
 	return (
@@ -21,7 +21,11 @@ export default function TabLayout() {
 				options={{
 					title: "Home",
 					tabBarIcon: ({ color, focused }) => (
-						<Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
+						<Ionicons
+							name={focused ? "home" : "home-outline"}
+							size={24}
+							color={color}
+						/>
 					),
 				}}
 			/>

@@ -9,8 +9,8 @@ import Project from "../database/models/project";
 import User from "../database/models/user";
 import asyncHandler from "../middleware/asyncHandler";
 import type {
-	AuthenticatedRequest,
 	AuthRequest,
+	AuthenticatedRequest,
 } from "../middleware/authentication";
 import {
 	BadRequestError,
@@ -22,9 +22,9 @@ import {
 // @access  Public
 export const getFeedback = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const page = parseInt(req.query.page as string, 10) || 1;
+		const page = Number.parseInt(req.query.page as string, 10) || 1;
 		const limit = Math.min(
-			parseInt(req.query.limit as string, 10) || ENV.defaultPageSize,
+			Number.parseInt(req.query.limit as string, 10) || ENV.defaultPageSize,
 			ENV.maxPageSize,
 		);
 		const skip = (page - 1) * limit;
@@ -177,7 +177,7 @@ export const updateFeedback = asyncHandler(
 		);
 
 		if (!feedback) throw new NotFoundError("Feedback not found");
-		
+
 		const project = feedback.projectId as unknown as {
 			ownerId: mongoose.Types.ObjectId;
 		};
@@ -190,10 +190,10 @@ export const updateFeedback = asyncHandler(
 				"You do not have permission to update this feedback",
 			);
 		}
-	
+
 		if (req.body.status === "resolved") {
 			req.body.resolvedAt = new Date();
-	
+
 			// Notify feedback author
 			if (project.ownerId.toString() === req.user._id) {
 				await Notification.create({
@@ -207,7 +207,7 @@ export const updateFeedback = asyncHandler(
 				});
 			}
 		}
-	
+
 		const updatedFeedback = await Feedback.findByIdAndUpdate(
 			req.params.id,
 			req.body,
@@ -238,7 +238,7 @@ export const deleteFeedback = asyncHandler(
 		const _project = feedback.projectId as unknown as {
 			ownerId: mongoose.Types.ObjectId;
 		};
-	
+
 		if (
 			feedback.userId.toString() !== req.user._id &&
 			_project.ownerId.toString() !== req.user._id
@@ -247,7 +247,7 @@ export const deleteFeedback = asyncHandler(
 				"You do not have permission to delete this feedback",
 			);
 		}
-	
+
 		await Feedback.findByIdAndDelete(req.params.id);
 
 		await Project.findByIdAndUpdate(feedback.projectId, {

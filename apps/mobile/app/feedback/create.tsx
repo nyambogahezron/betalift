@@ -1,3 +1,9 @@
+import { Button, Card, Input } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { FeedbackPriority, FeedbackType } from "@/interfaces";
+import { useCreateFeedback } from "@/queries/feedbackQueries";
+import { useProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Device from "expo-device";
 import { Image } from "expo-image";
@@ -20,12 +26,6 @@ import Animated, {
 	FadeOut,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Card, Input } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import type { FeedbackPriority, FeedbackType } from "@/interfaces";
-import { useCreateFeedback } from "@/queries/feedbackQueries";
-import { useProject } from "@/queries/projectQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 type FeedbackFormData = {
 	title: string;

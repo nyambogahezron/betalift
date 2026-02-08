@@ -1,3 +1,8 @@
+import { Avatar, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { useLogout } from "@/queries/authQueries";
+import { useProjects } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Application from "expo-application";
 import { LinearGradient } from "expo-linear-gradient";
@@ -21,11 +26,6 @@ import Animated, {
 	useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { useLogout } from "@/queries/authQueries";
-import { useProjects } from "@/queries/projectQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const HEADER_MAX_HEIGHT = 220;
@@ -47,48 +47,48 @@ type SettingsItem = {
 };
 
 export default function Profile() {
-	const { user, clearAuth } = useAuthStore()
-	const { data: projectsData } = useProjects()
-	const logoutMutation = useLogout()
-	const insets = useSafeAreaInsets()
-	const scrollY = useSharedValue(0)
+	const { user, clearAuth } = useAuthStore();
+	const { data: projectsData } = useProjects();
+	const logoutMutation = useLogout();
+	const insets = useSafeAreaInsets();
+	const scrollY = useSharedValue(0);
 
-	const currentYear = new Date().getFullYear()
+	const currentYear = new Date().getFullYear();
 
-	const appVersion = Application.nativeApplicationVersion || '1.0.0'
-	const appBuild = Application.nativeBuildVersion || '100'
+	const appVersion = Application.nativeApplicationVersion || "1.0.0";
+	const appBuild = Application.nativeBuildVersion || "100";
 
-	const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+	const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
 	const allProjects = useMemo(() => {
-		return projectsData?.projects || projectsData || []
-	}, [projectsData])
+		return projectsData?.projects || projectsData || [];
+	}, [projectsData]);
 
 	const myProjects = useMemo(() => {
-		if (!user?.id) return []
+		if (!user?.id) return [];
 		return allProjects.filter(
-			(p: any) => p.owner?._id === user.id || p.ownerId === user.id
-		)
-	}, [allProjects, user?.id])
+			(p: any) => p.owner?._id === user.id || p.ownerId === user.id,
+		);
+	}, [allProjects, user?.id]);
 
 	const joinedProjects = useMemo(() => {
-		if (!user?.id) return []
+		if (!user?.id) return [];
 		return allProjects.filter((p: any) => {
-			const ownerId = p.owner?._id || p.ownerId
+			const ownerId = p.owner?._id || p.ownerId;
 			return (
 				ownerId !== user.id &&
 				p.members?.some(
-					(m: any) => m.user?._id === user.id || m.userId === user.id
+					(m: any) => m.user?._id === user.id || m.userId === user.id,
 				)
-			)
-		})
-	}, [allProjects, user?.id])
+			);
+		});
+	}, [allProjects, user?.id]);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y
+			scrollY.value = event.contentOffset.y;
 		},
-	})
+	});
 
 	// Animated styles for parallax header
 	const headerAnimatedStyle = useAnimatedStyle(() => {
@@ -96,146 +96,146 @@ export default function Profile() {
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-			Extrapolation.CLAMP
-		)
-		return { height }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { height };
+	});
 
 	const avatarAnimatedStyle = useAnimatedStyle(() => {
 		const scale = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[1, 0.4],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const translateX = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[0, -(SCREEN_WIDTH / 2) + 48],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const translateY = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[0, -23],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		return {
 			transform: [{ translateX }, { translateY }, { scale }],
-		}
-	})
+		};
+	});
 
 	const nameAnimatedStyle = useAnimatedStyle(() => {
 		const opacity = interpolate(
 			scrollY.value,
 			[0, 60, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[1, 0.5, 0],
-			Extrapolation.CLAMP
-		)
+			Extrapolation.CLAMP,
+		);
 		const translateY = interpolate(
 			scrollY.value,
 			[0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[0, -20],
-			Extrapolation.CLAMP
-		)
-		return { opacity, transform: [{ translateY }] }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity, transform: [{ translateY }] };
+	});
 
 	const headerTitleStyle = useAnimatedStyle(() => {
 		const opacity = interpolate(
 			scrollY.value,
 			[60, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
 			[0, 1],
-			Extrapolation.CLAMP
-		)
-		return { opacity }
-	})
+			Extrapolation.CLAMP,
+		);
+		return { opacity };
+	});
 
 	const userStats = {
 		projects: myProjects.length,
 		testing: joinedProjects.length,
 		feedback: 0, // TODO: Add feedback count from API
-	}
+	};
 
 	const handleLogout = async () => {
-		Alert.alert('Logout', 'Are you sure you want to logout?', [
-			{ text: 'Cancel', style: 'cancel' },
+		Alert.alert("Logout", "Are you sure you want to logout?", [
+			{ text: "Cancel", style: "cancel" },
 			{
-				text: 'Logout',
-				style: 'destructive',
+				text: "Logout",
+				style: "destructive",
 				onPress: async () => {
 					try {
-						await logoutMutation.mutateAsync()
+						await logoutMutation.mutateAsync();
 					} catch (_error) {
 						// Ignore logout errors
 					}
 					// Clear local auth (even if API fails)
-					clearAuth()
-					router.replace('/(auth)/login')
+					clearAuth();
+					router.replace("/(auth)/login");
 				},
 			},
-		])
-	}
+		]);
+	};
 
 	const toggleNotifications = (value: boolean) => {
-		setNotificationsEnabled(value)
+		setNotificationsEnabled(value);
 		updateSettings({
 			notifications: {
 				...settings.notifications,
 				pushEnabled: value,
 			},
-		})
-	}
+		});
+	};
 
 	const settingsSections: SettingsSection[] = [
 		{
-			title: 'Account',
+			title: "Account",
 			items: [
 				{
-					icon: 'person-circle-outline',
-					label: 'Edit Profile',
-					type: 'navigation',
-					onPress: () => router.push('/profile/edit'),
+					icon: "person-circle-outline",
+					label: "Edit Profile",
+					type: "navigation",
+					onPress: () => router.push("/profile/edit"),
 				},
 				{
-					icon: 'chatbubbles-outline',
-					label: 'Messages',
-					type: 'navigation',
-					onPress: () => router.push('/messages'),
+					icon: "chatbubbles-outline",
+					label: "Messages",
+					type: "navigation",
+					onPress: () => router.push("/messages"),
 				},
 				{
-					icon: 'settings-outline',
-					label: 'Settings',
-					type: 'navigation',
-					onPress: () => router.push('/profile/settings'),
+					icon: "settings-outline",
+					label: "Settings",
+					type: "navigation",
+					onPress: () => router.push("/profile/settings"),
 				},
 			],
 		},
 		{
-			title: 'Preferences',
+			title: "Preferences",
 			items: [
 				{
-					icon: 'notifications-outline',
-					label: 'Push Notifications',
-					type: 'toggle',
+					icon: "notifications-outline",
+					label: "Push Notifications",
+					type: "toggle",
 					value: notificationsEnabled,
 					onToggle: toggleNotifications,
 				},
 			],
 		},
 		{
-			title: 'Other',
+			title: "Other",
 			items: [
 				{
-					icon: 'log-out-outline',
+					icon: "log-out-outline",
 					iconColor: Colors.error,
-					label: 'Logout',
-					type: 'action',
+					label: "Logout",
+					type: "action",
 					onPress: handleLogout,
 				},
 			],
 		},
-	]
+	];
 
 	return (
 		<View style={styles.container}>
@@ -254,9 +254,9 @@ export default function Profile() {
 					</Animated.Text>
 					<Pressable
 						style={styles.navButton}
-						onPress={() => router.push('/profile/settings')}
+						onPress={() => router.push("/profile/settings")}
 					>
-						<Ionicons name='settings-outline' size={24} color={Colors.text} />
+						<Ionicons name="settings-outline" size={24} color={Colors.text} />
 					</Pressable>
 				</View>
 
@@ -266,7 +266,7 @@ export default function Profile() {
 						<Avatar
 							source={user?.avatar}
 							name={user?.displayName || user?.username}
-							size='xl'
+							size="xl"
 						/>
 					</Animated.View>
 					<Animated.View style={nameAnimatedStyle}>
@@ -329,7 +329,7 @@ export default function Profile() {
 										itemIndex < section.items.length - 1 &&
 											styles.settingsItemBorder,
 									]}
-									onPress={item.type === 'toggle' ? undefined : item.onPress}
+									onPress={item.type === "toggle" ? undefined : item.onPress}
 								>
 									<View
 										style={[
@@ -356,7 +356,7 @@ export default function Profile() {
 									>
 										{item.label}
 									</Text>
-									{item.type === 'toggle' ? (
+									{item.type === "toggle" ? (
 										<Switch
 											value={item.value}
 											onValueChange={item.onToggle}
@@ -370,7 +370,7 @@ export default function Profile() {
 										/>
 									) : (
 										<Ionicons
-											name='chevron-forward'
+											name="chevron-forward"
 											size={20}
 											color={Colors.textTertiary}
 										/>
@@ -395,7 +395,7 @@ export default function Profile() {
 				</Animated.View>
 			</Animated.ScrollView>
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -413,28 +413,28 @@ const styles = StyleSheet.create({
 
 	// Parallax Header
 	header: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		left: 0,
 		right: 0,
 		zIndex: 100,
-		overflow: 'hidden',
+		overflow: "hidden",
 	},
 	headerGradient: {
 		...StyleSheet.absoluteFillObject,
 	},
 	navBar: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 		paddingHorizontal: Spacing.md,
 		paddingBottom: Spacing.sm,
 	},
 	navButton: {
 		width: 40,
 		height: 40,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerTitle: {
 		fontSize: 18,
@@ -443,22 +443,22 @@ const styles = StyleSheet.create({
 	},
 	headerContent: {
 		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingBottom: Spacing.md,
 	},
 	headerName: {
 		fontSize: 20,
 		fontFamily: Fonts.bold,
 		color: Colors.text,
-		textAlign: 'center',
+		textAlign: "center",
 		marginTop: Spacing.sm,
 	},
 	headerUsername: {
 		fontSize: 14,
 		fontFamily: Fonts.regular,
-		color: 'rgba(255,255,255,0.8)',
-		textAlign: 'center',
+		color: "rgba(255,255,255,0.8)",
+		textAlign: "center",
 	},
 
 	// Stats Card
@@ -466,11 +466,11 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.lg,
 	},
 	statsContainer: {
-		flexDirection: 'row',
+		flexDirection: "row",
 	},
 	statItem: {
 		flex: 1,
-		alignItems: 'center',
+		alignItems: "center",
 	},
 	statNumber: {
 		fontSize: 22,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
 		borderTopWidth: 1,
 		borderTopColor: Colors.border,
 		lineHeight: 20,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 
 	// Section
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
 		fontSize: 13,
 		fontFamily: Fonts.semibold,
 		color: Colors.textTertiary,
-		textTransform: 'uppercase',
+		textTransform: "uppercase",
 		letterSpacing: 0.5,
 		marginBottom: Spacing.sm,
 		marginLeft: Spacing.xs,
@@ -516,8 +516,8 @@ const styles = StyleSheet.create({
 
 	// Settings Item
 	settingsItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		padding: Spacing.md,
 	},
 	settingsItemBorder: {
@@ -528,8 +528,8 @@ const styles = StyleSheet.create({
 		width: 36,
 		height: 36,
 		borderRadius: BorderRadius.sm,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	settingsLabel: {
 		flex: 1,
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
 
 	// App Info
 	appInfo: {
-		alignItems: 'center',
+		alignItems: "center",
 		paddingVertical: Spacing.lg,
 	},
 	appVersion: {
@@ -558,4 +558,4 @@ const styles = StyleSheet.create({
 		color: Colors.textTertiary,
 		marginTop: 4,
 	},
-})
+});

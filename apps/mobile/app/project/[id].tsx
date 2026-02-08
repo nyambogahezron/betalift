@@ -1,3 +1,14 @@
+import {
+	Avatar,
+	Badge,
+	Button,
+	Card,
+	ProjectStatusBadge,
+} from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { useProjectFeedback } from "@/queries/feedbackQueries";
+import { useProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -21,17 +32,6 @@ import Animated, {
 	useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-	Avatar,
-	Badge,
-	Button,
-	Card,
-	ProjectStatusBadge,
-} from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { useProjectFeedback } from "@/queries/feedbackQueries";
-import { useProject } from "@/queries/projectQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const HEADER_MAX_HEIGHT = 280;
@@ -65,8 +65,6 @@ export default function ProjectDetail() {
 			scrollY.value = event.contentOffset.y;
 		},
 	});
-
-
 
 	// Animated styles for header
 	const headerAnimatedStyle = useAnimatedStyle(() => {

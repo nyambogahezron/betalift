@@ -1,3 +1,9 @@
+import { ProjectCard } from "@/components/project";
+import { Button } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Project } from "@/interfaces";
+import { useProjects } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -20,12 +26,6 @@ import Animated, {
 	useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ProjectCard } from "@/components/project";
-import { Button } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import type { Project } from "@/interfaces";
-import { useProjects } from "@/queries/projectQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 type FilterCategory = "all" | "web" | "mobile" | "desktop" | "api";
 type SortOption = "newest" | "popular" | "trending";
@@ -60,107 +60,107 @@ export default function Explore() {
 		refetch,
 	} = useProjects({
 		excludeOwnerId: user?.id,
-		status: 'active',
-	})
+		status: "active",
+	});
 
 	const projects = useMemo(
 		() => (projectsData?.projects ? projectsData.projects : projectsData) || [],
-		[projectsData]
-	)
+		[projectsData],
+	);
 
 	const scrollHandler = useAnimatedScrollHandler({
 		onScroll: (event) => {
-			scrollY.value = event.contentOffset.y
+			scrollY.value = event.contentOffset.y;
 		},
-	})
+	});
 
 	// Animated style for sticky categories - only show when scrolled past header
 	const stickyStyle = useAnimatedStyle(() => {
-		const shouldShow = scrollY.value > headerHeight + 60
+		const shouldShow = scrollY.value > headerHeight + 60;
 		return {
 			opacity: shouldShow ? 1 : 0,
 			transform: [{ translateY: shouldShow ? 0 : -60 }],
-		}
-	})
+		};
+	});
 
 	const onHeaderLayout = (event: LayoutChangeEvent) => {
-		setHeaderHeight(event.nativeEvent.layout.height)
-	}
+		setHeaderHeight(event.nativeEvent.layout.height);
+	};
 
 	const onRefresh = useCallback(async () => {
-		setRefreshing(true)
-		await refetch()
-		setRefreshing(false)
-	}, [refetch])
+		setRefreshing(true);
+		await refetch();
+		setRefreshing(false);
+	}, [refetch]);
 
 	// Filter projects that are open for testing and user hasn't created
 	const availableProjects = useMemo(() => {
 		let filtered = projects.filter(
-			(p: Project) => p.status === 'active' && p.ownerId !== user?.id
-		)
+			(p: Project) => p.status === "active" && p.ownerId !== user?.id,
+		);
 
 		// Apply search
 		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase()
+			const query = searchQuery.toLowerCase();
 			filtered = filtered.filter(
 				(p: Project) =>
 					p.name.toLowerCase().includes(query) ||
 					p.description.toLowerCase().includes(query) ||
-					p.techStack.some((t: string) => t.toLowerCase().includes(query))
-			)
+					p.techStack.some((t: string) => t.toLowerCase().includes(query)),
+			);
 		}
 
 		// Apply category filter
-		if (selectedCategory !== 'all') {
+		if (selectedCategory !== "all") {
 			filtered = filtered.filter((p: Project) => {
-				const stack = p.techStack.map((t: string) => t.toLowerCase())
+				const stack = p.techStack.map((t: string) => t.toLowerCase());
 				switch (selectedCategory) {
-					case 'mobile':
+					case "mobile":
 						return stack.some((t: string) =>
 							[
-								'react native',
-								'flutter',
-								'swift',
-								'kotlin',
-								'ios',
-								'android',
-							].includes(t)
-						)
-					case 'web':
+								"react native",
+								"flutter",
+								"swift",
+								"kotlin",
+								"ios",
+								"android",
+							].includes(t),
+						);
+					case "web":
 						return stack.some((t: string) =>
-							['react', 'vue', 'angular', 'nextjs', 'web'].includes(t)
-						)
-					case 'desktop':
+							["react", "vue", "angular", "nextjs", "web"].includes(t),
+						);
+					case "desktop":
 						return stack.some((t: string) =>
-							['electron', 'tauri', 'qt', 'desktop'].includes(t)
-						)
-					case 'api':
+							["electron", "tauri", "qt", "desktop"].includes(t),
+						);
+					case "api":
 						return stack.some((t: string) =>
-							['nodejs', 'python', 'go', 'rust', 'api', 'backend'].includes(t)
-						)
+							["nodejs", "python", "go", "rust", "api", "backend"].includes(t),
+						);
 					default:
-						return true
+						return true;
 				}
-			})
+			});
 		}
 
 		// Apply sorting
 		switch (sortBy) {
-			case 'popular':
+			case "popular":
 				return filtered.sort(
-					(a: Project, b: Project) => b.testerCount - a.testerCount
-				)
-			case 'trending':
+					(a: Project, b: Project) => b.testerCount - a.testerCount,
+				);
+			case "trending":
 				return filtered.sort(
-					(a: Project, b: Project) => b.feedbackCount - a.feedbackCount
-				)
+					(a: Project, b: Project) => b.feedbackCount - a.feedbackCount,
+				);
 			default:
 				return filtered.sort(
 					(a: Project, b: Project) =>
-						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-				)
+						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+				);
 		}
-	}, [projects, searchQuery, selectedCategory, sortBy, user?.id])
+	}, [projects, searchQuery, selectedCategory, sortBy, user?.id]);
 
 	return (
 		<View style={[styles.container, { paddingTop: insets.top }]}>
@@ -210,7 +210,7 @@ export default function Explore() {
 
 			{isLoading && !refreshing ? (
 				<View style={styles.loadingContainer}>
-					<ActivityIndicator size='large' color={Colors.primary} />
+					<ActivityIndicator size="large" color={Colors.primary} />
 				</View>
 			) : (
 				<Animated.FlatList
@@ -245,22 +245,22 @@ export default function Explore() {
 								style={styles.searchContainer}
 							>
 								<Ionicons
-									name='search'
+									name="search"
 									size={20}
 									color={Colors.textTertiary}
 									style={styles.searchIcon}
 								/>
 								<TextInput
 									style={styles.searchInput}
-									placeholder='Search projects, tags...'
+									placeholder="Search projects, tags..."
 									placeholderTextColor={Colors.textTertiary}
 									value={searchQuery}
 									onChangeText={setSearchQuery}
 								/>
 								{searchQuery.length > 0 && (
-									<Pressable onPress={() => setSearchQuery('')}>
+									<Pressable onPress={() => setSearchQuery("")}>
 										<Ionicons
-											name='close-circle'
+											name="close-circle"
 											size={20}
 											color={Colors.textTertiary}
 										/>
@@ -316,10 +316,10 @@ export default function Explore() {
 							>
 								<Text style={styles.resultsCount}>
 									{availableProjects.length} project
-									{availableProjects.length !== 1 ? 's' : ''} found
+									{availableProjects.length !== 1 ? "s" : ""} found
 								</Text>
 								<View style={styles.sortOptions}>
-									{(['newest', 'popular', 'trending'] as SortOption[]).map(
+									{(["newest", "popular", "trending"] as SortOption[]).map(
 										(option) => (
 											<Pressable
 												key={option}
@@ -338,7 +338,7 @@ export default function Explore() {
 													{option.charAt(0).toUpperCase() + option.slice(1)}
 												</Text>
 											</Pressable>
-										)
+										),
 									)}
 								</View>
 							</Animated.View>
@@ -352,7 +352,7 @@ export default function Explore() {
 						>
 							<View style={styles.emptyIcon}>
 								<Ionicons
-									name='telescope-outline'
+									name="telescope-outline"
 									size={64}
 									color={Colors.textTertiary}
 								/>
@@ -361,13 +361,13 @@ export default function Explore() {
 							<Text style={styles.emptyDescription}>
 								{searchQuery
 									? `No projects match "${searchQuery}". Try different keywords.`
-									: 'Check back later for new beta projects to test.'}
+									: "Check back later for new beta projects to test."}
 							</Text>
 							{searchQuery && (
 								<Button
-									title='Clear Search'
-									variant='outline'
-									onPress={() => setSearchQuery('')}
+									title="Clear Search"
+									variant="outline"
+									onPress={() => setSearchQuery("")}
 									style={styles.emptyButton}
 								/>
 							)}
@@ -385,7 +385,7 @@ export default function Explore() {
 				/>
 			)}
 		</View>
-	)
+	);
 }
 
 const styles = StyleSheet.create({

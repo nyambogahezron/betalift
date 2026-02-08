@@ -1,3 +1,7 @@
+import { Button, Input } from "@/components/ui";
+import { Colors, Fonts, Spacing } from "@/constants/theme";
+import { useLogin } from "@/queries/authQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -13,10 +17,6 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Input } from "@/components/ui";
-import { Colors, Fonts, Spacing } from "@/constants/theme";
-import { useLogin } from "@/queries/authQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function Login() {
 	const [email, setEmail] = useState("");

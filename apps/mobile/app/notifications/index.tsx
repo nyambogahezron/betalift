@@ -1,6 +1,14 @@
+import { Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import {
+	type NotificationType,
+	useMarkAllNotificationsAsRead,
+	useMarkNotificationAsRead,
+	useNotifications,
+} from "@/queries/notificationQueries";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDistanceToNow } from "date-fns";
-import { Link, router, Stack } from "expo-router";
+import { Link, Stack, router } from "expo-router";
 import { useState } from "react";
 import {
 	ActivityIndicator,
@@ -13,14 +21,6 @@ import {
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import {
-	type NotificationType,
-	useMarkAllNotificationsAsRead,
-	useMarkNotificationAsRead,
-	useNotifications,
-} from "@/queries/notificationQueries";
 
 export default function NotificationsScreen() {
 	const [refreshing, setRefreshing] = useState(false);
@@ -67,7 +67,10 @@ export default function NotificationsScreen() {
 		}
 	};
 
-	const renderItem = ({ item, index }: { item: NotificationType; index: number }) => {
+	const renderItem = ({
+		item,
+		index,
+	}: { item: NotificationType; index: number }) => {
 		const icon = getIcon(item.type);
 
 		return (
@@ -77,10 +80,7 @@ export default function NotificationsScreen() {
 					.springify()}
 			>
 				<Pressable
-					style={[
-						styles.notificationItem,
-						!item.isRead && styles.unreadItem,
-					]}
+					style={[styles.notificationItem, !item.isRead && styles.unreadItem]}
 					onPress={() => handleNotificationPress(item)}
 				>
 					<View
@@ -91,14 +91,16 @@ export default function NotificationsScreen() {
 					>
 						<Ionicons name={icon.name as any} size={24} color={icon.color} />
 					</View>
-					
+
 					<View style={styles.contentContainer}>
 						<View style={styles.headerRow}>
 							<Text style={styles.title} numberOfLines={1}>
 								{item.title}
 							</Text>
 							<Text style={styles.time}>
-								{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+								{formatDistanceToNow(new Date(item.createdAt), {
+									addSuffix: true,
+								})}
 							</Text>
 						</View>
 						<Text style={styles.message} numberOfLines={2}>
@@ -114,21 +116,20 @@ export default function NotificationsScreen() {
 
 	return (
 		<SafeAreaView style={styles.container}>
-			<Stack.Screen 
+			<Stack.Screen
 				options={{
 					headerShown: true,
 					title: "Notifications",
 					headerShadowVisible: false,
 					headerStyle: { backgroundColor: Colors.background },
 					headerTintColor: Colors.text,
-					headerRight: () => (
+					headerRight: () =>
 						unreadCount > 0 && (
 							<Pressable onPress={handleMarkAllRead}>
 								<Text style={styles.markAllRead}>Mark all read</Text>
 							</Pressable>
-						)
-					),
-				}} 
+						),
+				}}
 			/>
 
 			{isLoading && !refreshing ? (

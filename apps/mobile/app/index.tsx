@@ -1,3 +1,5 @@
+import { Colors, Fonts } from "@/constants/theme";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -21,8 +23,6 @@ import Animated, {
 	withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors, Fonts } from "@/constants/theme";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 const { width, height } = Dimensions.get("window");
 

@@ -6,8 +6,12 @@ interface LayoutOptions {
 	previewText?: string;
 }
 
-export const baseLayout = (content: string, options: LayoutOptions = {}): string => {
-	const { title = "Betalift", previewText = "Notification from Betalift" } = options;
+export const baseLayout = (
+	content: string,
+	options: LayoutOptions = {},
+): string => {
+	const { title = "Betalift", previewText = "Notification from Betalift" } =
+		options;
 
 	return `
     <!DOCTYPE html>

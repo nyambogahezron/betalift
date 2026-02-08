@@ -1,3 +1,9 @@
+import { Avatar, Badge, Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Feedback, FeedbackStatus, FeedbackType } from "@/interfaces";
+import { useProjectFeedback, useVoteFeedback } from "@/queries/feedbackQueries";
+import { useProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -13,12 +19,6 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Avatar, Badge, Button, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import type { Feedback, FeedbackStatus, FeedbackType } from "@/interfaces";
-import { useProjectFeedback, useVoteFeedback } from "@/queries/feedbackQueries";
-import { useProject } from "@/queries/projectQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 type FilterType = "all" | FeedbackType;
 type FilterStatus = "all" | FeedbackStatus;

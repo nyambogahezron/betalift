@@ -35,10 +35,15 @@ export const seedNotifications = async (users: IUser[]) => {
 			const notification = await Notification.create({
 				userId: user._id,
 				type: type,
-				title: type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+				title: type
+					.split("_")
+					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+					.join(" "),
 				message: sampleMessages[type],
 				isRead: Math.random() > 0.5,
-				createdAt: new Date(Date.now() - Math.floor(Math.random() * 1000000000)),
+				createdAt: new Date(
+					Date.now() - Math.floor(Math.random() * 1000000000),
+				),
 			});
 			createdNotifications.push(notification);
 		}

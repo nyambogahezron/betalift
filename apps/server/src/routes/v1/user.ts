@@ -6,11 +6,11 @@ import {
 	getUserEngagement,
 	getUserStats,
 	getUsers,
+	registerPushToken,
 	updateSettings,
 	updateUser,
 	updateUserEngagement,
-	registerPushToken,
-} from '../../controllers/userController'
+} from "../../controllers/userController";
 import { authenticate } from "../../middleware/authentication";
 import { readLimiter, writeLimiter } from "../../middleware/rateLimiter";
 import {
@@ -34,7 +34,7 @@ router.get("/", readLimiter, validateQuery(getUsersQuerySchema), getUsers);
 
 router.use(authenticate);
 
-router.post('/push-token', writeLimiter, registerPushToken)
+router.post("/push-token", writeLimiter, registerPushToken);
 
 router
 	.route("/:id")

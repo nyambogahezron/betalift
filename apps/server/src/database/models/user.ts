@@ -35,32 +35,32 @@ export interface IUserSettings {
 }
 
 export interface IUser extends Document {
-	email: string
-	password: string
-	username: string
-	displayName?: string
-	avatar?: string
-	bio?: string
-	stats: IUserStats
-	settings?: IUserSettings
-	isEmailVerified: boolean
-	emailVerificationToken?: string
-	emailVerificationExpires?: Date
-	resetPasswordToken?: string
-	resetPasswordExpires?: Date
-	refreshToken?: string
-	failedLoginAttempts: number
-	accountLockedUntil?: Date
-	lastFailedLogin?: Date
-	createdAt: Date
-	updatedAt: Date
-	comparePassword(candidatePassword: string): Promise<boolean>
-	generateAuthToken(): string
-	generateRefreshToken(): string
-	isAccountLocked(): boolean
-	incrementFailedAttempts(): Promise<void>
-	resetFailedAttempts(): Promise<void>
-	pushTokens: string[]
+	email: string;
+	password: string;
+	username: string;
+	displayName?: string;
+	avatar?: string;
+	bio?: string;
+	stats: IUserStats;
+	settings?: IUserSettings;
+	isEmailVerified: boolean;
+	emailVerificationToken?: string;
+	emailVerificationExpires?: Date;
+	resetPasswordToken?: string;
+	resetPasswordExpires?: Date;
+	refreshToken?: string;
+	failedLoginAttempts: number;
+	accountLockedUntil?: Date;
+	lastFailedLogin?: Date;
+	createdAt: Date;
+	updatedAt: Date;
+	comparePassword(candidatePassword: string): Promise<boolean>;
+	generateAuthToken(): string;
+	generateRefreshToken(): string;
+	isAccountLocked(): boolean;
+	incrementFailedAttempts(): Promise<void>;
+	resetFailedAttempts(): Promise<void>;
+	pushTokens: string[];
 }
 
 const userStatsSchema = new Schema<IUserStats>(
@@ -70,8 +70,8 @@ const userStatsSchema = new Schema<IUserStats>(
 		feedbackGiven: { type: Number, default: 0 },
 		feedbackReceived: { type: Number, default: 0 },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const notificationSettingsSchema = new Schema<INotificationSettings>(
 	{
@@ -81,8 +81,8 @@ const notificationSettingsSchema = new Schema<INotificationSettings>(
 		projectInvites: { type: Boolean, default: true },
 		weeklyDigest: { type: Boolean, default: false },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const privacySettingsSchema = new Schema<IPrivacySettings>(
 	{
@@ -90,20 +90,20 @@ const privacySettingsSchema = new Schema<IPrivacySettings>(
 		showEmail: { type: Boolean, default: false },
 		showStats: { type: Boolean, default: true },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const appearanceSettingsSchema = new Schema<IAppearanceSettings>(
 	{
 		theme: {
 			type: String,
-			enum: ['dark', 'light', 'system'],
-			default: 'system',
+			enum: ["dark", "light", "system"],
+			default: "system",
 		},
-		language: { type: String, default: 'en' },
+		language: { type: String, default: "en" },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const userSettingsSchema = new Schema<IUserSettings>(
 	{
@@ -111,51 +111,51 @@ const userSettingsSchema = new Schema<IUserSettings>(
 		privacy: { type: privacySettingsSchema, default: () => ({}) },
 		appearance: { type: appearanceSettingsSchema, default: () => ({}) },
 	},
-	{ _id: false }
-)
+	{ _id: false },
+);
 
 const userSchema = new Schema<IUser>(
 	{
 		email: {
 			type: String,
-			required: [true, 'Email is required'],
+			required: [true, "Email is required"],
 			unique: true,
 			lowercase: true,
 			trim: true,
 			validate: {
 				validator: (value: string) => validator.isEmail(value),
-				message: 'Please enter a valid email',
+				message: "Please enter a valid email",
 			},
 		},
 		password: {
 			type: String,
-			required: [true, 'Password is required'],
-			minlength: [6, 'Password must be at least 6 characters'],
+			required: [true, "Password is required"],
+			minlength: [6, "Password must be at least 6 characters"],
 			select: false,
 		},
 		username: {
 			type: String,
-			required: [true, 'Username is required'],
+			required: [true, "Username is required"],
 			unique: true,
 			trim: true,
-			minlength: [3, 'Username must be at least 3 characters'],
-			maxlength: [30, 'Username cannot exceed 30 characters'],
+			minlength: [3, "Username must be at least 3 characters"],
+			maxlength: [30, "Username cannot exceed 30 characters"],
 			validate: {
 				validator: (value: string) => validator.isAlphanumeric(value),
-				message: 'Username can only contain letters and numbers',
+				message: "Username can only contain letters and numbers",
 			},
 		},
 		displayName: {
 			type: String,
 			trim: true,
-			maxlength: [50, 'Display name cannot exceed 50 characters'],
+			maxlength: [50, "Display name cannot exceed 50 characters"],
 		},
 		avatar: {
 			type: String,
 		},
 		bio: {
 			type: String,
-			maxlength: [500, 'Bio cannot exceed 500 characters'],
+			maxlength: [500, "Bio cannot exceed 500 characters"],
 		},
 
 		stats: {
@@ -212,81 +212,80 @@ const userSchema = new Schema<IUser>(
 		toJSON: {
 			transform: (
 				_doc: Document,
-				ret: Record<string, unknown> & { _id: unknown }
+				ret: Record<string, unknown> & { _id: unknown },
 			) => {
-				ret.id = (ret._id as { toString(): string }).toString()
-				delete ret._id
-				delete ret.__v
-				delete ret.password
-				delete ret.refreshToken
-				delete ret.emailVerificationToken
-				delete ret.emailVerificationExpires
-				delete ret.resetPasswordToken
-				delete ret.resetPasswordExpires
-				return ret
+				ret.id = (ret._id as { toString(): string }).toString();
+				delete ret._id;
+				delete ret.__v;
+				delete ret.password;
+				delete ret.refreshToken;
+				delete ret.emailVerificationToken;
+				delete ret.emailVerificationExpires;
+				delete ret.resetPasswordToken;
+				delete ret.resetPasswordExpires;
+				return ret;
 			},
 		},
-	}
-)
+	},
+);
 
 // Hash password before saving
-userSchema.pre('save', async function () {
-	if (!this.isModified('password')) return
+userSchema.pre("save", async function () {
+	if (!this.isModified("password")) return;
 
-	const salt = await bcrypt.genSalt(10)
-	this.password = await bcrypt.hash(this.password, salt)
-})
+	const salt = await bcrypt.genSalt(10);
+	this.password = await bcrypt.hash(this.password, salt);
+});
 
 userSchema.methods.comparePassword = async function (
-	candidatePassword: string
+	candidatePassword: string,
 ): Promise<boolean> {
-	return bcrypt.compare(candidatePassword, this.password)
-}
+	return bcrypt.compare(candidatePassword, this.password);
+};
 
 // Check if account is locked
 userSchema.methods.isAccountLocked = function (): boolean {
 	if (this.accountLockedUntil && this.accountLockedUntil > new Date()) {
-		return true
+		return true;
 	}
-	return false
-}
+	return false;
+};
 
 // Increment failed login attempts and lock account if needed
 userSchema.methods.incrementFailedAttempts = async function (): Promise<void> {
-	const MAX_LOGIN_ATTEMPTS = 5
-	const LOCK_TIME_MINUTES = [5, 15, 30, 60, 120] // Progressive lockout times
+	const MAX_LOGIN_ATTEMPTS = 5;
+	const LOCK_TIME_MINUTES = [5, 15, 30, 60, 120]; // Progressive lockout times
 
 	// Increment failed attempts
-	this.failedLoginAttempts += 1
-	this.lastFailedLogin = new Date()
+	this.failedLoginAttempts += 1;
+	this.lastFailedLogin = new Date();
 
 	// Calculate lockout duration based on number of attempts
 	if (this.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
 		const lockoutIndex = Math.min(
 			Math.floor((this.failedLoginAttempts - MAX_LOGIN_ATTEMPTS) / 3),
-			LOCK_TIME_MINUTES.length - 1
-		)
-		const lockoutMinutes = LOCK_TIME_MINUTES[lockoutIndex]
+			LOCK_TIME_MINUTES.length - 1,
+		);
+		const lockoutMinutes = LOCK_TIME_MINUTES[lockoutIndex];
 		if (lockoutMinutes) {
 			this.accountLockedUntil = new Date(
-				Date.now() + lockoutMinutes * 60 * 1000
-			)
+				Date.now() + lockoutMinutes * 60 * 1000,
+			);
 		}
 	}
 
-	await this.save()
-}
+	await this.save();
+};
 
 // Reset failed login attempts
 userSchema.methods.resetFailedAttempts = async function (): Promise<void> {
 	if (this.failedLoginAttempts > 0 || this.accountLockedUntil) {
-		this.failedLoginAttempts = 0
-		this.accountLockedUntil = undefined
-		this.lastFailedLogin = undefined
-		await this.save()
+		this.failedLoginAttempts = 0;
+		this.accountLockedUntil = undefined;
+		this.lastFailedLogin = undefined;
+		await this.save();
 	}
-}
-
+};
 
 userSchema.index({ createdAt: -1 });
 

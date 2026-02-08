@@ -1,52 +1,52 @@
-import nodemailer from 'nodemailer';
-import ENV from '../src/config/env';
-import { logger } from '../src/utils/logger';
+import nodemailer from "nodemailer";
+import ENV from "../src/config/env";
+import { logger } from "../src/utils/logger";
 
 const testEmail = async () => {
-    if (ENV.nodeEnv !== "development") {
-        logger.info("Skipping email test in non-development environment");
-        return;
-    }
+	if (ENV.nodeEnv !== "development") {
+		logger.info("Skipping email test in non-development environment");
+		return;
+	}
 
-    console.log('Starting email test...');
-    console.log(`SMTP Host: ${ENV.smtpHost}`);
-    console.log(`SMTP Port: ${ENV.smtpPort}`);
-    console.log(`SMTP User: ${ENV.smtpUser ? '***' : 'Not set'}`);
+	console.log("Starting email test...");
+	console.log(`SMTP Host: ${ENV.smtpHost}`);
+	console.log(`SMTP Port: ${ENV.smtpPort}`);
+	console.log(`SMTP User: ${ENV.smtpUser ? "***" : "Not set"}`);
 
-    const transporter = nodemailer.createTransport({
-        host: ENV.smtpHost,
-        port: ENV.smtpPort,
-        secure: ENV.smtpSecure,
-        auth: {
-            user: ENV.smtpUser,
-            pass: ENV.smtpPassword,
-        },
-    });
+	const transporter = nodemailer.createTransport({
+		host: ENV.smtpHost,
+		port: ENV.smtpPort,
+		secure: ENV.smtpSecure,
+		auth: {
+			user: ENV.smtpUser,
+			pass: ENV.smtpPassword,
+		},
+	});
 
-    try {
-        console.log('Verifying connection...');
-        await transporter.verify();
-        console.log('Connection verified successfully');
+	try {
+		console.log("Verifying connection...");
+		await transporter.verify();
+		console.log("Connection verified successfully");
 
-        const testRecipient = process.argv[2] || ENV.emailFrom;
-        if (!testRecipient) {
-            console.error('No recipient provided and no EMAIL_FROM set.');
-            process.exit(1);
-        }
+		const testRecipient = process.argv[2] || ENV.emailFrom;
+		if (!testRecipient) {
+			console.error("No recipient provided and no EMAIL_FROM set.");
+			process.exit(1);
+		}
 
-        console.log(`Sending test email to: ${testRecipient}`);
-        const info = await transporter.sendMail({
-            from: ENV.emailFrom,
-            to: testRecipient,
-            subject: 'BetaLift SMTP Test',
-            html: '<h1>SMTP Test</h1><p>This is a test email from your BetaLift server to verify SMTP configuration.</p>',
-        });
+		console.log(`Sending test email to: ${testRecipient}`);
+		const info = await transporter.sendMail({
+			from: ENV.emailFrom,
+			to: testRecipient,
+			subject: "BetaLift SMTP Test",
+			html: "<h1>SMTP Test</h1><p>This is a test email from your BetaLift server to verify SMTP configuration.</p>",
+		});
 
-        console.log(`Email sent successfully! Message ID: ${info.messageId}`);
-    } catch (error) {
-        console.error('Error during email test:', error);
-        process.exit(1);
-    }
+		console.log(`Email sent successfully! Message ID: ${info.messageId}`);
+	} catch (error) {
+		console.error("Error during email test:", error);
+		process.exit(1);
+	}
 };
 
 testEmail();

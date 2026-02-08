@@ -1,3 +1,6 @@
+import { Button, Input } from "@/components/ui";
+import { Colors, FontSizes, Spacing } from "@/constants/theme";
+import { useResetPassword } from "@/queries/authQueries";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -13,9 +16,6 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Input } from "@/components/ui";
-import { Colors, FontSizes, Spacing } from "@/constants/theme";
-import { useResetPassword } from "@/queries/authQueries";
 
 export default function ResetPassword() {
 	const params = useLocalSearchParams<{ token?: string }>();

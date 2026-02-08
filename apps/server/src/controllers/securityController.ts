@@ -8,7 +8,6 @@ import {
 } from "../middleware/loginAttemptTracker.js";
 import { BadRequestError, NotFoundError } from "../utils/errors/index.js";
 
-
 /**
  * Manually unlock a user account
  * @route   POST /api/v1/admin/security/unlock-account

@@ -1,6 +1,6 @@
+import { Colors } from "@/constants/theme";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View, type ViewStyle } from "react-native";
-import { Colors } from "@/constants/theme";
 
 interface AvatarProps {
 	source?: string | null;

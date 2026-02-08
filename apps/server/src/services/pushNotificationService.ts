@@ -1,4 +1,8 @@
-import { Expo, type ExpoPushMessage, type ExpoPushTicket } from "expo-server-sdk";
+import {
+	Expo,
+	type ExpoPushMessage,
+	type ExpoPushTicket,
+} from "expo-server-sdk";
 import { logger } from "../utils/logger";
 
 class PushNotificationService {

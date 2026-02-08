@@ -1,6 +1,9 @@
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import { useState } from 'react'
+import { Button, Input } from "@/components/ui";
+import { Colors, FontSizes, Spacing } from "@/constants/theme";
+import { useForgotPassword } from "@/queries/authQueries";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -10,60 +13,57 @@ import {
 	StyleSheet,
 	Text,
 	View,
-} from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Button, Input } from '@/components/ui'
-import { Colors, FontSizes, Spacing } from '@/constants/theme'
-import { useForgotPassword } from '@/queries/authQueries'
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ForgotPassword() {
-	const [email, setEmail] = useState('')
-	const [error, setError] = useState('')
-	const forgotPasswordMutation = useForgotPassword()
+	const [email, setEmail] = useState("");
+	const [error, setError] = useState("");
+	const forgotPasswordMutation = useForgotPassword();
 
 	const handleSubmit = async () => {
 		if (!email.trim()) {
-			setError('Email is required')
-			return
+			setError("Email is required");
+			return;
 		}
 
 		if (!/\S+@\S+\.\S+/.test(email)) {
-			setError('Please enter a valid email')
-			return
+			setError("Please enter a valid email");
+			return;
 		}
 
-		setError('')
+		setError("");
 
 		try {
-			await forgotPasswordMutation.mutateAsync({ email: email.trim() })
+			await forgotPasswordMutation.mutateAsync({ email: email.trim() });
 			Alert.alert(
-				'Success',
-				'If an account exists with that email, a password reset link has been sent.',
+				"Success",
+				"If an account exists with that email, a password reset link has been sent.",
 				[
 					{
-						text: 'OK',
+						text: "OK",
 						onPress: () => router.back(),
 					},
-				]
-			)
+				],
+			);
 		} catch (error) {
 			setError(
-				error instanceof Error ? error.message : 'Failed to send reset email'
-			)
+				error instanceof Error ? error.message : "Failed to send reset email",
+			);
 		}
-	}
+	};
 
 	return (
 		<SafeAreaView style={styles.container}>
 			<KeyboardAvoidingView
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardView}
 			>
 				<ScrollView
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
+					keyboardShouldPersistTaps="handled"
 				>
 					{/* Header */}
 					<Animated.View
@@ -71,12 +71,12 @@ export default function ForgotPassword() {
 						style={styles.header}
 					>
 						<Pressable style={styles.backButton} onPress={() => router.back()}>
-							<Ionicons name='arrow-back' size={24} color={Colors.text} />
+							<Ionicons name="arrow-back" size={24} color={Colors.text} />
 						</Pressable>
 
 						<View style={styles.iconContainer}>
 							<Ionicons
-								name='lock-closed-outline'
+								name="lock-closed-outline"
 								size={64}
 								color={Colors.primary}
 							/>
@@ -95,21 +95,21 @@ export default function ForgotPassword() {
 						style={styles.form}
 					>
 						<Input
-							label='Email'
-							placeholder='Enter your email'
+							label="Email"
+							placeholder="Enter your email"
 							value={email}
 							onChangeText={(text) => {
-								setEmail(text)
-								setError('')
+								setEmail(text);
+								setError("");
 							}}
-							keyboardType='email-address'
-							autoCapitalize='none'
+							keyboardType="email-address"
+							autoCapitalize="none"
 							error={error}
-							leftIcon='mail-outline'
+							leftIcon="mail-outline"
 						/>
 
 						<Button
-							title='Send Reset Link'
+							title="Send Reset Link"
 							onPress={handleSubmit}
 							loading={forgotPasswordMutation.isPending}
 							style={styles.button}
@@ -126,7 +126,7 @@ export default function ForgotPassword() {
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
-	)
+	);
 }
 
 const styles = StyleSheet.create({
@@ -142,11 +142,11 @@ const styles = StyleSheet.create({
 		padding: Spacing.lg,
 	},
 	header: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginBottom: Spacing.xl,
 	},
 	backButton: {
-		alignSelf: 'flex-start',
+		alignSelf: "flex-start",
 		padding: Spacing.sm,
 		marginBottom: Spacing.lg,
 	},
@@ -155,15 +155,15 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: FontSizes.xxl,
-		fontWeight: '700',
+		fontWeight: "700",
 		color: Colors.text,
 		marginBottom: Spacing.sm,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	subtitle: {
 		fontSize: FontSizes.md,
 		color: Colors.textSecondary,
-		textAlign: 'center',
+		textAlign: "center",
 		lineHeight: 22,
 		paddingHorizontal: Spacing.md,
 	},
@@ -174,12 +174,12 @@ const styles = StyleSheet.create({
 		marginTop: Spacing.md,
 	},
 	backToLoginButton: {
-		alignItems: 'center',
+		alignItems: "center",
 		marginTop: Spacing.lg,
 	},
 	backToLoginText: {
 		color: Colors.primary,
 		fontSize: FontSizes.md,
-		fontWeight: '600',
+		fontWeight: "600",
 	},
-})
+});

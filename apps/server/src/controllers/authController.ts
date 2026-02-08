@@ -3,8 +3,8 @@ import User from "../database/models/user.js";
 import UserEngagement from "../database/models/userEngagement.js";
 import asyncHandler from "../middleware/asyncHandler.js";
 import type {
-	AuthenticatedRequest,
 	AuthRequest,
+	AuthenticatedRequest,
 } from "../middleware/authentication.js";
 import {
 	recordFailedIpAttempt,
@@ -30,7 +30,7 @@ import {
 // @access  Public
 export const register = asyncHandler(
 	async (req: AuthRequest, res: Response) => {
-		const { email, password, username, displayName } = req.body
+		const { email, password, username, displayName } = req.body;
 
 		const isUserAvailable = await User.findOne({
 			$or: [{ email }, { username }],
@@ -49,7 +49,7 @@ export const register = asyncHandler(
 			displayName: displayName || username,
 			emailVerificationToken: verificationToken,
 			emailVerificationExpires: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours
-		})
+		});
 
 		await UserEngagement.create({ userId: user._id });
 
@@ -73,7 +73,7 @@ export const register = asyncHandler(
 		res.status(201).json({
 			message:
 				"User registered successfully. Please check your email to verify your account.",
-			user
+			user,
 		});
 	},
 );
@@ -160,7 +160,6 @@ export const logout = asyncHandler(
 // @access  Private
 export const getCurrentUser = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
-		
 		const user = await User.findById(req.user._id);
 
 		if (!user) throw new NotFoundError("User not found");

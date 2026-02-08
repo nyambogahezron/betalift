@@ -1,3 +1,8 @@
+import { Button, Input } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { ProjectStatus } from "@/interfaces";
+import { useCreateProject } from "@/queries/projectQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -15,11 +20,6 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Input } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import type { ProjectStatus } from "@/interfaces";
-import { useCreateProject } from "@/queries/projectQueries";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 type ProjectFormData = {
 	name: string;

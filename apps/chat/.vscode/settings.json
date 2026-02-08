@@ -23,9 +23,6 @@
 	"search.exclude": {
 		"**/node_modules": true
 	},
-	"cSpell.words": [
-		"Betalift",
-		"rabbitmq"
-	],
+	"cSpell.words": ["Betalift", "rabbitmq"],
 	"postman.settings.dotenv-detection-notification-visibility": false
 }

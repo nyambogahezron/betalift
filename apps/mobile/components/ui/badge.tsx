@@ -1,10 +1,10 @@
-import { StyleSheet, Text, View, type ViewStyle } from "react-native";
 import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
 import type {
 	FeedbackPriority,
 	FeedbackStatus,
 	FeedbackType,
 } from "@/interfaces";
+import { StyleSheet, Text, View, type ViewStyle } from "react-native";
 
 type BadgeVariant =
 	| "default"

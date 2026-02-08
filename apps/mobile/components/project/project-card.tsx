@@ -1,3 +1,6 @@
+import { ProjectStatusBadge } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import type { Project } from "@/interfaces";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -7,9 +10,6 @@ import Animated, {
 	useSharedValue,
 	withSpring,
 } from "react-native-reanimated";
-import { ProjectStatusBadge } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import type { Project } from "@/interfaces";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 

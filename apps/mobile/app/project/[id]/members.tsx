@@ -1,3 +1,7 @@
+import { Avatar, Badge, Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { getProjectById, getUserById, mockMemberships } from "@/data/mockData";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
@@ -16,10 +20,6 @@ import Animated, {
 	SlideInRight,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar, Badge, Button, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { getProjectById, getUserById, mockMemberships } from "@/data/mockData";
-import { useAuthStore } from "@/stores/useAuthStore";
 
 type MemberRole = "all" | "creator" | "tester";
 

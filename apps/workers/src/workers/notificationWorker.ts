@@ -1,7 +1,7 @@
 import type { Channel, Message } from "amqplib";
 import Notification from "../database/models/notification";
-import User from '../database/models/user'
-import PushNotificationService from '../services/pushNotificationService'
+import User from "../database/models/user";
+import PushNotificationService from "../services/pushNotificationService";
 import { logger } from "../utils/logger";
 
 const QUEUE_NAME = "notification_queue";
@@ -18,25 +18,25 @@ export const startNotificationWorker = async (
 			if (!msg) return;
 
 			try {
-				const notificationData = JSON.parse(msg.content.toString())
+				const notificationData = JSON.parse(msg.content.toString());
 				logger.info(
-					`Processing notification for user: ${notificationData.userId}`
-				)
+					`Processing notification for user: ${notificationData.userId}`,
+				);
 
 				// Save to DB if requested
 				if (notificationData.save) {
-					await Notification.create(notificationData)
+					await Notification.create(notificationData);
 				}
 
 				// Handle Push Notification
-				let pushTokens = notificationData.pushTokens
+				let pushTokens = notificationData.pushTokens;
 
 				if (!pushTokens && notificationData.userId) {
 					const user = await User.findById(notificationData.userId).select(
-						'pushTokens'
-					)
+						"pushTokens",
+					);
 					if (user && user.pushTokens.length > 0) {
-						pushTokens = user.pushTokens
+						pushTokens = user.pushTokens;
 					}
 				}
 
@@ -45,11 +45,11 @@ export const startNotificationWorker = async (
 						pushTokens,
 						notificationData.title,
 						notificationData.body,
-						notificationData.data
-					)
+						notificationData.data,
+					);
 				}
 
-				channel.ack(msg)
+				channel.ack(msg);
 			} catch (error) {
 				logger.error("Error processing notification message:", error);
 				channel.nack(msg, false, false);

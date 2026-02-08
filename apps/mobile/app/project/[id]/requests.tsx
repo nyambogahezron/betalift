@@ -1,3 +1,7 @@
+import { Avatar, Button, Card } from "@/components/ui";
+import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
+import { getJoinRequestsForProject } from "@/data/mockData";
+import type { JoinRequest } from "@/interfaces";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -17,10 +21,6 @@ import Animated, {
 	SlideInUp,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar, Button, Card } from "@/components/ui";
-import { BorderRadius, Colors, Fonts, Spacing } from "@/constants/theme";
-import { getJoinRequestsForProject } from "@/data/mockData";
-import type { JoinRequest } from "@/interfaces";
 
 type ActionModalState = {
 	visible: boolean;

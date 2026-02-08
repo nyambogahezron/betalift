@@ -1,10 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import IpLoginAttempt from "../database/models/ipLoginAttempt.js";
 
-const MAX_ATTEMPTS_PER_IP = 10; 
-const IP_LOCKOUT_DURATION = 30 * 60 * 1000; 
-const ATTEMPT_WINDOW = 15 * 60 * 1000; 
-
+const MAX_ATTEMPTS_PER_IP = 10;
+const IP_LOCKOUT_DURATION = 30 * 60 * 1000;
+const ATTEMPT_WINDOW = 15 * 60 * 1000;
 
 function getClientIp(req: Request): string {
 	const forwardedFor = req.headers["x-forwarded-for"];
@@ -63,8 +62,7 @@ export async function recordFailedIpAttempt(req: Request): Promise<void> {
 		const attempt = await IpLoginAttempt.findOne({ ipAddress: ip });
 
 		if (attempt) {
-			const timeSinceFirst =
-				now.getTime() - attempt.firstAttemptAt.getTime();
+			const timeSinceFirst = now.getTime() - attempt.firstAttemptAt.getTime();
 
 			if (timeSinceFirst > ATTEMPT_WINDOW) {
 				attempt.failedAttempts = 1;
@@ -122,9 +120,6 @@ export async function getRemainingIpAttempts(req: Request): Promise<number> {
 		return MAX_ATTEMPTS_PER_IP;
 	}
 }
-
- 
-
 
 export async function unlockIpAddress(ip: string): Promise<boolean> {
 	try {

@@ -1,5 +1,5 @@
-import ProjectMembership from "../models/projectMembership.js";
 import type { IProject } from "../models/project.js";
+import ProjectMembership from "../models/projectMembership.js";
 import type { IUser } from "../models/user.js";
 
 export const seedProjectMemberships = async (

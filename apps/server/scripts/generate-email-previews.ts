@@ -1,15 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
+import ENV from "../src/config/env";
 import {
 	getPasswordResetEmail,
 	getVerifyEmail,
 	getWelcomeEmail,
 } from "../src/templates/emails";
-import ENV from "../src/config/env";
 import { logger } from "../src/utils/logger";
 
 if (ENV.nodeEnv !== "development") {
-	logger.info("Skipping email preview generation in non-development environment");
+	logger.info(
+		"Skipping email preview generation in non-development environment",
+	);
 	process.exit(0);
 }
 
@@ -30,7 +32,11 @@ const previewData = [
 	},
 	{
 		name: "verify.html",
-		content: getVerifyEmail("TestUser", "https://betalift.com/verify-email?token=123456", "123456"),
+		content: getVerifyEmail(
+			"TestUser",
+			"https://betalift.com/verify-email?token=123456",
+			"123456",
+		),
 	},
 	{
 		name: "reset-password.html",

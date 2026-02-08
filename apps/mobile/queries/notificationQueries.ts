@@ -1,55 +1,57 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import apiClient, { handleApiError } from '../services/api'
+import apiClient, { handleApiError } from "../services/api";
 
 export interface NotificationType {
-	id: string
-	title: string
-	message: string
+	id: string;
+	title: string;
+	message: string;
 	type:
-		| 'project_invite'
-		| 'project_joined'
-		| 'feedback_received'
-		| 'feedback_comment'
-		| 'feedback_status_changed'
-		| 'project_update'
-	data?: any
-	isRead: boolean
-	createdAt: string
+		| "project_invite"
+		| "project_joined"
+		| "feedback_received"
+		| "feedback_comment"
+		| "feedback_status_changed"
+		| "project_update";
+	data?: any;
+	isRead: boolean;
+	createdAt: string;
 }
 
 interface NotificationResponse {
-	notifications: NotificationType[]
+	notifications: NotificationType[];
 	pagination: {
-		page: number
-		limit: number
-		total: number
-		pages: number
-	}
-	unreadCount: number
+		page: number;
+		limit: number;
+		total: number;
+		pages: number;
+	};
+	unreadCount: number;
 }
 
 export const notificationKeys = {
-	all: ['notifications'] as const,
+	all: ["notifications"] as const,
 	list: (filters: Record<string, any>) =>
 		[...notificationKeys.all, filters] as const,
-	detail: (id: string) => [...notificationKeys.all, 'detail', id] as const,
-}
+	detail: (id: string) => [...notificationKeys.all, "detail", id] as const,
+};
 
 // Fetch notifications
-export const useNotifications = (params: { page?: number; isRead?: boolean } = {}) => {
+export const useNotifications = (
+	params: { page?: number; isRead?: boolean } = {},
+) => {
 	return useQuery({
 		queryKey: notificationKeys.list(params),
 		queryFn: async () => {
 			try {
 				const { data } = await apiClient.get<{
-					success: boolean
-					data: NotificationResponse
-				}>('/notifications', {
+					success: boolean;
+					data: NotificationResponse;
+				}>("/notifications", {
 					params,
-				})
-				return data.data
+				});
+				return data.data;
 			} catch (error) {
-				throw new Error(handleApiError(error))
+				throw new Error(handleApiError(error));
 			}
 		},
 	});
@@ -62,12 +64,12 @@ export const useNotification = (id: string) => {
 		queryFn: async () => {
 			try {
 				const { data } = await apiClient.get<{
-					success: boolean
-					data: { notification: NotificationType }
-				}>(`/notifications/${id}`)
-				return data.data.notification
+					success: boolean;
+					data: { notification: NotificationType };
+				}>(`/notifications/${id}`);
+				return data.data.notification;
 			} catch (error) {
-				throw new Error(handleApiError(error))
+				throw new Error(handleApiError(error));
 			}
 		},
 		enabled: !!id,
@@ -80,13 +82,13 @@ export const useMarkNotificationAsRead = () => {
 
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const { data } = await apiClient.patch(`/notifications/${id}/read`)
-			return data
+			const { data } = await apiClient.patch(`/notifications/${id}/read`);
+			return data;
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+			queryClient.invalidateQueries({ queryKey: notificationKeys.all });
 		},
-	})
+	});
 };
 
 // Mark all as read
@@ -95,11 +97,11 @@ export const useMarkAllNotificationsAsRead = () => {
 
 	return useMutation({
 		mutationFn: async () => {
-			const { data } = await apiClient.patch('/notifications/read-all')
-			return data
+			const { data } = await apiClient.patch("/notifications/read-all");
+			return data;
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+			queryClient.invalidateQueries({ queryKey: notificationKeys.all });
 		},
 	});
 };
@@ -110,10 +112,10 @@ export const useDeleteNotification = () => {
 
 	return useMutation({
 		mutationFn: async (id: string) => {
-			await apiClient.delete(`/notifications/${id}`)
+			await apiClient.delete(`/notifications/${id}`);
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+			queryClient.invalidateQueries({ queryKey: notificationKeys.all });
 		},
-	})
+	});
 };

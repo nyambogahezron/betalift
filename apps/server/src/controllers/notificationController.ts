@@ -10,9 +10,9 @@ import { ForbiddenError, NotFoundError } from "../utils/errors";
 // @access  Private
 export const getNotifications = asyncHandler(
 	async (req: AuthenticatedRequest, res: Response) => {
-		const page = parseInt(req.query.page as string, 10) || 1;
+		const page = Number.parseInt(req.query.page as string, 10) || 1;
 		const limit = Math.min(
-			parseInt(req.query.limit as string, 10) || ENV.defaultPageSize,
+			Number.parseInt(req.query.limit as string, 10) || ENV.defaultPageSize,
 			ENV.maxPageSize,
 		);
 		const skip = (page - 1) * limit;

@@ -14,7 +14,6 @@ export interface AuthenticatedSocket extends Socket {
 export const socketAuth = (socket: Socket, next: (err?: Error) => void) => {
 	const jwtSecret = ENV.JWT_SECRET;
 
-
 	if (!jwtSecret) {
 		return next(new Error("Unauthorized: JWT secret not configured"));
 	}
